@@ -9,22 +9,60 @@ namespace MonkeyBot.Modules
     [Group("Roles")]
     public class SelfAssignRolesModule : ModuleBase
     {
-        [Command("Add"), Summary("Addes the specified role.")]
-        public async Task Add([Summary("The role to add.")] [Remainder] IRole role = null)
+        // ~Roles Add -role-
+        [Command("Add"), Summary("Adds the specified role.")]
+        public async Task Add([Summary("The role to add.")] [Remainder] string roleName = null)
         {
+            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).FirstOrDefault();
             var guser = (IGuildUser)Context.User;
-            if (role != null)
+            var botRole = await GetBotRole();
+            if (string.IsNullOrEmpty(roleName))
+            {
+                await ReplyAsync("You need to specify a role you wish to add!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
+            }
+            else if (role == null)
+            {
+                await ReplyAsync("The role you specified is invalid!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
+            }
+            else if (botRole?.Position <= role.Position)
+            {
+                await ReplyAsync("Insufficient permissions!");
+            }
+            else if (guser.RoleIds.Contains(role.Id))
+            {
+                await ReplyAsync("You already have that role");
+            }
+            else
             {
                 await guser.AddRoleAsync(role);
                 await ReplyAsync(string.Format("Role {0} has been added", role.Name));
             }
         }
 
+        // ~Roles Remove -role-
         [Command("Remove"), Summary("Removes the specified role.")]
-        public async Task Remove([Summary("The role to remove.")] [Remainder] IRole role = null)
+        public async Task Remove([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
+            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).FirstOrDefault();
             var guser = (IGuildUser)Context.User;
-            if (role != null && guser.RoleIds.Contains(role.Id))
+            var botRole = await GetBotRole();
+            if (string.IsNullOrEmpty(roleName))
+            {
+                await ReplyAsync("You need to specify a role you wish to remove!");
+            }
+            else if (role == null)
+            {
+                await ReplyAsync("The role you specified is invalid!");
+            }
+            else if (!guser.RoleIds.Contains(role.Id))
+            {
+                await ReplyAsync("You don't have that role");
+            }
+            else if (botRole?.Position <= role.Position)
+            {
+                await ReplyAsync("Insufficient permissions!");
+            }
+            else
             {
                 await guser.RemoveRoleAsync(role);
                 await ReplyAsync(string.Format("Role {0} has been removed", role.Name));
@@ -32,16 +70,15 @@ namespace MonkeyBot.Modules
 
         }
 
-        [Command("list"), Summary("Lists all assignable roles")]
+        // ~Roles List
+        [Command("list"), Summary("Lists all assignable roles that can be mentioned")]
         public async Task List()
         {
-            string allRoles = string.Empty;            
-            var thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id);
-            var ownrole = Context.Guild.Roles.Where(x => x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
-
+            string allRoles = string.Empty;
+            IRole ownrole = await GetBotRole();
             foreach (var role in Context.Guild.Roles)
             {
-                if (role.IsMentionable && role.Name != "everyone" && ownrole.Position > role.Position )
+                if (role.IsMentionable && role.Name != "everyone" && ownrole?.Position > role.Position)
                     allRoles += role.Name + ",";
             }
             allRoles = allRoles.Remove(allRoles.Count() - 1);
@@ -53,16 +90,11 @@ namespace MonkeyBot.Modules
             await ReplyAsync(msg);
         }
 
-        [Command("Ping"), Summary("Pings everyone with the specified role.")]
-        public async Task Ping([Summary("The name of the role to ping.")] [Remainder] IRole role = null)
+        private async Task<IRole> GetBotRole()
         {
-            var guser = (IGuildUser)Context.User;
-
-            if (role == null)
-                role = guser.Guild.Roles.FirstOrDefault();
-            if (role != null)
-                await ReplyAsync(role.Name);
-
-        }
+            var thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id);
+            var ownrole = Context.Guild.Roles.Where(x => x.Permissions.ManageRoles == true &&  x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
+            return ownrole;
+        }       
     }
 }

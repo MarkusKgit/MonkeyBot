@@ -1,6 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
-using System;
+﻿using Discord.Commands;
 using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
