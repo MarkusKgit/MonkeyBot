@@ -37,7 +37,7 @@ public class Program
     private async Task Client_UserJoined(SocketGuildUser arg)
     {
         var channel = arg.Guild.DefaultChannel;
-        await channel.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
+        await channel.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
     }
     
 
