@@ -19,7 +19,8 @@ public class Program
         client = new DiscordSocketClient();
         commands = new CommandService();
 
-        string token = "MzMzOTU5NTcwNDM3MTc3MzU0.DEUP0w.D0OZDsaSJK9U3tnoYTDpveX0zB8";
+        //string token = "MzMzOTU5NTcwNDM3MTc3MzU0.DEUP0w.D0OZDsaSJK9U3tnoYTDpveX0zB8"; // Productive
+        string token = "MzM3MjkyMTYzMjMyNTYzMjA1.DFEvVg.1ZI2GSgHk34aqAbCXhpHuuS5XsQ"; // testing
 
         services = new ServiceCollection()
                 .BuildServiceProvider();
