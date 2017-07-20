@@ -5,29 +5,39 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
+using MonkeyBot.Services;
 
 public class Program
 {
     private CommandService commands;
     private DiscordSocketClient client;
+    private ServiceCollection serviceCollection;
     private IServiceProvider services;
+    
 
     static void Main(string[] args) => new Program().Start().GetAwaiter().GetResult();
 
     public async Task Start()
     {
         client = new DiscordSocketClient();
-        commands = new CommandService();
+        CommandServiceConfig commandConfig = new CommandServiceConfig();
+        commandConfig.CaseSensitiveCommands = false;
+        commandConfig.DefaultRunMode = RunMode.Async;
+        commandConfig.LogLevel = LogSeverity.Error;
+        commandConfig.ThrowOnError = false;        
+        commands = new CommandService(commandConfig);
 
         //string token = "***REMOVED***"; // Productive
         string token = "***REMOVED***"; // testing
 
-        services = new ServiceCollection()
-                .BuildServiceProvider();
+        serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton(new AnnouncementService());
+        services = serviceCollection.BuildServiceProvider();
 
         await InstallCommands();
 
         client.UserJoined += Client_UserJoined;
+        client.Connected += Client_Connected;
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
@@ -35,17 +45,24 @@ public class Program
         await Task.Delay(-1);
     }
 
+    private Task Client_Connected()
+    {
+        Console.WriteLine("Connected");
+        return Task.CompletedTask;
+    }
+
     private async Task Client_UserJoined(SocketGuildUser arg)
     {
         var channel = arg.Guild.DefaultChannel;
         await channel.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
     }
-    
 
+    
     public async Task InstallCommands()
     {
         // Hook the MessageReceived Event into our Command Handler
         client.MessageReceived += HandleCommand;
+        
         // Discover all of the commands in this assembly and load them.
         await commands.AddModulesAsync(Assembly.GetEntryAssembly());
     }
