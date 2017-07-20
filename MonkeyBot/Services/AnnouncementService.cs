@@ -26,9 +26,14 @@ namespace MonkeyBot.Services
             Announcements = new AnnouncementList();
             registry = new Registry();
             JobManager.Initialize(registry);
-            LoadAnnouncements();
+            JobManager.JobEnd += JobManager_JobEnd;
         }
-        
+
+        private void JobManager_JobEnd(JobEndInfo obj)
+        {
+            RemovePastJobs();
+        }
+
         public void AddRecurringAnnouncement(string jobID, string cronExpression, string message)
         {
             if (string.IsNullOrEmpty(jobID))
@@ -39,6 +44,7 @@ namespace MonkeyBot.Services
             var announcement = new RecurringAnnouncement(jobID, cronExpression, message);
             Announcements.Add(announcement);
             AddRecurringJob(announcement);
+            SaveAnnouncements();
         }
         
         private void AddRecurringJob(RecurringAnnouncement announcement)
@@ -58,7 +64,7 @@ namespace MonkeyBot.Services
                   .GetProperty("NextRun", BindingFlags.Public | BindingFlags.Instance)
                   .SetValue(schedule, cnSchedule.GetNextOccurrence(DateTime.Now));
             }
-            SaveAnnouncements();
+            
         }
 
         public void AddSingleAnnouncement(string jobID, DateTime excecutionTime, string message)
@@ -70,23 +76,25 @@ namespace MonkeyBot.Services
             var announcement = new SingleAnnouncement(jobID, excecutionTime, message);
             Announcements.Add(announcement);
             AddSingleJob(announcement);
+            SaveAnnouncements();
         }
 
         private void AddSingleJob(SingleAnnouncement announcement)
         {
             if (AnnouncementMethod == null)
                 return;
-            JobManager.AddJob(() => AnnouncementMethod(announcement.Message), (x) => x.ToRunOnceAt(announcement.ExcecutionTime));
-            SaveAnnouncements();
+            JobManager.AddJob(() => AnnouncementMethod(announcement.Message), (x) => x.WithName(announcement.ID).ToRunOnceAt(announcement.ExcecutionTime));
+            
         }
 
         public void Remove(string ID)
         {
-            var announcement = Announcements.Where(x => x.ID == ID).SingleOrDefault();
+            var announcement = Announcements.Where(x => x.ID.ToLower() == ID.ToLower()).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");            
             Announcements.Remove(announcement);
             JobManager.RemoveJob(ID);
+            SaveAnnouncements();
         }
 
         public DateTime GetNextOccurence(string ID)
@@ -94,8 +102,23 @@ namespace MonkeyBot.Services
             var announcement = Announcements.Where(x => x.ID == ID).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
+            var jobs = JobManager.AllSchedules.ToList();
             var job = JobManager.GetSchedule(ID);
             return job.NextRun;
+        }
+
+        private void RemovePastJobs()
+        {            
+            for (int i = Announcements.Count - 1; i >= 0; i--)
+            {
+                var announcement = Announcements[i];
+                if (announcement is SingleAnnouncement && (announcement as SingleAnnouncement).ExcecutionTime < DateTime.Now)
+                {
+                    Announcements.Remove(announcement);
+                    if (JobManager.GetSchedule(announcement.ID) != null)
+                        JobManager.RemoveJob(announcement.ID);
+                }
+            }
         }
 
         private void BuildJobs()
@@ -117,15 +140,34 @@ namespace MonkeyBot.Services
             XmlSerializer xs = new XmlSerializer(typeof(AnnouncementList));
             var file = File.OpenRead(persistanceFilename);
             Announcements = (AnnouncementList)xs.Deserialize(file);
+            file.Dispose();
+            RemovePastJobs();
             BuildJobs();
         }
 
         public void SaveAnnouncements()
         {
-            XmlSerializer xs = new XmlSerializer(typeof(AnnouncementList));
-            var file = File.Create(persistanceFilename);
-            TextWriter tw = new StreamWriter(file);
-            xs.Serialize(tw, Announcements);          
+            
+            try
+            {
+                XmlSerializer xs = new XmlSerializer(typeof(AnnouncementList));
+                FileStream file;
+                //if (!File.Exists(persistanceFilename))
+                file = File.Create(persistanceFilename);
+                //else
+                //    file = File.OpenWrite(persistanceFilename);
+                using (TextWriter tw = new StreamWriter(file))
+                {
+                    xs.Serialize(tw, Announcements);
+                }
+                file.Dispose();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+             
         }        
     }
 }

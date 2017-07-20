@@ -26,23 +26,31 @@ public class Program
         commandConfig.LogLevel = LogSeverity.Error;
         commandConfig.ThrowOnError = false;        
         commands = new CommandService(commandConfig);
+        commands = new CommandService();
 
         //string token = "MzMzOTU5NTcwNDM3MTc3MzU0.DEUP0w.D0OZDsaSJK9U3tnoYTDpveX0zB8"; // Productive
         string token = "MzM3MjkyMTYzMjMyNTYzMjA1.DFEvVg.1ZI2GSgHk34aqAbCXhpHuuS5XsQ"; // testing
 
-        serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(new AnnouncementService());
+        serviceCollection = new ServiceCollection();        
+        serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService());
         services = serviceCollection.BuildServiceProvider();
 
         await InstallCommands();
 
         client.UserJoined += Client_UserJoined;
         client.Connected += Client_Connected;
+        client.Log += Client_Log;
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
 
         await Task.Delay(-1);
+    }
+
+    private Task Client_Log(LogMessage arg)
+    {
+        Console.WriteLine(arg.Message);
+        return Task.CompletedTask;
     }
 
     private Task Client_Connected()
