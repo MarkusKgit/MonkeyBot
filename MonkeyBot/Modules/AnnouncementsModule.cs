@@ -22,6 +22,12 @@ namespace MonkeyBot.Modules
     [Group("Announcements")]
     public class AnnouncementsModule : ModuleBase
     {
+        public AnnouncementsModule()
+        {
+            var registry = new Registry();
+            JobManager.Initialize(registry);
+        }
+
         // ~Roles Add -role-
         [Command("AddRecurring"), Summary("Adds the specified recurring announcement.")]
         public async Task Add([Summary("The role to add.")] string id, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] [Remainder] string announcement)
@@ -63,7 +69,7 @@ namespace MonkeyBot.Modules
         {
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentException("Please provide an ID");
-            var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = true });
+            var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
             if (cnSchedule == null)
                 throw new ArgumentException("Cron expression is wrong!");
             JobManager.AddJob(job, (x) => x.WithName(id).ToRunEvery(5).Seconds());

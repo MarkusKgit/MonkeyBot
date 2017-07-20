@@ -19,7 +19,8 @@ public class Program
         client = new DiscordSocketClient();
         commands = new CommandService();
 
-        string token = "***REMOVED***";
+        //string token = "***REMOVED***"; // Productive
+        string token = "***REMOVED***"; // testing
 
         services = new ServiceCollection()
                 .BuildServiceProvider();
