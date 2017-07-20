@@ -3,6 +3,7 @@ using Discord.Commands;
 using System.Linq;
 using System.Threading.Tasks;
 using MonkeyBot.Services;
+using MonkeyBot.Announcements;
 
 namespace MonkeyBot.Modules
 {
@@ -15,6 +16,7 @@ namespace MonkeyBot.Modules
         {
             this.announcementService = announcementService;
             announcementService.AnnouncementMethod = PostMessageInInfoChannel;
+            announcementService.LoadAnnouncements();
         }
                 
         [Command("AddRecurring"), Summary("Adds the specified recurring announcement.")]
@@ -42,7 +44,9 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                announcementService.AddRecurringAnnouncement(id, cronExpression, announcement);                
+                announcementService.AddRecurringAnnouncement(id, cronExpression, announcement);
+                var nextRun = announcementService.GetNextOccurence(id);
+                await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
             {
@@ -77,11 +81,36 @@ namespace MonkeyBot.Modules
             try
             {
                 announcementService.AddSingleAnnouncement(id, parsedTime, announcement);
+                var nextRun = announcementService.GetNextOccurence(id);
+                await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        [Command("List"), Summary("Lists all upcoming announcements")]
+        public async Task List()
+        {
+            string message;
+            if (announcementService.Announcements.Count == 0)
+                message = "No upcoming announcements";
+            else
+                message = "The following upcoming announcements exist:";
+            foreach (var announcement in announcementService.Announcements)
+            {
+                var nextRun = announcementService.GetNextOccurence(announcement.ID);
+                if (announcement is RecurringAnnouncement)
+                {
+                    message += Environment.NewLine + string.Format("Recurring announcement with ID: \"{0}\" will run next on {1} with message: \"{2}\"", announcement.ID, nextRun.ToString(), announcement.Message);
+                }
+                else if (announcement is SingleAnnouncement)
+                {
+                    message += Environment.NewLine + string.Format("Single announcement with ID: \"{0}\" will run on {1} with message: \"{2}\"", announcement.ID, nextRun.ToString(), announcement.Message);
+                }
+            }
+            await ReplyAsync(message);
         }
 
         [Command("Remove"), Summary("Removes the job with the specified ID.")]
@@ -96,6 +125,7 @@ namespace MonkeyBot.Modules
             try
             {
                 announcementService.Remove(cleanID);
+                await ReplyAsync("The announcement has been removed!");
             }
             catch (Exception ex)
             {
@@ -114,7 +144,7 @@ namespace MonkeyBot.Modules
             }            
             try
             {
-                var nextRun = announcementService.GetNextOccurence(cleanID);
+                var nextRun = announcementService?.GetNextOccurence(cleanID);
                 await ReplyAsync(nextRun.ToString());
             }
             catch (Exception ex)
