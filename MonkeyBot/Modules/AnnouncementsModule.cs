@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using MonkeyBot.Announcements;
+using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
@@ -8,30 +9,34 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
+    /// <summary>Module that provides support for announcements</summary>
     [Group("Announcements")]
-    [RequireOwner(Group = "Announcements")]
-    [RequireAdmin(Group = "Announcements")]
+    [Name("Announcements")]
+    [MinPermissions(AccessLevel.ServerAdmin)]
+    [RequireContext(ContextType.Guild)]
     public class AnnouncementsModule : ModuleBase
     {
-        private IAnnouncementService announcementService;
+        private IAnnouncementService announcementService; // The Announcementsservice will get injected in CommandHandler
 
-        public AnnouncementsModule(IAnnouncementService announcementService)
+        public AnnouncementsModule(IAnnouncementService announcementService) // Create a constructor for the announcementservice dependency
         {
             this.announcementService = announcementService;
-            announcementService.AnnouncementMethod = PostMessageInInfoChannel;
+            announcementService.AnnouncementMethod = PostMessageInAnnouncementChannelAsync; // Set the method used for broadcasting, otherwise it won't work
             try
             {
-                announcementService.LoadAnnouncements();
+                announcementService.LoadAnnouncements(); // Load stored announcements
             }
             catch (Exception)
             {
                 Console.WriteLine("Announcements could not be loaded");
-            }            
+            }
         }
 
-        [Command("AddRecurring"), Summary("Adds the specified recurring announcement.")]
-        public async Task AddRecurring([Summary("The id of the announcement.")] string id, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
+        [Command("AddRecurring")]
+        [Remarks("Adds the specified recurring announcement.")]
+        public async Task AddRecurringAsync([Summary("The id of the announcement.")] string id, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
         {
+            //Do parameter checks
             if (string.IsNullOrEmpty(id))
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
@@ -47,6 +52,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify a message to announce!");
                 return;
             }
+            // ID must be unique -> check if it already exists
             if (announcementService.Announcements.Where(x => x.ID == id).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -54,6 +60,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
+                // Add the announcement to the Service to activate it
                 announcementService.AddRecurringAnnouncement(id, cronExpression, announcement);
                 var nextRun = announcementService.GetNextOccurence(id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
@@ -64,9 +71,11 @@ namespace MonkeyBot.Modules
             }
         }
 
-        [Command("AddSingle"), Summary("Adds the specified single announcement at the given time.")]
-        public async Task AddSingle([Summary("The id of the announcement.")] string id, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement)
+        [Command("AddSingle")]
+        [Remarks("Adds the specified single announcement at the given time.")]
+        public async Task AddSingleAsync([Summary("The id of the announcement.")] string id, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement)
         {
+            // Do parameter checks
             if (string.IsNullOrEmpty(id))
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
@@ -83,6 +92,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify a message to announce!");
                 return;
             }
+            // ID must be unique -> check if it already exists
             if (announcementService.Announcements.Where(x => x.ID == id).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -90,6 +100,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
+                // Add the announcement to the Service to activate it
                 announcementService.AddSingleAnnouncement(id, parsedTime, announcement);
                 var nextRun = announcementService.GetNextOccurence(id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
@@ -100,8 +111,9 @@ namespace MonkeyBot.Modules
             }
         }
 
-        [Command("List"), Summary("Lists all upcoming announcements")]
-        public async Task List()
+        [Command("List")]
+        [Remarks("Lists all upcoming announcements")]
+        public async Task ListAsync()
         {
             string message;
             if (announcementService.Announcements.Count == 0)
@@ -123,10 +135,11 @@ namespace MonkeyBot.Modules
             await ReplyAsync(message);
         }
 
-        [Command("Remove"), Summary("Removes the job with the specified ID.")]
-        public async Task Remove([Summary("The id of the announcement.")] [Remainder] string id)
+        [Command("Remove")]
+        [Remarks("Removes the announcement with the specified ID.")]
+        public async Task RemoveAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
-            var cleanID = id.Trim('\"');
+            var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (string.IsNullOrEmpty(cleanID))
             {
                 await ReplyAsync("You need to specify the ID of the Announcement you wish to remove!");
@@ -143,10 +156,11 @@ namespace MonkeyBot.Modules
             }
         }
 
-        [Command("NextRun"), Summary("Gets the next execution time of the announcement with the specified ID.")]
-        public async Task NextRun([Summary("The id of the announcement.")] [Remainder] string id)
+        [Command("NextRun")]
+        [Remarks("Gets the next execution time of the announcement with the specified ID.")]
+        public async Task NextRunAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
-            var cleanID = id.Trim('\"');
+            var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (string.IsNullOrEmpty(cleanID))
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
@@ -163,7 +177,8 @@ namespace MonkeyBot.Modules
             }
         }
 
-        public async void PostMessageInInfoChannel(string message)
+        /// <summary>Provides a way to post a message in the current guild's Announcement channel</summary>
+        public async void PostMessageInAnnouncementChannelAsync(string message)
         {
             var allTextChannels = await Context.Guild.GetTextChannelsAsync();
             var announcementChannel = allTextChannels.Where(x => x.Name == "rules_and_info").FirstOrDefault();

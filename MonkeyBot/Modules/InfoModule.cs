@@ -3,18 +3,14 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
+    [Name("Info")]
     public class InfoModule : ModuleBase
     {
-        [Command("say"), Summary("Echos a message.")]
-        public async Task Say([Remainder, Summary("The text to echo")] string echo)
+        [Command("say")]
+        [Remarks("The bot replies with the specified message")]
+        public async Task SayAsync([Remainder, Summary("The text to echo")] string msg)
         {
-            await ReplyAsync(echo);
-        }
-
-        [Command("whoami"), Summary("Tells you who you are")]
-        public async Task WhoAmI()
-        {
-            await ReplyAsync(Context.User.ToString());
+            await ReplyAsync(msg);
         }
     }
 }
