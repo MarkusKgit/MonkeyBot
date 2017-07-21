@@ -44,6 +44,7 @@ namespace MonkeyBot.Common
                 Console.WriteLine("Please enter your testing token: ");
                 token = Console.ReadLine(); // Read the testing bot token from console.
                 config.TestingToken = token;
+                config.Owners = new ulong[] { 327885109560737793 };
 
                 config.SaveJson(); // Save the new configuration object to file.
             }
