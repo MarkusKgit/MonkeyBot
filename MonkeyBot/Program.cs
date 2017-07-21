@@ -1,69 +1,54 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Reflection;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
-using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using MonkeyBot;
+using MonkeyBot.Common;
+using System;
+using System.Threading.Tasks;
 
 public class Program
 {
-    private CommandService commands;
     private DiscordSocketClient client;
-    private IServiceProvider services;
+    private CommandHandler commands;
 
-    static void Main(string[] args) => new Program().Start().GetAwaiter().GetResult();
+    private static void Main(string[] args) => new Program().StartAsync().GetAwaiter().GetResult();
 
-    public async Task Start()
+    public async Task StartAsync()
     {
-        client = new DiscordSocketClient();
-        commands = new CommandService();
+        Configuration.EnsureExists(); // Ensure the configuration file has been created.
 
-        string token = "***REMOVED***";
+        DiscordSocketConfig discordConfig = new DiscordSocketConfig(); //Create a new config for the Discord Client
+        discordConfig.LogLevel = LogSeverity.Error;
+        discordConfig.MessageCacheSize = 400;
+        client = new DiscordSocketClient(discordConfig);    // Create a new instance of DiscordSocketClient with the specified config.
 
-        services = new ServiceCollection()
-                .BuildServiceProvider();
+        client.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
 
-        await InstallCommands();
+        HandleEvents(); //Add Event Handlers
 
-        client.UserJoined += Client_UserJoined;
-
-        await client.LoginAsync(TokenType.Bot, token);
+        await client.LoginAsync(TokenType.Bot, Configuration.Load().ProductiveToken); // Log in to and start the bot client
         await client.StartAsync();
 
-        await Task.Delay(-1);
+        commands = new CommandHandler(); // Initialize the command handler service
+        await commands.InstallAsync(client);
+
+        await Task.Delay(-1); // Prevent the console window from closing.
+    }
+
+    private void HandleEvents()
+    {
+        client.UserJoined += Client_UserJoined;
+        client.Connected += Client_Connected;
+    }
+
+    private Task Client_Connected()
+    {
+        Console.WriteLine("Connected");
+        return Task.CompletedTask;
     }
 
     private async Task Client_UserJoined(SocketGuildUser arg)
     {
         var channel = arg.Guild.DefaultChannel;
-        await channel.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
-    }
-    
-
-    public async Task InstallCommands()
-    {
-        // Hook the MessageReceived Event into our Command Handler
-        client.MessageReceived += HandleCommand;
-        // Discover all of the commands in this assembly and load them.
-        await commands.AddModulesAsync(Assembly.GetEntryAssembly());
-    }
-
-    public async Task HandleCommand(SocketMessage messageParam)
-    {
-        // Don't process the command if it was a System Message
-        var message = messageParam as SocketUserMessage;
-        if (message == null) return;
-        // Create a number to track where the prefix ends and the command begins
-        int argPos = 0;
-        // Determine if the message is a command, based on if it starts with '!' or a mention prefix
-        if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
-        // Create a Command Context
-        var context = new CommandContext(client, message);
-        // Execute the command. (result does not indicate a return value, 
-        // rather an object stating if the command executed successfully)
-        var result = await commands.ExecuteAsync(context, argPos, services);
-        if (!result.IsSuccess)
-            await context.Channel.SendMessageAsync(result.ErrorReason);
+        await channel?.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
     }
 }
