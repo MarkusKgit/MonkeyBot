@@ -5,17 +5,20 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Preconditions
 {
+    /// <summary>
+    /// An attribute that the defines the minimum permission level to be admin
+    /// </summary>
     public class RequireAdminAttribute : PreconditionAttribute
     {
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var caller = context.User as IGuildUser;
             if (caller == null)
-                return new Task<PreconditionResult>(() => PreconditionResult.FromError("User not valid"));
+                return Task.FromResult(PreconditionResult.FromError("User not valid"));
             if (caller.GuildPermissions.Administrator)
-                return new Task<PreconditionResult>(() => PreconditionResult.FromSuccess());
+                return Task.FromResult(PreconditionResult.FromSuccess());
             else
-                return new Task<PreconditionResult>(() => PreconditionResult.FromError("You must be administrator to run this command"));
+                return Task.FromResult(PreconditionResult.FromError("You must be administrator to run this command"));
         }
     }
 }

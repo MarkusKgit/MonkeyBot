@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ArrayOfAnnouncement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Announcement xsi:type="RecurringAnnouncement">
-    <ID>LOD</ID>
-    <Message>@everyone LOD is coming up</Message>
-    <CronExpression>30 19 * * Fri</CronExpression>
-  </Announcement>
-</ArrayOfAnnouncement>

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Serialization;
 
 namespace MonkeyBot.Announcements
 {
-    [XmlInclude(typeof(RecurringAnnouncement))]
-    [XmlInclude(typeof(SingleAnnouncement))]
+    /// <summary>
+    /// Container class for all Announcements
+    /// </summary>
     public class AnnouncementList : List<Announcement>
     {
     }
