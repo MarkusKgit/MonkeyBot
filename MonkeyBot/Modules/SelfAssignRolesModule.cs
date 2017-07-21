@@ -67,7 +67,6 @@ namespace MonkeyBot.Modules
                 await guser.RemoveRoleAsync(role);
                 await ReplyAsync(string.Format("Role {0} has been removed", role.Name));
             }
-
         }
 
         // ~Roles List
@@ -93,8 +92,8 @@ namespace MonkeyBot.Modules
         private async Task<IRole> GetBotRole()
         {
             var thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id);
-            var ownrole = Context.Guild.Roles.Where(x => x.Permissions.ManageRoles == true &&  x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
+            var ownrole = Context.Guild.Roles.Where(x => x.Permissions.ManageRoles == true && x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
             return ownrole;
-        }       
+        }
     }
 }

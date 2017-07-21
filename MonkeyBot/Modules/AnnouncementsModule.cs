@@ -1,13 +1,16 @@
-﻿using System;
-using Discord.Commands;
+﻿using Discord.Commands;
+using MonkeyBot.Announcements;
+using MonkeyBot.Preconditions;
+using MonkeyBot.Services;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MonkeyBot.Services;
-using MonkeyBot.Announcements;
 
 namespace MonkeyBot.Modules
 {
     [Group("Announcements")]
+    [RequireOwner(Group = "Announcements")]
+    [RequireAdmin(Group = "Announcements")]
     public class AnnouncementsModule : ModuleBase
     {
         private IAnnouncementService announcementService;
@@ -16,9 +19,16 @@ namespace MonkeyBot.Modules
         {
             this.announcementService = announcementService;
             announcementService.AnnouncementMethod = PostMessageInInfoChannel;
-            announcementService.LoadAnnouncements();
+            try
+            {
+                announcementService.LoadAnnouncements();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Announcements could not be loaded");
+            }            
         }
-                
+
         [Command("AddRecurring"), Summary("Adds the specified recurring announcement.")]
         public async Task AddRecurring([Summary("The id of the announcement.")] string id, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
         {
@@ -141,7 +151,7 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
                 return;
-            }            
+            }
             try
             {
                 var nextRun = announcementService?.GetNextOccurence(cleanID);
@@ -160,8 +170,5 @@ namespace MonkeyBot.Modules
             if (announcementChannel != null)
                 await announcementChannel.SendMessageAsync(message);
         }
-
     }
-
-    
 }

@@ -1,11 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Reflection;
-using Discord;
-using Discord.WebSocket;
+﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Services;
+using System;
+using System.Reflection;
+using System.Threading.Tasks;
 
 public class Program
 {
@@ -13,25 +13,26 @@ public class Program
     private DiscordSocketClient client;
     private ServiceCollection serviceCollection;
     private IServiceProvider services;
-    
 
-    static void Main(string[] args) => new Program().Start().GetAwaiter().GetResult();
+    private static void Main(string[] args) => new Program().Start().GetAwaiter().GetResult();
 
     public async Task Start()
     {
-        client = new DiscordSocketClient();
+        DiscordSocketConfig discordConfig = new DiscordSocketConfig();
+        discordConfig.LogLevel = LogSeverity.Error;
+        discordConfig.MessageCacheSize = 400;
+        client = new DiscordSocketClient(discordConfig);
         CommandServiceConfig commandConfig = new CommandServiceConfig();
         commandConfig.CaseSensitiveCommands = false;
         commandConfig.DefaultRunMode = RunMode.Async;
         commandConfig.LogLevel = LogSeverity.Error;
-        commandConfig.ThrowOnError = false;        
+        commandConfig.ThrowOnError = true;        
         commands = new CommandService(commandConfig);
-        commands = new CommandService();
 
         //string token = "***REMOVED***"; // Productive
         string token = "***REMOVED***"; // testing
 
-        serviceCollection = new ServiceCollection();        
+        serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService());
         services = serviceCollection.BuildServiceProvider();
 
@@ -39,18 +40,12 @@ public class Program
 
         client.UserJoined += Client_UserJoined;
         client.Connected += Client_Connected;
-        client.Log += Client_Log;
+        client.Log += (l) => Console.Out.WriteLineAsync(l.ToString());
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
 
         await Task.Delay(-1);
-    }
-
-    private Task Client_Log(LogMessage arg)
-    {
-        Console.WriteLine(arg.Message);
-        return Task.CompletedTask;
     }
 
     private Task Client_Connected()
@@ -65,12 +60,11 @@ public class Program
         await channel.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user
     }
 
-    
     public async Task InstallCommands()
     {
         // Hook the MessageReceived Event into our Command Handler
         client.MessageReceived += HandleCommand;
-        
+
         // Discover all of the commands in this assembly and load them.
         await commands.AddModulesAsync(Assembly.GetEntryAssembly());
     }
@@ -86,7 +80,7 @@ public class Program
         if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
         // Create a Command Context
         var context = new CommandContext(client, message);
-        // Execute the command. (result does not indicate a return value, 
+        // Execute the command. (result does not indicate a return value,
         // rather an object stating if the command executed successfully)
         var result = await commands.ExecuteAsync(context, argPos, services);
         if (!result.IsSuccess)
