@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using MonkeyBot;
 using MonkeyBot.Common;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 public class Program
@@ -25,12 +26,12 @@ public class Program
 
         HandleEvents(); //Add Event Handlers
 
-        await client.LoginAsync(TokenType.Bot, Configuration.Load().ProductiveToken); // Log in to and start the bot client
+        await client.LoginAsync(TokenType.Bot, Configuration.Load().TestingToken); // Log in to and start the bot client
         await client.StartAsync();
 
         commands = new CommandHandler(); // Initialize the command handler service
         await commands.InstallAsync(client);
-
+        
         await Task.Delay(-1); // Prevent the console window from closing.
     }
 

@@ -14,11 +14,12 @@ namespace MonkeyBot.Announcements
         {
         }
 
-        public SingleAnnouncement(string id, DateTime executionTime, string message)
+        public SingleAnnouncement(string id, DateTime executionTime, string message, ulong guildID)
         {
             ID = id;
             ExcecutionTime = executionTime;
             Message = message;
+            GuildID = guildID;
         }
     }
 }

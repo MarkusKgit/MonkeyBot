@@ -20,18 +20,9 @@ namespace MonkeyBot.Modules
 
         public AnnouncementsModule(IAnnouncementService announcementService) // Create a constructor for the announcementservice dependency
         {
-            this.announcementService = announcementService;
-            announcementService.AnnouncementMethod = PostMessageInAnnouncementChannelAsync; // Set the method used for broadcasting, otherwise it won't work
-            try
-            {
-                announcementService.LoadAnnouncements(); // Load stored announcements
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Announcements could not be loaded");
-            }
+            this.announcementService = announcementService;            
         }
-
+        
         [Command("AddRecurring")]
         [Remarks("Adds the specified recurring announcement.")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string id, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
@@ -61,7 +52,7 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                announcementService.AddRecurringAnnouncement(id, cronExpression, announcement);
+                announcementService.AddRecurringAnnouncement(id, cronExpression, announcement, Context.Guild.Id);
                 var nextRun = announcementService.GetNextOccurence(id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
@@ -101,7 +92,7 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                announcementService.AddSingleAnnouncement(id, parsedTime, announcement);
+                announcementService.AddSingleAnnouncement(id, parsedTime, announcement, Context.Guild.Id);
                 var nextRun = announcementService.GetNextOccurence(id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }
@@ -175,15 +166,6 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync(ex.Message);
             }
-        }
-
-        /// <summary>Provides a way to post a message in the current guild's Announcement channel</summary>
-        public async void PostMessageInAnnouncementChannelAsync(string message)
-        {
-            var allTextChannels = await Context.Guild.GetTextChannelsAsync();
-            var announcementChannel = allTextChannels.Where(x => x.Name == "rules_and_info").FirstOrDefault();
-            if (announcementChannel != null)
-                await announcementChannel.SendMessageAsync(message);
         }
     }
 }

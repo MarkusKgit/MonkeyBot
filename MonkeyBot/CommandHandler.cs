@@ -28,7 +28,7 @@ namespace MonkeyBot
             commandService = new CommandService(commandConfig);                    // Create a new instance of the commandservice.
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService());
+            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));
             services = serviceCollection.BuildServiceProvider();
 
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.

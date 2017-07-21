@@ -35,7 +35,9 @@ namespace MonkeyBot.Preconditions
             if (c.User.IsBot) // Prevent other bots from executing commands.
                 return AccessLevel.Blocked;
 
-            if (Configuration.Load().Owners.Contains(c.User.Id)) // Give configured owners special access.
+            var config = Configuration.Load();
+            var owners = config.Owners;
+            if (owners != null && owners.Contains(c.User.Id)) // Give configured owners special access.
                 return AccessLevel.BotOwner;
 
             var user = c.User as SocketGuildUser; // Check if the context is in a guild.

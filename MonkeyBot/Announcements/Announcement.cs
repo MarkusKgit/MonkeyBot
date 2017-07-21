@@ -10,5 +10,8 @@
 
         /// <summary>The message that should be broadcasted</summary>
         public string Message { get; set; }
+
+        /// <summary>The ID of the Guild where the message should be broadcasted</summary>
+        public ulong GuildID { get; set; }
     }
 }

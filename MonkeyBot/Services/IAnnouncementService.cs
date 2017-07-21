@@ -9,9 +9,6 @@ namespace MonkeyBot.Services
         /// <summary>Holds all announcements</summary>
         AnnouncementList Announcements { get; }
 
-        // <summary>A method that is used to broadcast the announcement</summary>
-        Action<string> AnnouncementMethod { get; set; }
-
         /// <summary>
         /// A method that will add an announcement that should be broadcasted regularly based on the interval defined by the Cron Expression
         /// It will require a way to schedule to announcement
@@ -19,7 +16,8 @@ namespace MonkeyBot.Services
         /// <param name="ID">The unique ID of the announcement</param>
         /// <param name="cronExpression">The cron expression that defines the broadcast intervall.</param>
         /// <param name="message">The message to be broadcasted</param>
-        void AddRecurringAnnouncement(string ID, string cronExpression, string message);
+        /// <param name="message">The ID of the Guild where the message will be broadcasted</param>
+        void AddRecurringAnnouncement(string ID, string cronExpression, string message, ulong guildID);
 
         /// <summary>
         /// A method that will add an announcement that should be broadcasted once on the provided Execution Time
@@ -28,7 +26,8 @@ namespace MonkeyBot.Services
         /// <param name="ID">The unique ID of the announcement</param>
         /// <param name="excecutionTime">The date and time at which the message should be broadcasted.</param>
         /// <param name="message">The message to be broadcasted</param>
-        void AddSingleAnnouncement(string ID, DateTime excecutionTime, string message);
+        /// <param name="message">The ID of the Guild where the message will be broadcasted</param>
+        void AddSingleAnnouncement(string ID, DateTime excecutionTime, string message, ulong guildID);
 
         /// <summary>A method that provides a way to remove an announcement</summary>
         void Remove(string ID);

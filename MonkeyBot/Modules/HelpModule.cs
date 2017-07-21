@@ -36,7 +36,12 @@ namespace MonkeyBot.Modules
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
                     if (result.IsSuccess)
-                        description += $"{prefix}{cmd.Aliases.First()}{Environment.NewLine}";
+                    {
+                        string parameters = string.Empty;
+                        if (cmd.Parameters != null && cmd.Parameters.Count > 0)
+                            parameters = "*" + cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b)) + "*";
+                        description += $"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}";
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))
@@ -69,7 +74,7 @@ namespace MonkeyBot.Modules
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),
-                Description = $"Here are some commands like **{command}**"
+                Description = $"These are the commands like **{command}**:"
             };
 
             foreach (var match in result.Commands)
