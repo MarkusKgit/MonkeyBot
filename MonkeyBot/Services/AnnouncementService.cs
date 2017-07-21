@@ -1,19 +1,17 @@
 ﻿using FluentScheduler;
+using MonkeyBot.Announcements;
 using NCrontab;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using MonkeyBot.Announcements;
-
-using System.Collections.Generic;
 using System.Xml.Serialization;
-using System.IO;
 
 namespace MonkeyBot.Services
 {
     public class AnnouncementService : IAnnouncementService
     {
-        const string persistanceFilename = "announcements.xml";
+        private const string persistanceFilename = "announcements.xml";
 
         private Registry registry;
 
@@ -46,11 +44,11 @@ namespace MonkeyBot.Services
             AddRecurringJob(announcement);
             SaveAnnouncements();
         }
-        
+
         private void AddRecurringJob(RecurringAnnouncement announcement)
         {
             if (AnnouncementMethod == null)
-                return;
+                throw new Exception("Announcement method has to be set first!");
             JobManager.AddJob(() => AnnouncementMethod(announcement.Message), (x) => x.WithName(announcement.ID).ToRunEvery(5).Seconds());
             var schedule = JobManager.AllSchedules.Where(x => x.Name == announcement.ID).FirstOrDefault();
             var cnSchedule = CrontabSchedule.Parse(announcement.CronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
@@ -64,7 +62,6 @@ namespace MonkeyBot.Services
                   .GetProperty("NextRun", BindingFlags.Public | BindingFlags.Instance)
                   .SetValue(schedule, cnSchedule.GetNextOccurrence(DateTime.Now));
             }
-            
         }
 
         public void AddSingleAnnouncement(string jobID, DateTime excecutionTime, string message)
@@ -84,14 +81,13 @@ namespace MonkeyBot.Services
             if (AnnouncementMethod == null)
                 return;
             JobManager.AddJob(() => AnnouncementMethod(announcement.Message), (x) => x.WithName(announcement.ID).ToRunOnceAt(announcement.ExcecutionTime));
-            
         }
 
         public void Remove(string ID)
         {
             var announcement = Announcements.Where(x => x.ID.ToLower() == ID.ToLower()).SingleOrDefault();
             if (announcement == null)
-                throw new ArgumentException("The announcement with the specified ID does not exist");            
+                throw new ArgumentException("The announcement with the specified ID does not exist");
             Announcements.Remove(announcement);
             JobManager.RemoveJob(ID);
             SaveAnnouncements();
@@ -108,7 +104,7 @@ namespace MonkeyBot.Services
         }
 
         private void RemovePastJobs()
-        {            
+        {
             for (int i = Announcements.Count - 1; i >= 0; i--)
             {
                 var announcement = Announcements[i];
@@ -147,15 +143,11 @@ namespace MonkeyBot.Services
 
         public void SaveAnnouncements()
         {
-            
             try
             {
                 XmlSerializer xs = new XmlSerializer(typeof(AnnouncementList));
                 FileStream file;
-                //if (!File.Exists(persistanceFilename))
                 file = File.Create(persistanceFilename);
-                //else
-                //    file = File.OpenWrite(persistanceFilename);
                 using (TextWriter tw = new StreamWriter(file))
                 {
                     xs.Serialize(tw, Announcements);
@@ -164,10 +156,9 @@ namespace MonkeyBot.Services
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
                 throw;
             }
-             
-        }        
+        }
     }
 }
