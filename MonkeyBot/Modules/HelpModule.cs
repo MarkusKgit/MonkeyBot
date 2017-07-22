@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
         [Command("help")]
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
-        {
+        {            
             string prefix = Configuration.Load().Prefix;
             var builder = new EmbedBuilder()
             {
@@ -54,8 +54,7 @@ namespace MonkeyBot.Modules
                     });
                 }
             }
-
-            await ReplyAsync("", false, builder.Build());
+            await Context.User.SendMessageAsync("", false, builder.Build());
         }
 
         [Command("help")]
@@ -66,7 +65,7 @@ namespace MonkeyBot.Modules
 
             if (!result.IsSuccess)
             {
-                await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                await Context.User.SendMessageAsync($"Sorry, I couldn't find a command like **{command}**.");
                 return;
             }
 
@@ -89,8 +88,7 @@ namespace MonkeyBot.Modules
                     x.IsInline = false;
                 });
             }
-
-            await ReplyAsync("", false, builder.Build());
+            await Context.User.SendMessageAsync("", false, builder.Build());
         }
     }
 }
