@@ -15,6 +15,11 @@ namespace MonkeyBot.Preconditions
     {
         private AccessLevel level;
 
+        public AccessLevel AccessLevel
+        {
+            get { return level; }
+        }
+
         public MinPermissionsAttribute(AccessLevel level)
         {
             this.level = level;

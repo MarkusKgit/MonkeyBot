@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique -> check if it already exists
-            if (announcementService.Announcements.Where(x => x.ID == id).Count() > 0)
+            if (announcementService.Announcements.Where(x => x.ID == id && x.GuildID == Context.Guild.Id).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 announcementService.AddRecurringAnnouncement(id, cronExpression, announcement, Context.Guild.Id);
-                var nextRun = announcementService.GetNextOccurence(id);
+                var nextRun = announcementService.GetNextOccurence(id, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
@@ -84,7 +84,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique -> check if it already exists
-            if (announcementService.Announcements.Where(x => x.ID == id).Count() > 0)
+            if (announcementService.Announcements.Where(x => x.ID == id && x.GuildID == Context.Guild.Id).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
@@ -93,7 +93,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 announcementService.AddSingleAnnouncement(id, parsedTime, announcement, Context.Guild.Id);
-                var nextRun = announcementService.GetNextOccurence(id);
+                var nextRun = announcementService.GetNextOccurence(id, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
@@ -113,7 +113,7 @@ namespace MonkeyBot.Modules
                 message = "The following upcoming announcements exist:";
             foreach (var announcement in announcementService.Announcements)
             {
-                var nextRun = announcementService.GetNextOccurence(announcement.ID);
+                var nextRun = announcementService.GetNextOccurence(announcement.ID, Context.Guild.Id);
                 if (announcement is RecurringAnnouncement)
                 {
                     message += Environment.NewLine + string.Format("Recurring announcement with ID: \"{0}\" will run next on {1} with message: \"{2}\"", announcement.ID, nextRun.ToString(), announcement.Message);
@@ -138,7 +138,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                announcementService.Remove(cleanID);
+                announcementService.Remove(cleanID, Context.Guild.Id);
                 await ReplyAsync("The announcement has been removed!");
             }
             catch (Exception ex)
@@ -159,7 +159,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                var nextRun = announcementService?.GetNextOccurence(cleanID);
+                var nextRun = announcementService?.GetNextOccurence(cleanID, Context.Guild.Id);
                 await ReplyAsync(nextRun.ToString());
             }
             catch (Exception ex)

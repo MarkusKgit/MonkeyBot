@@ -30,14 +30,13 @@ namespace MonkeyBot.Services
         void AddSingleAnnouncement(string ID, DateTime excecutionTime, string message, ulong guildID);
 
         /// <summary>A method that provides a way to remove an announcement</summary>
-        void Remove(string ID);
+        void Remove(string announcementID, ulong guildID);
 
         /// <summary>
         /// A method that returns the next execution time of the announcement with the provided ID
         /// </summary>
-        /// <param name="ID">The unique ID of the announcement</param>
         /// <returns>Next execution time</returns>
-        DateTime GetNextOccurence(string ID);
+        DateTime GetNextOccurence(string announcementID, ulong guildID);
 
         /// <summary>A method that provides a way to load persisted announcements</summary>
         void LoadAnnouncements();

@@ -17,6 +17,11 @@ namespace MonkeyBot
         private CommandService commandService;
         private IServiceProvider services;
 
+        public CommandService CommandService
+        {
+            get { return commandService; }
+        }
+
         public async Task InstallAsync(DiscordSocketClient client)
         {
             this.client = client;                                                 // Save an instance of the discord client.

@@ -111,32 +111,33 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Removes the announcement with the provided ID from the list of announcements if it exists
         /// </summary>
-        /// <param name="ID">The unique ID of the announcement to remove</param>
-        public void Remove(string ID)
+        /// <param name="announcementID">The unique ID of the announcement to remove</param>
+        /// <param name="guildID">The ID of the guild where the announcement should be removed</param>
+        public void Remove(string announcementID, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = Announcements.Where(x => x.ID.ToLower() == ID.ToLower()).SingleOrDefault();
+            var announcement = Announcements.Where(x => x.ID.ToLower() == announcementID.ToLower() && x.GuildID == guildID).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             // Remove the announcement and persist the changes
             Announcements.Remove(announcement);
-            JobManager.RemoveJob(ID);
+            JobManager.RemoveJob(announcementID);
             SaveAnnouncements();
         }
 
         /// <summary>
         /// Returns the next execution time of the announcement with the provided ID
         /// </summary>
-        /// <param name="ID">The unique ID of the announcement</param>
+        /// <param name="announcementID">The unique ID of the announcement</param>
         /// <returns>Next execution time</returns>
-        public DateTime GetNextOccurence(string ID)
+        public DateTime GetNextOccurence(string announcementID, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = Announcements.Where(x => x.ID == ID).SingleOrDefault();
+            var announcement = Announcements.Where(x => x.ID == announcementID && x.GuildID == guildID).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             var jobs = JobManager.AllSchedules.ToList();
-            var job = JobManager.GetSchedule(ID);
+            var job = JobManager.GetSchedule(announcementID);
             return job.NextRun;
         }
 
