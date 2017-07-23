@@ -24,7 +24,25 @@ namespace MonkeyBot
                     if (precondition is MinPermissionsAttribute)
                         preconditions.Add($"Minimum permission: <em>{(precondition as MinPermissionsAttribute).AccessLevel.ToString()}</em>");
                     else if (precondition is RequireContextAttribute)
-                        preconditions.Add($"Can only be used in a <em>{(precondition as RequireContextAttribute).Contexts.ToString()}</em> context");
+                    {
+                        string context = string.Empty;
+                        var contextAttribute = precondition as RequireContextAttribute;
+                        switch (contextAttribute.Contexts)
+                        {
+                            case ContextType.Guild:
+                                context = "channel";
+                                break;
+                            case ContextType.DM:
+                                context = "private message";
+                                break;
+                            case ContextType.Group:
+                                context = "private group";
+                                break;
+                            default:
+                                break;
+                        }
+                        preconditions.Add($"Can only be used in a <em>{context}</em> context");
+                    }
                     else
                         preconditions.Add(precondition.ToString());
                 }
