@@ -11,42 +11,39 @@ namespace MonkeyBot
 {
     public static class DocumentationBuilder
     {
-        public static void BuildHtmlDocumentation(CommandService commandService)
+        public static string BuildHtmlDocumentation(CommandService commandService)
         {
             string prefix = Configuration.Load().Prefix;
             StringBuilder builder = new StringBuilder();
             
             foreach (var module in commandService.Modules)
             {
-                string preconditions = string.Empty;
+                List<string> preconditions = new List<string>();
                 foreach (var precondition in module.Preconditions)
                 {
                     if (precondition is MinPermissionsAttribute)
-                        preconditions += (precondition as MinPermissionsAttribute).AccessLevel.ToString();
+                        preconditions.Add($"Minimum permission: <em>{(precondition as MinPermissionsAttribute).AccessLevel.ToString()}</em>");
+                    else if (precondition is RequireContextAttribute)
+                        preconditions.Add($"Can only be used in a <em>{(precondition as RequireContextAttribute).Contexts.ToString()}</em> context");
+                    else
+                        preconditions.Add(precondition.ToString());
                 }
-                builder.AppendLine($"<strong><ul>Module: {module.Name}</ul></strong>");
-                if (!string.IsNullOrEmpty(preconditions))
-                    builder.AppendLine($"Preconditions: {preconditions}");
-                //string description = null;
-                //foreach (var cmd in module.Commands)
-                //{
-                //    string parameters = string.Empty;
-                //    if (cmd.Parameters != null && cmd.Parameters.Count > 0)
-                //        parameters = "*" + cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b)) + "*";
-                //    description += $"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}";
-                //}
-
-                //if (!string.IsNullOrWhiteSpace(description))
-                //{
-                //    builder.AddField(x =>
-                //    {
-                //        x.Name = module.Name;
-                //        x.Value = description;
-                //        x.IsInline = false;
-                //    });
-                //}
-            }
-            var result = builder.ToString();
+                builder.AppendLine($"<strong>Module: {module.Name}</strong>");
+                if (preconditions.Count > 0)
+                    builder.AppendLine($"Preconditions: {string.Join(", ", preconditions)}");                
+                foreach (var cmd in module.Commands)
+                {
+                    
+                    string parameters = string.Empty;
+                    if (cmd.Parameters != null && cmd.Parameters.Count > 0)
+                        parameters = $"<em>{cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b))}</em>";
+                    builder.AppendLine($"<strong>{prefix}{cmd.Aliases.First()}</strong>  {parameters}");
+                    if (!string.IsNullOrEmpty(cmd.Remarks))
+                        builder.AppendLine(cmd.Remarks);
+                }
+                builder.AppendLine("");                               
+            }            
+            return builder.ToString();
         }
     }
 }

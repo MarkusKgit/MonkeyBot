@@ -14,10 +14,11 @@ namespace MonkeyBot.Modules
     /// Provides admin level commands
     /// </summary>
     [MinPermissions(AccessLevel.ServerAdmin)]
+    [Name("Admin Commands")]
     public class AdminModule : ModuleBase
     {
         [Command("AddOwner")]
-        [Remarks("Adds the specified user to the owners")]
+        [Remarks("Adds the specified user to the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
         public async Task AddOwner([Summary("The name of the user to add")] string username)
         {
@@ -44,7 +45,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("RemoveOwner")]
-        [Remarks("Removes the specified user from the owners")]
+        [Remarks("Removes the specified user from the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
         public async Task RemoveOwner([Summary("The name of the user to remove")] string username)
         {
