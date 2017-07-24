@@ -25,22 +25,22 @@ namespace MonkeyBot.Preconditions
             this.level = level;
         }
 
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+        public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var access = GetPermission(context); // Get the acccesslevel for this context
+            var access = await GetPermission(context); // Get the acccesslevel for this context
 
             if (access >= level) // If the user's access level is greater than the required level, return success.
-                return Task.FromResult(PreconditionResult.FromSuccess());
+                return PreconditionResult.FromSuccess();
             else
-                return Task.FromResult(PreconditionResult.FromError("Insufficient permissions."));
+                return PreconditionResult.FromError("Insufficient permissions");
         }
 
-        public AccessLevel GetPermission(ICommandContext c)
+        public async Task<AccessLevel> GetPermission(ICommandContext c)
         {
             if (c.User.IsBot) // Prevent other bots from executing commands.
                 return AccessLevel.Blocked;
 
-            var config = Configuration.Load();
+            var config = await Configuration.LoadAsync();
             var owners = config.Owners;
             if (owners != null && owners.Contains(c.User.Id)) // Give configured owners special access.
                 return AccessLevel.BotOwner;

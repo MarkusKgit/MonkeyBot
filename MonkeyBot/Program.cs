@@ -16,7 +16,7 @@ public class Program
 
     public async Task StartAsync()
     {
-        Configuration.EnsureExists(); // Ensure the configuration file has been created.
+        await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
         DiscordSocketConfig discordConfig = new DiscordSocketConfig(); //Create a new config for the Discord Client
         discordConfig.LogLevel = LogSeverity.Error;
@@ -27,16 +27,16 @@ public class Program
 
         HandleEvents(); //Add Event Handlers
 
-        await client.LoginAsync(TokenType.Bot, Configuration.Load().ProductiveToken); // Log in to and start the bot client
+        await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken); // Log in to and start the bot client
         await client.StartAsync();
 
         commands = new CommandHandler(); // Initialize the command handler service
         await commands.InstallAsync(client);
 
-        string docu = DocumentationBuilder.BuildHtmlDocumentation(commands.CommandService);
+        string docu = await DocumentationBuilder.BuildHtmlDocumentationAsync(commands.CommandService);
         string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");
-        File.WriteAllText(file, docu);
-
+        await Helpers.WriteTextAsync(file, docu);
+        
         await Task.Delay(-1); // Prevent the console window from closing.
     }
 
@@ -46,10 +46,9 @@ public class Program
         client.Connected += Client_Connected;
     }
 
-    private Task Client_Connected()
+    private async Task Client_Connected()
     {
-        Console.WriteLine("Connected");
-        return Task.CompletedTask;
+        await Console.Out.WriteLineAsync("Connected");        
     }
 
     private async Task Client_UserJoined(SocketGuildUser arg)

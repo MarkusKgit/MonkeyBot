@@ -52,13 +52,13 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                announcementService.AddRecurringAnnouncement(id, cronExpression, announcement, Context.Guild.Id);
+                await announcementService.AddRecurringAnnouncementAsync(id, cronExpression, announcement, Context.Guild.Id);
                 var nextRun = announcementService.GetNextOccurence(id, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine(ex.Message);
+                await Console.Out.WriteLineAsync(ex.Message);
             }
         }
 
@@ -92,13 +92,13 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                announcementService.AddSingleAnnouncement(id, parsedTime, announcement, Context.Guild.Id);
+                await announcementService.AddSingleAnnouncementAsync(id, parsedTime, announcement, Context.Guild.Id);
                 var nextRun = announcementService.GetNextOccurence(id, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine(ex.Message);
+                await Console.Out.WriteLineAsync(ex.Message);
             }
         }
 
@@ -138,7 +138,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                announcementService.Remove(cleanID, Context.Guild.Id);
+                await announcementService.RemoveAsync(cleanID, Context.Guild.Id);
                 await ReplyAsync("The announcement has been removed!");
             }
             catch (Exception ex)

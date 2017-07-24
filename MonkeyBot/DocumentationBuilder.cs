@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MonkeyBot.Preconditions;
+using System.Threading.Tasks;
 
 namespace MonkeyBot
 {
     public static class DocumentationBuilder
     {
-        public static string BuildHtmlDocumentation(CommandService commandService)
+        public static async Task<string> BuildHtmlDocumentationAsync(CommandService commandService)
         {
-            string prefix = Configuration.Load().Prefix;
+            string prefix = (await Configuration.LoadAsync()).Prefix;
             StringBuilder builder = new StringBuilder();
             
             foreach (var module in commandService.Modules)
@@ -41,7 +42,7 @@ namespace MonkeyBot
                             default:
                                 break;
                         }
-                        preconditions.Add($"Can only be used in a <em>{context}</em> context");
+                        preconditions.Add($"Can only be used in a <em>{context}</em>");
                     }
                     else
                         preconditions.Add(precondition.ToString());
@@ -50,8 +51,7 @@ namespace MonkeyBot
                 if (preconditions.Count > 0)
                     builder.AppendLine($"Preconditions: {string.Join(", ", preconditions)}");                
                 foreach (var cmd in module.Commands)
-                {
-                    
+                {                    
                     string parameters = string.Empty;
                     if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                         parameters = $"<em>{cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b))}</em>";

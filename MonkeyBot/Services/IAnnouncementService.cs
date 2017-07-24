@@ -1,5 +1,6 @@
 ﻿using MonkeyBot.Announcements;
 using System;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -17,7 +18,7 @@ namespace MonkeyBot.Services
         /// <param name="cronExpression">The cron expression that defines the broadcast intervall.</param>
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="message">The ID of the Guild where the message will be broadcasted</param>
-        void AddRecurringAnnouncement(string ID, string cronExpression, string message, ulong guildID);
+        Task AddRecurringAnnouncementAsync(string ID, string cronExpression, string message, ulong guildID);
 
         /// <summary>
         /// A method that will add an announcement that should be broadcasted once on the provided Execution Time
@@ -27,10 +28,10 @@ namespace MonkeyBot.Services
         /// <param name="excecutionTime">The date and time at which the message should be broadcasted.</param>
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="message">The ID of the Guild where the message will be broadcasted</param>
-        void AddSingleAnnouncement(string ID, DateTime excecutionTime, string message, ulong guildID);
+        Task AddSingleAnnouncementAsync(string ID, DateTime excecutionTime, string message, ulong guildID);
 
         /// <summary>A method that provides a way to remove an announcement</summary>
-        void Remove(string announcementID, ulong guildID);
+        Task RemoveAsync(string announcementID, ulong guildID);
 
         /// <summary>
         /// A method that returns the next execution time of the announcement with the provided ID
@@ -39,9 +40,9 @@ namespace MonkeyBot.Services
         DateTime GetNextOccurence(string announcementID, ulong guildID);
 
         /// <summary>A method that provides a way to load persisted announcements</summary>
-        void LoadAnnouncements();
+        Task LoadAnnouncementsAsync();
 
         /// <summary>A method that provides a way to persist announcements</summary>
-        void SaveAnnouncements();
+        Task SaveAnnouncementsAsync();
     }
 }

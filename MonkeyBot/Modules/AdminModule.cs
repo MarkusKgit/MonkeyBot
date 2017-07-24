@@ -30,13 +30,13 @@ namespace MonkeyBot.Modules
             else
             {
                 var userToAdd = match.First();
-                var config = Configuration.Load();
+                var config = await Configuration.LoadAsync();
                 var owners = config.Owners.ToList();
                 if (!owners.Contains(userToAdd.Id))
                 {
                     owners.Add(userToAdd.Id);
                     config.Owners = owners.ToArray();
-                    config.SaveJson();
+                    await config.SaveJsonAsync();
                     await ReplyAsync($"{userToAdd.Username} has been added to the list of bot owners!");
                 }
                 else
@@ -57,13 +57,13 @@ namespace MonkeyBot.Modules
             else
             {
                 var userToRemove = match.First();
-                var config = Configuration.Load();
+                var config = await Configuration.LoadAsync();
                 var owners = config.Owners.ToList();
                 if (owners.Contains(userToRemove.Id))
                 {
                     owners.Remove(userToRemove.Id);
                     config.Owners = owners.ToArray();
-                    config.SaveJson();
+                    await config.SaveJsonAsync();
                     await ReplyAsync($"{userToRemove.Username} has been removed from the list of bot owners!");
                 }
                 else

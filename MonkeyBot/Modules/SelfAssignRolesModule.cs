@@ -3,6 +3,7 @@ using Discord.Commands;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -82,19 +83,18 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all roles that can be mentioned and assigned.")]
         public async Task ListAsync()
         {
-            string allRoles = string.Empty;
+            List<string> allRoles = new List<string>();
             // Get the role of the bot with permission manage roles
             IRole botRole = await Helpers.GetBotRoleAsync(Context);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             foreach (var role in Context.Guild.Roles)
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
-                    allRoles += role.Name + ",";
-            }
-            allRoles = allRoles.Remove(allRoles.Count() - 1); // remove the last comma
+                    allRoles.Add(role.Name);
+            }            
             string msg;
-            if (allRoles != string.Empty)
-                msg = "The following mentionable roles exist:" + Environment.NewLine + allRoles;
+            if (allRoles.Count > 0)
+                msg = "The following mentionable roles exist:" + Environment.NewLine + string.Join(", ", allRoles);
             else
                 msg = "Now assignable roles exist!";
             await ReplyAsync(msg);

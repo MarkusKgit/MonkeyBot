@@ -50,7 +50,7 @@ namespace MonkeyBot
             var context = new SocketCommandContext(client, msg);     // Create a new command context.
 
             int argPos = 0;                                           // Check if the message has either a string or mention prefix.
-            if (msg.HasStringPrefix(Configuration.Load().Prefix, ref argPos) ||
+            if (msg.HasStringPrefix((await Configuration.LoadAsync()).Prefix, ref argPos) ||
                 msg.HasMentionPrefix(client.CurrentUser, ref argPos))
             {                                                         // Try and execute a command with the given context.
                 var result = await commandService.ExecuteAsync(context, argPos, services);
