@@ -56,7 +56,12 @@ namespace MonkeyBot
                 var result = await commandService.ExecuteAsync(context, argPos, services);
 
                 if (!result.IsSuccess)                                // If execution failed, reply with the error message.
-                    await context.Channel.SendMessageAsync(result.ToString());
+                {
+                    if (result.Error.HasValue && result.Error.Value == CommandError.UnknownCommand)
+                        await context.Channel.SendMessageAsync($"Command *{msg.Content.Substring(argPos)}* was not found. Type !help to get a list of commands");
+                    else                    
+                        await context.Channel.SendMessageAsync(result.ToString());
+                }  
             }
         }
     }
