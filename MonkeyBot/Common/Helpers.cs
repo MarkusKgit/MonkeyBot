@@ -20,7 +20,7 @@ namespace MonkeyBot.Common
         /// <summary>Writes the specified string to a textfile asynchronously</summary>
         public static async Task WriteTextAsync(string filePath, string text, bool append = false)
         {
-            byte[] encodedText = Encoding.Unicode.GetBytes(text);
+            byte[] encodedText = Encoding.UTF8.GetBytes(text);
 
             using (FileStream sourceStream = new FileStream(
                 filePath,
@@ -48,7 +48,7 @@ namespace MonkeyBot.Common
                 int numRead;
                 while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                 {
-                    string text = Encoding.Unicode.GetString(buffer, 0, numRead);
+                    string text = Encoding.UTF8.GetString(buffer, 0, numRead);
                     sb.Append(text);
                 }
                 return sb.ToString();
