@@ -17,6 +17,7 @@ namespace MonkeyBot.Modules
     {
         [Command("Poll")]
         [Alias("Vote")]
+        [Priority(1)]
         [Remarks("Starts a new poll with the specified question and automatically adds reactions")]
         [MinPermissions(AccessLevel.BotOwner)]
         [RequireContext(ContextType.Guild)]
@@ -28,20 +29,20 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question");
                 return;
             }            
-            if (!question.EndsWith("?"))
-                question += "?";
+            
             var msg = await Context.Channel.SendMessageAsync(question);
             if (msg != null)
-            {
-                await msg.AddReactionAsync(Emote.Parse("<:yes:>"));
-                await msg.AddReactionAsync(Emote.Parse("<:no:>"));
-                await msg.AddReactionAsync(Emote.Parse("<:shrug:>"));
+            {                
+                await msg.AddReactionAsync(new Emoji("👍"));
+                await msg.AddReactionAsync(new Emoji("👎"));
+                await msg.AddReactionAsync(new Emoji("🤷"));
             }
         }
 
         [Command("Poll")]
         [Alias("Vote")]
-        [Remarks("Starts a new poll with the specified question and answers and automatically adds reactions")]
+        [Priority(2)]
+        [Remarks("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
         [MinPermissions(AccessLevel.BotOwner)]
         [RequireContext(ContextType.Guild)]
         public async Task Vote([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
@@ -57,14 +58,12 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question");
                 return;
             }
-            if (!question.EndsWith("?"))
-                question += "?";
+            
             StringBuilder builder = new StringBuilder();
             builder.AppendLine(question);
-            int indexOfA = (int)char.ToUpper('A');
             for (int i = 0; i < answers.Length; i++)
             {
-                char reactionLetter = (char)(indexOfA + i);
+                char reactionLetter = (char)('A' + i);
                 builder.AppendLine($"{reactionLetter}: {answers[i]}");
             }
             var msg = await Context.Channel.SendMessageAsync(builder.ToString());
@@ -72,10 +71,29 @@ namespace MonkeyBot.Modules
             {
                 for (int i = 0; i < answers.Length; i++)
                 {
-                    char reactionLetter = (char)(indexOfA + i);
-                    await msg.AddReactionAsync(Emote.Parse($"<:{reactionLetter}:>"));
+                    await msg.AddReactionAsync(new Emoji(GetUnicodeRegionalLetter(i)));
                 }                
             }
+        }
+
+        private string GetUnicodeRegionalLetter(int index)
+        {
+            if (index == 0)
+                return "🇦";
+            else if (index == 1)
+                return "🇧";
+            else if (index == 2)
+                return "🇨";
+            else if (index == 3)
+                return "🇩";
+            else if (index == 4)
+                return "🇪";
+            else if (index == 5)
+                return "🇫";
+            else if (index == 6)
+                return "🇬";
+            else
+                return "";
         }
     }
 }
