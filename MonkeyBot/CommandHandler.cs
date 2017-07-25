@@ -16,6 +16,7 @@ namespace MonkeyBot
         private DiscordSocketClient client;
         private CommandService commandService;
         private IServiceProvider services;
+        private ITriviaService triviaService;
 
         public CommandService CommandService
         {
@@ -33,7 +34,8 @@ namespace MonkeyBot
             commandService = new CommandService(commandConfig);                    // Create a new instance of the commandservice.
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));
+            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));            
+            serviceCollection.AddSingleton<ITriviaService>(new OTDBTriviaService(client));
             services = serviceCollection.BuildServiceProvider();
 
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
@@ -62,7 +64,7 @@ namespace MonkeyBot
                     else                    
                         await context.Channel.SendMessageAsync(result.ToString());
                 }  
-            }
+            }            
         }
     }
 }
