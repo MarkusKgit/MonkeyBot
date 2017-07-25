@@ -6,7 +6,7 @@ namespace MonkeyBot.Services
 {
     public interface ITriviaService
     {
-        IDictionary<ulong, int> UserScoresAllTime { get; }
+        IDictionary<ulong, Dictionary<ulong, int>> UserScoresAllTime { get; }
 
         IEnumerable<IQuestion> Questions { get; }
 
