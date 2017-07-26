@@ -22,18 +22,17 @@ namespace MonkeyBot.Modules
 
         [Command("Start")]
         [Remarks("Starts a new trivia with the specified amount of questions.")]
-        public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questions = 10)
+        public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questionAmount = 10)
         {
-            await triviaService.StartAsync(questions, Context.Guild.Id, Context.Channel.Id);
+            if (!await triviaService?.StartAsync(questionAmount, Context.Guild.Id, Context.Channel.Id))
+                await ReplyAsync("Trivia could not be started :(");
         }
 
         [Command("Stop")]
         [Remarks("Stops a running trivia")]
         public async Task StopTriviaAsync()
         {
-            if (triviaService.Status == TriviaStatus.Running)
-                await triviaService.StopAsync();
-            else
+            if (!(await triviaService?.StopAsync(Context.Guild.Id, Context.Channel.Id)))
                 await ReplyAsync($"No trivia is running! Use {(await Configuration.LoadAsync())?.Prefix}trivia start to create a new one.");
         }
 
@@ -41,17 +40,17 @@ namespace MonkeyBot.Modules
         [Remarks("Skips the current question")]
         public async Task SkipQuestionAsync()
         {
-            if (triviaService.Status == TriviaStatus.Running)
-                await triviaService?.SkipQuestionAsync();
-            else
+            if (!(await triviaService?.SkipQuestionAsync(Context.Guild.Id, Context.Channel.Id)))
                 await ReplyAsync($"No trivia is running! Use {(await Configuration.LoadAsync())?.Prefix}trivia start to create a new one.");
         }
 
         [Command("Scores")]
         [Remarks("Gets the global scores")]
-        public async Task GetScoresAsync([Summary("The amount of scores to get.")] int scores = 5)
+        public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            await ReplyAsync(await triviaService?.GetAllTimeHighScoresAsync(scores));
+            string scores = await triviaService?.GetAllTimeHighScoresAsync(amount, Context.Guild.Id);
+            if (!string.IsNullOrEmpty(scores))
+                await ReplyAsync(scores);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                 Description = "These are the are all the game roles and the users assigned to them:"
             };
             // Get the role of the bot with permission manage roles
-            IRole botRole = await Helpers.GetBotRoleAsync(Context);
+            IRole botRole = await Helpers.GetManageRolesRoleAsync(Context);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             var guildUsers = await Context.Guild.GetUsersAsync();
             foreach (var role in Context.Guild.Roles)

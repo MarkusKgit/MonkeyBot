@@ -3,278 +3,136 @@ using Discord.WebSocket;
 using MonkeyBot.Common;
 using MonkeyBot.Trivia;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
+    /// <summary>
+    /// Service that handles Trivias on a per guild and channel basis
+    /// Uses Open Trivia database https://opentdb.com
+    /// </summary>
     public class OTDBTriviaService : ITriviaService
     {
-        private const string persistanceFilename = "TriviaScores.xml";
-
-        private string apiToken = string.Empty;
-        int retries = 0;
-
         private DiscordSocketClient client;
-        private ulong guildID;
-        private ulong channelID;
 
-        private int questionsToPlay;
-        private int currentIndex;
-        private OTDBQuestion currentQuestion = null;
-
-        private List<OTDBQuestion> questions;
-        
-        public IEnumerable<IQuestion> Questions
-        {
-            get { return questions; }
-        }
-
-        private TriviaStatus status = TriviaStatus.Stopped;
-        public TriviaStatus Status { get { return status; } }
-
-        //first Key is guildID, second Key is UserID
-        private Dictionary<ulong, Dictionary<ulong, int>> userScoresCurrent;
-        private Dictionary<ulong, Dictionary<ulong, int>> userScoresAllTime;
-        public IDictionary<ulong, Dictionary<ulong, int>> UserScoresAllTime
-        {
-            get { return userScoresAllTime; }
-        }
+        // holds all trivia instances on a per guild and channel basis
+        private Dictionary<CombinedID, OTDBTrivia> trivias;
 
         public OTDBTriviaService(DiscordSocketClient client)
         {
             this.client = client;
-            questions = new List<OTDBQuestion>();
+            trivias = new Dictionary<CombinedID, OTDBTrivia>();
         }
 
-        public async Task StartAsync(int questionsToPlay, ulong guildID, ulong channelID)
+        /// <summary>
+        /// Start a new trivia with the specified amount of questions in the specified Discord Channel
+        /// Returns boolean success
+        /// </summary>
+        /// <param name="questionsToPlay">Amount of questions to play</param>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <returns>success</returns>
+        public async Task<bool> StartAsync(int questionsToPlay, ulong guildID, ulong channelID)
         {
-            this.guildID = guildID;
-            this.channelID = channelID;
-            if (questionsToPlay < 1)
-            {
-                await SendMessage("At least one question has to be played");
-                return;
-            }
-            this.questionsToPlay = questionsToPlay;
-            await LoadQuestionsAsync(questionsToPlay);
-            if (questions == null || questions.Count == 0)
-            {
-                await SendMessage("Questions could not be loaded");
-                return;
-            }
-            userScoresCurrent = new Dictionary<ulong, Dictionary<ulong, int>>();
-            if (userScoresAllTime == null)
-                await LoadScoreAsync();
-            status = TriviaStatus.Running;
-            currentIndex = 0;
-            client.MessageReceived += Client_MessageReceived;
-            await SendMessage($"Starting trivia with {questionsToPlay} questions");
-            await GetNextQuestionAsync();
+            // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
+            CombinedID id = new CombinedID(guildID, channelID, null);
+            if (!trivias.ContainsKey(id))
+                trivias.Add(id, new OTDBTrivia(client, guildID, channelID));
+            return await trivias[id].StartAsync(questionsToPlay);
         }
 
-        public async Task SkipQuestionAsync()
+        /// <summary>
+        /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
+        /// </summary>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <returns>success</returns>
+        public async Task<bool> SkipQuestionAsync(ulong guildID, ulong channelID)
         {
-            if (status == TriviaStatus.Stopped)
-                return;
-            await SendMessage($"Noone has answered the question :( The answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**");
-            await GetNextQuestionAsync();
-        }
-
-        public async Task StopAsync()
-        {            
-            client.MessageReceived -= Client_MessageReceived;            
-            await SaveScoresAsync();
-            string msg = "The quiz has ended." + Environment.NewLine 
-                + GetCurrentHighScores() + Environment.NewLine 
-                + await GetAllTimeHighScoresAsync(5);
-            await SendMessage(msg);
-            userScoresCurrent.Clear();
-            status = TriviaStatus.Stopped;
-        }
-
-        private async Task GetNextQuestionAsync()
-        {
-            if (status == TriviaStatus.Stopped)
-                return;
-            if (currentIndex < questionsToPlay)
-            {
-                if (currentIndex >= questions.Count) // we want to play more questions than available
-                    await LoadQuestionsAsync(10); // load more questions
-                currentQuestion = questions.ElementAt(currentIndex);
-                if (currentQuestion.Type == QuestionType.TrueFalse)
-                {
-                    await SendMessage($"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
-                }
-                else if (currentQuestion.Type == QuestionType.MultipleChoice)
-                {
-                    var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
-                    Random rand = new Random();
-                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
-                    string message = $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)}*]: {CleanHtmlString(currentQuestion.Question)}?";
-                    message += Environment.NewLine + string.Join(Environment.NewLine, randomizedAnswers);
-                    await SendMessage(message);
-                }
-                currentIndex++;
-            }
+            // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
+            CombinedID id = new CombinedID(guildID, channelID, null);
+            if (!trivias.ContainsKey(id))
+                return false;
             else
-                await StopAsync();
+                return await trivias[id].SkipQuestionAsync();
         }
 
-        private async Task Client_MessageReceived(SocketMessage socketMsg)
+        /// <summary>
+        /// Stops the trivia in the specified guild's channel if a trivia is running, otherwise returns false
+        /// </summary>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <returns>success</returns>
+        public async Task<bool> StopAsync(ulong guildID, ulong channelID)
         {
-            var msg = socketMsg as SocketUserMessage;
-            if (msg == null)                                          // Check if the received message is from a user.
-                return;
-            await CheckAnswer(msg.Content, msg.Author);
-        }
-
-        private async Task CheckAnswer(string answer, IUser user)
-        {
-            if (status == TriviaStatus.Running && currentQuestion != null)
-            {
-                if (CleanHtmlString(currentQuestion.CorrectAnswer).ToLower().Trim() == answer.ToLower().Trim())
-                {
-                    // Answer is correct.
-                    AddPointToUser(user);
-                    string msg = $"*{user.Username}* is right! The correct answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**";
-                    if (currentIndex < questions.Count - 1)
-                        msg += Environment.NewLine + GetCurrentHighScores();
-                    await SendMessage(msg);                    
-                    await GetNextQuestionAsync();
-                }
-            }
-        }
-
-        private void AddPointToUser(IUser user)
-        {
-            AddPoint(user.Id, userScoresAllTime);
-            AddPoint(user.Id, userScoresCurrent);
-        }
-
-        private void AddPoint(ulong userID, Dictionary<ulong, Dictionary<ulong, int>> dict)
-        {
-            if (dict == null)
-                dict = new Dictionary<ulong, Dictionary<ulong, int>>();
-            if (dict.ContainsKey(guildID))
-            {
-                var score = dict[guildID];
-                if (score == null)
-                    score = new Dictionary<ulong, int>();
-                if (score.ContainsKey(userID))
-                    score[userID]++;
-                else
-                    score.Add(userID, 1);
-                dict[guildID] = score;
-            }
+            // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
+            CombinedID id = new CombinedID(guildID, channelID, null);
+            if (!trivias.ContainsKey(id))
+                return false;
             else
-            {
-                dict.Add(guildID, new Dictionary<ulong, int>());
-                dict[guildID].Add(userID, 1);
-            }
+                return await trivias[id].StopAsync();
         }
 
-        private string GetCurrentHighScores()
+        /// <summary>
+        /// Returns a formated string that contains the specified amount of high scores in the specified guild
+        /// </summary>
+        /// <param name="count">max number of high scores to get</param>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <returns></returns>
+        public async Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID)
         {
-            if (status == TriviaStatus.Stopped || !userScoresCurrent.ContainsKey(guildID))
-                return string.Empty;
-
-            var sortedScores = userScoresCurrent[guildID].OrderByDescending(x => x.Value);
-            //sortedScores.Select(x => $"{client.GetUser(x.Key).Username}: {x.Value} points");
-            List<string> scoresList = new List<string>();
-            foreach (var score in sortedScores)
-            {
-                if (score.Value == 1)
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: 1 point");
-                else
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} points");
-            }
-            string scores = $"**Scores**: {string.Join(", ", scoresList.ToList())}";
-            return scores;
+            return (await GetAllTimeHighScoresAsync(client, count, guildID));
         }
 
-        public async Task<string> GetAllTimeHighScoresAsync(int count)
+        /// <summary>
+        /// Returns a formated string that contains the specified amount of high scores in the specified guild
+        /// </summary>
+        /// <param name="client">DiscordClient instance</param>
+        /// <param name="count">max number of high scores to get</param>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <returns></returns>
+        public static async Task<string> GetAllTimeHighScoresAsync(IDiscordClient client, int count, ulong guildID)
         {
-            if (userScoresAllTime == null)
-                await LoadScoreAsync();
+            var userScoresAllTime = await LoadScoreAsync(guildID);
             int correctedCount = Math.Min(count, userScoresAllTime.Count);
             if (correctedCount < 1)
                 return "No scores found!";
-            var sortedScores = userScoresAllTime[guildID].OrderByDescending(x => x.Value);
+            var sortedScores = userScoresAllTime.OrderByDescending(x => x.Value);
             sortedScores.Take(correctedCount);
             List<string> scoresList = new List<string>();
             foreach (var score in sortedScores)
             {
+                var userName = (await client.GetUserAsync(score.Key)).Username;
                 if (score.Value == 1)
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: 1 point");
+                    scoresList.Add($"{userName}: 1 point");
                 else
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} points");
+                    scoresList.Add($"{userName}: {score.Value} points");
             }
-            string scores = $"**Top {correctedCount} of all time**:{Environment.NewLine}{string.Join(", ", scoresList)}";            
+            string scores = $"**Top {correctedCount} of all time**:{Environment.NewLine}{string.Join(", ", scoresList)}";
             return scores;
         }
 
-        private async Task SendMessage(string text)
+        /// <summary>
+        /// Reads the persisted high scores of the specified guild and returns them as a Dictionary of userID->score
+        /// Returns an empty dict if no scores exist
+        /// </summary>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <returns>scores as Dict(userID->score)</returns>
+        public static async Task<Dictionary<ulong, int>> LoadScoreAsync(ulong guildID)
         {
-            await (client.GetGuild(guildID)?.GetChannel(channelID) as SocketTextChannel)?.SendMessageAsync(text);
-        }
-
-        private async Task LoadQuestionsAsync(int count)
-        {
-            if (string.IsNullOrEmpty(apiToken))
-                await GetTokenAsync();
-            if (count > 50)
-                count = 50;
-            using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync($"https://opentdb.com/api.php?amount={count}&token={apiToken}");
-
-                if (!string.IsNullOrEmpty(json))
-                {
-                    var jobject = JObject.Parse(json);
-                    var response = await Task.Run(() => JsonConvert.DeserializeObject<OTDBResponse>(json));
-                    if (response.Response == TriviaApiResponse.Success)
-                        questions.AddRange(response.Questions);
-                    else if (retries <= 2 && ( response.Response == TriviaApiResponse.TokenEmpty || response.Response == TriviaApiResponse.TokenNotFound))
-                    {
-                        await LoadQuestionsAsync(count);
-                    }
-                    retries++;
-                }
-            }
-        }
-
-        private async Task GetTokenAsync()
-        {
-            
-            using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync("https://opentdb.com/api_token.php?command=request");
-                if (!string.IsNullOrEmpty(json))
-                {
-                    var jobject = JObject.Parse(json);
-                    apiToken = (string)jobject.GetValue("token");
-                }
-            }
-        }
-
-        public async Task LoadScoreAsync()
-        {
-            userScoresAllTime = new Dictionary<ulong, Dictionary<ulong, int>>();
-            string filePath = Path.Combine(AppContext.BaseDirectory, persistanceFilename);
+            string filePath = GetScoreFilePath(guildID);
             if (!File.Exists(filePath))
-                return;     
+                return new Dictionary<ulong, int>();
             try
             {
                 var jsonSettings = new JsonSerializerSettings();
                 jsonSettings.TypeNameHandling = TypeNameHandling.All;
                 string json = await Helpers.ReadTextAsync(filePath);
-                userScoresAllTime = JsonConvert.DeserializeObject<Dictionary<ulong, Dictionary<ulong, int>>> (json, jsonSettings);
+                return JsonConvert.DeserializeObject<Dictionary<ulong, int>>(json, jsonSettings);
             }
             catch (Exception ex)
             {
@@ -283,14 +141,20 @@ namespace MonkeyBot.Services
             }
         }
 
-        public async Task SaveScoresAsync()
+        /// <summary>
+        /// Persists the scores for the specified guild
+        /// </summary>
+        /// <param name="guildID">Id of the Discord Guild</param>
+        /// <param name="scores">Dictionary of userID->score containing the scores of the specified guild</param>
+        /// <returns></returns>
+        public static async Task SaveScoresAsync(ulong guildID, Dictionary<ulong, int> scores)
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, persistanceFilename);
+            string filePath = GetScoreFilePath(guildID);
             try
             {
                 var jsonSettings = new JsonSerializerSettings();
                 jsonSettings.TypeNameHandling = TypeNameHandling.All;
-                var json = JsonConvert.SerializeObject(userScoresAllTime, Formatting.Indented, jsonSettings);
+                var json = JsonConvert.SerializeObject(scores, Formatting.Indented, jsonSettings);
                 await Helpers.WriteTextAsync(filePath, json);
             }
             catch (Exception ex)
@@ -300,16 +164,11 @@ namespace MonkeyBot.Services
             }
         }
 
-        private string CleanHtmlString(string html)
+        private static string GetScoreFilePath(ulong guildID)
         {
-            return System.Net.WebUtility.HtmlDecode(html);
-            //return html
-            //    .Replace("&amp;", "&")
-            //    .Replace("&lt;", "<")
-            //    .Replace("&gt;", ">")
-            //    .Replace("&quot;", "\"")
-            //    .Replace("&apos;", "'")
-            //    .Replace("&#039;", "'");
+            // Save the scores on a per guild basis -> less chance of load/save race conditions than when writing to a single file
+            string fileName = $"TriviaScores-{guildID}.xml";
+            return Path.Combine(AppContext.BaseDirectory, fileName);
         }
     }
 }

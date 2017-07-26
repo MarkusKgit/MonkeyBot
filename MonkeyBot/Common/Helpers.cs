@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,15 +10,20 @@ namespace MonkeyBot.Common
 {
     public static class Helpers
     {
-        /// <summary>Get the role of the bot with permission Manage Roles</summary>
-        public static async Task<IRole> GetBotRoleAsync(ICommandContext context)
+        /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
+        public static async Task<IRole> GetManageRolesRoleAsync(ICommandContext context)
         {
             var thisBot = await context.Guild.GetUserAsync(context.Client.CurrentUser.Id);
             var ownrole = context.Guild.Roles.Where(x => x.Permissions.ManageRoles == true && x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
             return ownrole;
         }
 
-        /// <summary>Writes the specified string to a textfile asynchronously</summary>
+        /// <summary>
+        /// Writes the specified string to a textfile asynchronously
+        /// </summary>
+        /// <param name="filePath">Path of the file to write</param>
+        /// <param name="text">Text to write to the file</param>
+        /// <param name="append">Appends the text to the existing file if true, overrides the file if false</param>
         public static async Task WriteTextAsync(string filePath, string text, bool append = false)
         {
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
@@ -35,7 +41,11 @@ namespace MonkeyBot.Common
             };
         }
 
-        /// <summary>Reads the contents of the specified textfile to a string asynchronously</summary>
+        /// <summary>
+        /// Reads the contents of the specified textfile to a string asynchronously
+        /// </summary>
+        /// <param name="filePath">Path of the file to read</param>
+        /// <returns>Contents of the text file</returns>
         public static async Task<string> ReadTextAsync(string filePath)
         {
             using (FileStream sourceStream = new FileStream(filePath,
@@ -53,6 +63,20 @@ namespace MonkeyBot.Common
                 }
                 return sb.ToString();
             }
+        }
+
+        /// <summary>
+        /// Sends the text to the specified guild's channel using a connected Discord client
+        /// </summary>
+        /// <param name="client">Connected Discord Client connection</param>
+        /// <param name="guildID">Id of the Discord guild</param>
+        /// <param name="channelID">Id of the Discord channel</param>
+        /// <param name="text">Text to post</param>
+        public static async Task SendChannelMessage(IDiscordClient client, ulong guildID, ulong channelID, string text)
+        {
+            var guild = await client?.GetGuildAsync(guildID);
+            var channel = await guild?.GetChannelAsync(channelID);
+            await (channel as SocketTextChannel)?.SendMessageAsync(text);
         }
     }
 }
