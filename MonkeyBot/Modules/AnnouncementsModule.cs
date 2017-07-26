@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
         [Remarks("Adds the specified recurring announcement to the specified channel of the current guild.")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
-            var allChannels = await Context.Guild.GetChannelsAsync();
+            var allChannels = await Context.Guild.GetTextChannelsAsync();
             var channel = allChannels.Where(x => x.Name.ToLower() == channelName.ToLower()).FirstOrDefault();
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
@@ -71,7 +71,7 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, Context.Guild.Id, Context.Channel.Id);
+                await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, Context.Guild.Id, channelID);
                 var nextRun = announcementService.GetNextOccurence(announcementId, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
@@ -92,7 +92,7 @@ namespace MonkeyBot.Modules
         [Remarks("Adds the specified single announcement at the given time to the specified channel of the current guild.")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
-            var allChannels = await Context.Guild.GetChannelsAsync();
+            var allChannels = await Context.Guild.GetTextChannelsAsync();
             var channel = allChannels.Where(x => x.Name.ToLower() == channelName.ToLower()).FirstOrDefault();
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
@@ -129,7 +129,7 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, Context.Guild.Id, Context.Channel.Id);
+                await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, Context.Guild.Id, channelID);
                 var nextRun = announcementService.GetNextOccurence(announcementId, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }

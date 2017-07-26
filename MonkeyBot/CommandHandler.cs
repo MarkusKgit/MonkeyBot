@@ -16,7 +16,6 @@ namespace MonkeyBot
         private DiscordSocketClient client;
         private CommandService commandService;
         private IServiceProvider services;
-        private ITriviaService triviaService;
 
         public CommandService CommandService
         {

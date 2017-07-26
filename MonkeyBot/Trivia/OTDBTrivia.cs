@@ -63,7 +63,7 @@ namespace MonkeyBot.Trivia
         {
             if (questionsToPlay < 1)
             {
-                await Helpers.SendChannelMessage(client, guildID, channelID, "At least one question has to be played");
+                await Helpers.SendChannelMessageAsync(client, guildID, channelID, "At least one question has to be played");
                 return false;
             }
             this.questionsToPlay = questionsToPlay;
@@ -71,14 +71,14 @@ namespace MonkeyBot.Trivia
             await LoadQuestionsAsync(questionsToPlay);
             if (questions == null || questions.Count == 0)
             {
-                await Helpers.SendChannelMessage(client, guildID, channelID, "Questions could not be loaded");
+                await Helpers.SendChannelMessageAsync(client, guildID, channelID, "Questions could not be loaded");
                 return false;
             }
             userScoresCurrent = new Dictionary<ulong, int>();
             status = TriviaStatus.Running;
             currentIndex = 0;
             client.MessageReceived += Client_MessageReceived; // Handle the message received for this channel to check for answers
-            await Helpers.SendChannelMessage(client, guildID, channelID, $"Starting trivia with {questionsToPlay} questions");
+            await Helpers.SendChannelMessageAsync(client, guildID, channelID, $"Starting trivia with {questionsToPlay} questions");
             await GetNextQuestionAsync();
             return true;
         }
@@ -91,7 +91,7 @@ namespace MonkeyBot.Trivia
         {
             if (!(status == TriviaStatus.Running))
                 return false;
-            await Helpers.SendChannelMessage(client, guildID, channelID, $"Noone has answered the question :( The answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**");
+            await Helpers.SendChannelMessageAsync(client, guildID, channelID, $"Noone has answered the question :( The answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**");
             await GetNextQuestionAsync();
             return true;
         }
@@ -108,7 +108,7 @@ namespace MonkeyBot.Trivia
             string msg = "The quiz has ended." + Environment.NewLine
                 + GetCurrentHighScores() + Environment.NewLine
                 + await OTDBTriviaService.GetAllTimeHighScoresAsync(client, 5, guildID);
-            await Helpers.SendChannelMessage(client, guildID, channelID, msg);
+            await Helpers.SendChannelMessageAsync(client, guildID, channelID, msg);
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
             return true;
@@ -125,7 +125,7 @@ namespace MonkeyBot.Trivia
                 currentQuestion = questions.ElementAt(currentIndex);
                 if (currentQuestion.Type == QuestionType.TrueFalse)
                 {
-                    await Helpers.SendChannelMessage(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
+                    await Helpers.SendChannelMessageAsync(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
                 }
                 else if (currentQuestion.Type == QuestionType.MultipleChoice)
                 {
@@ -136,7 +136,7 @@ namespace MonkeyBot.Trivia
                     var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
                     string message = $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}?";
                     message += Environment.NewLine + string.Join(Environment.NewLine, randomizedAnswers);
-                    await Helpers.SendChannelMessage(client, guildID, channelID, message);
+                    await Helpers.SendChannelMessageAsync(client, guildID, channelID, message);
                 }
                 currentIndex++;
             }
@@ -165,7 +165,7 @@ namespace MonkeyBot.Trivia
                     string msg = $"*{user.Username}* is right! The correct answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**";
                     if (currentIndex < questions.Count - 1)
                         msg += Environment.NewLine + GetCurrentHighScores();
-                    await Helpers.SendChannelMessage(client, guildID, channelID, msg);
+                    await Helpers.SendChannelMessageAsync(client, guildID, channelID, msg);
                     await GetNextQuestionAsync();
                 }
             }
