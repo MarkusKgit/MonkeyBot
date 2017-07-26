@@ -1,11 +1,9 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using MonkeyBot.Common;
-using System;
+using MonkeyBot.Preconditions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MonkeyBot.Preconditions;
 using System.Threading.Tasks;
 
 namespace MonkeyBot
@@ -16,7 +14,7 @@ namespace MonkeyBot
         {
             string prefix = (await Configuration.LoadAsync()).Prefix;
             StringBuilder builder = new StringBuilder();
-            
+
             foreach (var module in commandService.Modules)
             {
                 List<string> preconditions = new List<string>();
@@ -33,12 +31,15 @@ namespace MonkeyBot
                             case ContextType.Guild:
                                 context = "channel";
                                 break;
+
                             case ContextType.DM:
                                 context = "private message";
                                 break;
+
                             case ContextType.Group:
                                 context = "private group";
                                 break;
+
                             default:
                                 break;
                         }
@@ -49,9 +50,9 @@ namespace MonkeyBot
                 }
                 builder.AppendLine($"<strong>Module: {module.Name}</strong>");
                 if (preconditions.Count > 0)
-                    builder.AppendLine($"Preconditions: {string.Join(", ", preconditions)}");                
+                    builder.AppendLine($"Preconditions: {string.Join(", ", preconditions)}");
                 foreach (var cmd in module.Commands)
-                {                    
+                {
                     string parameters = string.Empty;
                     if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                         parameters = $"<em>{cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b))}</em>";
@@ -59,8 +60,8 @@ namespace MonkeyBot
                     if (!string.IsNullOrEmpty(cmd.Remarks))
                         builder.AppendLine(cmd.Remarks);
                 }
-                builder.AppendLine("");                               
-            }            
+                builder.AppendLine("");
+            }
             return builder.ToString();
         }
     }

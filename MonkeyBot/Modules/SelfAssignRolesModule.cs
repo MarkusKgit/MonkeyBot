@@ -91,7 +91,7 @@ namespace MonkeyBot.Modules
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
                     allRoles.Add(role.Name);
-            }            
+            }
             string msg;
             if (allRoles.Count > 0)
                 msg = "The following mentionable roles exist:" + Environment.NewLine + string.Join(", ", allRoles);
@@ -99,7 +99,5 @@ namespace MonkeyBot.Modules
                 msg = "Now assignable roles exist!";
             await ReplyAsync(msg);
         }
-
-        
     }
 }

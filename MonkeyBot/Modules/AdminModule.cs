@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Discord;
-using System.Linq;
-using Discord.Commands;
+﻿using Discord.Commands;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules

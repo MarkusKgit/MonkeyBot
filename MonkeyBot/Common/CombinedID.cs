@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyBot.Common
+﻿namespace MonkeyBot.Common
 {
     public class CombinedID
     {
@@ -25,17 +21,17 @@ namespace MonkeyBot.Common
         {
             if (!(obj is CombinedID))
                 return false;
-            CombinedID objID = obj as CombinedID;            
+            CombinedID objID = obj as CombinedID;
             //if both IDs have a value then the values must be equal or either one has no value (is null) then this id part can be ignored
             bool guild = ((this.GuildID.HasValue && objID.GuildID.HasValue && (this.GuildID == objID.GuildID)) || (!this.GuildID.HasValue || !objID.GuildID.HasValue));
             bool channel = ((this.ChannelID.HasValue && objID.ChannelID.HasValue && (this.ChannelID == objID.ChannelID)) || (!this.ChannelID.HasValue || !objID.ChannelID.HasValue));
             bool user = ((this.UserID.HasValue && objID.UserID.HasValue && (this.UserID == objID.UserID)) || (!this.UserID.HasValue || !objID.UserID.HasValue));
-            return (guild && channel && user);    
+            return (guild && channel && user);
         }
 
         public override int GetHashCode()
         {
-            return (int)(GuildID?? 0) + (int)(ChannelID?? 0) + (int)(UserID?? 0);
+            return (int)(GuildID ?? 0) + (int)(ChannelID ?? 0) + (int)(UserID ?? 0);
         }
     }
 }

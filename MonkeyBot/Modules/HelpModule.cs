@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
         [Command("help")]
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
-        {            
+        {
             string prefix = (await Configuration.LoadAsync()).Prefix;
             var builder = new EmbedBuilder()
             {

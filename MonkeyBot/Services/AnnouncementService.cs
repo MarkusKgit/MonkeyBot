@@ -64,7 +64,7 @@ namespace MonkeyBot.Services
         }
 
         private void AddRecurringJob(RecurringAnnouncement announcement)
-        {            
+        {
             // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
             JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID), (x) => x.WithName(announcement.ID).ToRunEvery(5).Seconds());
             // Retrieve the schedule from the newly created job
@@ -108,7 +108,7 @@ namespace MonkeyBot.Services
 
         private void AddSingleJob(SingleAnnouncement announcement)
         {
-           // Add a new RunOnce job with the provided ID to the Jobmanager
+            // Add a new RunOnce job with the provided ID to the Jobmanager
             JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID), (x) => x.WithName(announcement.ID).ToRunOnceAt(announcement.ExcecutionTime));
         }
 
@@ -175,7 +175,7 @@ namespace MonkeyBot.Services
 
         /// <summary>Load the stored announcements</summary>
         public async Task LoadAnnouncementsAsync()
-        {            
+        {
             string filePath = Path.Combine(AppContext.BaseDirectory, persistanceFilename);
             if (!File.Exists(filePath))
                 return;
@@ -204,7 +204,7 @@ namespace MonkeyBot.Services
                 var jsonSettings = new JsonSerializerSettings();
                 jsonSettings.TypeNameHandling = TypeNameHandling.All;
                 var json = JsonConvert.SerializeObject(announcements, Formatting.Indented, jsonSettings);
-                await Helpers.WriteTextAsync(filePath, json);                
+                await Helpers.WriteTextAsync(filePath, json);
             }
             catch (Exception ex)
             {
@@ -215,7 +215,7 @@ namespace MonkeyBot.Services
 
         private async Task AnnounceAsync(string message, ulong guildID, ulong channelID)
         {
-            await Helpers.SendChannelMessage(client, guildID, channelID, message);            
+            await Helpers.SendChannelMessage(client, guildID, channelID, message);
         }
 
         public AnnouncementList GetAnnouncements(ulong guildID)

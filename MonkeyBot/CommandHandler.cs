@@ -34,7 +34,7 @@ namespace MonkeyBot
             commandService = new CommandService(commandConfig);                    // Create a new instance of the commandservice.
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));            
+            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));
             serviceCollection.AddSingleton<ITriviaService>(new OTDBTriviaService(client));
             services = serviceCollection.BuildServiceProvider();
 
@@ -61,10 +61,10 @@ namespace MonkeyBot
                 {
                     if (result.Error.HasValue && result.Error.Value == CommandError.UnknownCommand)
                         await context.Channel.SendMessageAsync($"Command *{msg.Content.Substring(argPos)}* was not found. Type !help to get a list of commands");
-                    else                    
+                    else
                         await context.Channel.SendMessageAsync(result.ToString());
-                }  
-            }            
+                }
+            }
         }
     }
 }

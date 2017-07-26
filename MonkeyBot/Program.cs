@@ -4,7 +4,6 @@ using MonkeyBot;
 using MonkeyBot.Common;
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 public class Program
@@ -36,7 +35,7 @@ public class Program
         string docu = await DocumentationBuilder.BuildHtmlDocumentationAsync(commands.CommandService);
         string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");
         await Helpers.WriteTextAsync(file, docu);
-        
+
         await Task.Delay(-1); // Prevent the console window from closing.
     }
 
@@ -48,7 +47,7 @@ public class Program
 
     private async Task Client_Connected()
     {
-        await Console.Out.WriteLineAsync("Connected");        
+        await Console.Out.WriteLineAsync("Connected");
     }
 
     private async Task Client_UserJoined(SocketGuildUser arg)

@@ -34,7 +34,7 @@ namespace MonkeyBot.Common
             {
                 string path = Path.GetDirectoryName(file); // Create config directory if doesn't exist.
                 if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);                
+                    Directory.CreateDirectory(path);
 
                 var config = new Configuration(); // Create a new configuration object.
 
@@ -56,14 +56,14 @@ namespace MonkeyBot.Common
         public async Task SaveJsonAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            await Helpers.WriteTextAsync(filePath, ToJson());            
+            await Helpers.WriteTextAsync(filePath, ToJson());
         }
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<Configuration> LoadAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            string json = await Helpers.ReadTextAsync(filePath);            
+            string json = await Helpers.ReadTextAsync(filePath);
             return JsonConvert.DeserializeObject<Configuration>(json);
         }
 

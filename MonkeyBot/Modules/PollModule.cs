@@ -1,10 +1,9 @@
-﻿using System;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
-using MonkeyBot.Preconditions;
 using MonkeyBot.Common;
-using System.Threading.Tasks;
+using MonkeyBot.Preconditions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
@@ -28,11 +27,11 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync("Please enter a question");
                 return;
-            }            
-            
+            }
+
             var msg = await Context.Channel.SendMessageAsync(question);
             if (msg != null)
-            {                
+            {
                 await msg.AddReactionAsync(new Emoji("👍"));
                 await msg.AddReactionAsync(new Emoji("👎"));
                 await msg.AddReactionAsync(new Emoji("🤷"));
@@ -58,7 +57,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question");
                 return;
             }
-            
+
             StringBuilder builder = new StringBuilder();
             builder.AppendLine(question);
             for (int i = 0; i < answers.Length; i++)
@@ -72,7 +71,7 @@ namespace MonkeyBot.Modules
                 for (int i = 0; i < answers.Length; i++)
                 {
                     await msg.AddReactionAsync(new Emoji(GetUnicodeRegionalLetter(i)));
-                }                
+                }
             }
         }
 
