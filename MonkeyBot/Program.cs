@@ -26,7 +26,7 @@ public class Program
 
         HandleEvents(); //Add Event Handlers
 
-        await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).TestingToken); // Log in to and start the bot client
+        await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken); // Log in to and start the bot client
         await client.StartAsync();
 
         commands = new CommandHandler(); // Initialize the command handler service

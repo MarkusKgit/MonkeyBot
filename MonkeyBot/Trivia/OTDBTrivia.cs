@@ -67,6 +67,7 @@ namespace MonkeyBot.Trivia
                 return false;
             }
             this.questionsToPlay = questionsToPlay;
+            questions?.Clear();
             await LoadQuestionsAsync(questionsToPlay);
             if (questions == null || questions.Count == 0)
             {
@@ -124,7 +125,7 @@ namespace MonkeyBot.Trivia
                 currentQuestion = questions.ElementAt(currentIndex);
                 if (currentQuestion.Type == QuestionType.TrueFalse)
                 {
-                    await Helpers.SendChannelMessage(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
+                    await Helpers.SendChannelMessage(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
                 }
                 else if (currentQuestion.Type == QuestionType.MultipleChoice)
                 {
@@ -133,7 +134,7 @@ namespace MonkeyBot.Trivia
                     Random rand = new Random();
                     // randomize the order of the answers
                     var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
-                    string message = $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)}*]: {CleanHtmlString(currentQuestion.Question)}?";
+                    string message = $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}?";
                     message += Environment.NewLine + string.Join(Environment.NewLine, randomizedAnswers);
                     await Helpers.SendChannelMessage(client, guildID, channelID, message);
                 }

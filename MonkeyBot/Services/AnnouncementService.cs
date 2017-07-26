@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MonkeyBot.Services
 {
@@ -19,25 +20,26 @@ namespace MonkeyBot.Services
     {
         private DiscordSocketClient client;
 
-        private const string persistanceFilename = "Announcements.xml";
+        private const string persistanceFilename = "Announcements.json";
 
         /// <summary>A List containing all announcements</summary>
-        private AnnouncementList announcements;
+        private List<Announcement> announcements;
 
         public AnnouncementService(DiscordSocketClient client)
         {
             this.client = client;
-            announcements = new AnnouncementList();
+            announcements = new List<Announcement>();
             var registry = new Registry();
             JobManager.Initialize(registry);
             JobManager.JobEnd += JobManager_JobEnd;
             LoadAnnouncementsAsync().Wait(); // Load stored announcements
         }
 
-        private void JobManager_JobEnd(JobEndInfo obj)
+        private async void JobManager_JobEnd(JobEndInfo obj)
         {
             // When a job is done check if old jobs exist and remove them
             RemovePastJobs();
+            await SaveAnnouncementsAsync();
         }
 
         /// <summary>
@@ -184,7 +186,7 @@ namespace MonkeyBot.Services
                 var jsonSettings = new JsonSerializerSettings();
                 jsonSettings.TypeNameHandling = TypeNameHandling.All;
                 string json = await Helpers.ReadTextAsync(filePath);
-                announcements = JsonConvert.DeserializeObject<AnnouncementList>(json, jsonSettings);
+                announcements = JsonConvert.DeserializeObject<List<Announcement>>(json, jsonSettings);
                 RemovePastJobs();
                 BuildJobs();
             }
@@ -218,9 +220,9 @@ namespace MonkeyBot.Services
             await Helpers.SendChannelMessage(client, guildID, channelID, message);
         }
 
-        public AnnouncementList GetAnnouncements(ulong guildID)
+        public List<Announcement> GetAnnouncements(ulong guildID)
         {
-            return announcements.Where(x => x.GuildID == guildID).ToList() as AnnouncementList;
+            return announcements.Where(x => x.GuildID == guildID).ToList();
         }
     }
 }

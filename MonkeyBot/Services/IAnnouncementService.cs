@@ -1,5 +1,6 @@
 ﻿using MonkeyBot.Announcements;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -39,7 +40,7 @@ namespace MonkeyBot.Services
         DateTime GetNextOccurence(string announcementID, ulong guildID);
 
         /// <summary>Returns all announcements of the current guild</summary>
-        AnnouncementList GetAnnouncements(ulong guildID);
+        List<Announcement> GetAnnouncements(ulong guildID);
 
         /// <summary>A method that provides a way to load persisted announcements</summary>
         Task LoadAnnouncementsAsync();

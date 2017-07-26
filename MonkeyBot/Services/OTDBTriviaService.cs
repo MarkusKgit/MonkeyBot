@@ -74,7 +74,11 @@ namespace MonkeyBot.Services
             if (!trivias.ContainsKey(id))
                 return false;
             else
-                return await trivias[id].StopAsync();
+            {
+                var result = await trivias[id].StopAsync();
+                trivias.Remove(id);
+                return result;
+            }
         }
 
         /// <summary>
@@ -167,8 +171,8 @@ namespace MonkeyBot.Services
         private static string GetScoreFilePath(ulong guildID)
         {
             // Save the scores on a per guild basis -> less chance of load/save race conditions than when writing to a single file
-            string fileName = $"TriviaScores-{guildID}.xml";
-            return Path.Combine(AppContext.BaseDirectory, fileName);
+            string fileName = $"TriviaScores-{guildID}.json";
+            return Path.Combine(AppContext.BaseDirectory, "TriviaScores", fileName);
         }
     }
 }

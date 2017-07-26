@@ -26,6 +26,13 @@ namespace MonkeyBot.Common
         /// <param name="append">Appends the text to the existing file if true, overrides the file if false</param>
         public static async Task WriteTextAsync(string filePath, string text, bool append = false)
         {
+            if (!File.Exists(filePath))
+            {
+                string strippedPath = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(strippedPath))
+                    Directory.CreateDirectory(strippedPath);
+            }
+
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
 
             using (FileStream sourceStream = new FileStream(

@@ -63,7 +63,7 @@ namespace MonkeyBot.Modules
             }
             // ID must be unique per guild -> check if it already exists
             var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
-            if (announcements.Where(x => x.ID == announcementId).Count() > 0)
+            if (announcements?.Where(x => x.ID == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
