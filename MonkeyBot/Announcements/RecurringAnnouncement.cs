@@ -15,12 +15,13 @@
         {
         }
 
-        public RecurringAnnouncement(string id, string cronExpression, string message, ulong guildID)
+        public RecurringAnnouncement(string id, string cronExpression, string message, ulong guildID, ulong channelID)
         {
             ID = id;
             CronExpression = cronExpression;
             Message = message;
             GuildID = guildID;
+            ChannelID = channelID;
         }
     }
 }

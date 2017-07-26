@@ -13,5 +13,8 @@
 
         /// <summary>The ID of the Guild where the message should be broadcasted</summary>
         public ulong GuildID { get; set; }
+
+        /// <summary>The ID of the Channel where the message should be broadcasted</summary>
+        public ulong ChannelID { get; set; }
     }
 }
