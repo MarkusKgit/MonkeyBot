@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using MonkeyBot.Common;
+using MonkeyBot.Preconditions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace MonkeyBot.Modules
 {
     /// <summary>A module that provides help commands</summary>
     [Name("Help")]
+    [MinPermissions(AccessLevel.User)]
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private CommandService commandService;

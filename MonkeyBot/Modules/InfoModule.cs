@@ -12,6 +12,7 @@ namespace MonkeyBot.Modules
     {
         [Command("Rules")]
         [Remarks("The bot replies with the server rules in a PM")]
+        [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
             StringBuilder builder = new StringBuilder();

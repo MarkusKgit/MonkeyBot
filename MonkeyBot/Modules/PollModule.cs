@@ -10,16 +10,15 @@ namespace MonkeyBot.Modules
     /// <summary>
     /// Provides a simple voting system
     /// </summary>
-    [MinPermissions(AccessLevel.User)]
     [Name("Simple poll")]
+    [RequireContext(ContextType.Guild)]
+    [MinPermissions(AccessLevel.User)]
     public class PollModule : ModuleBase
     {
         [Command("Poll")]
         [Alias("Vote")]
         [Priority(1)]
         [Remarks("Starts a new poll with the specified question and automatically adds reactions")]
-        [MinPermissions(AccessLevel.BotOwner)]
-        [RequireContext(ContextType.Guild)]
         public async Task Vote([Summary("The question")][Remainder] string question)
         {
             question = question.Trim('\"');
@@ -42,8 +41,6 @@ namespace MonkeyBot.Modules
         [Alias("Vote")]
         [Priority(2)]
         [Remarks("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
-        [MinPermissions(AccessLevel.BotOwner)]
-        [RequireContext(ContextType.Guild)]
         public async Task Vote([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
         {
             if (answers == null || answers.Length <= 0)
