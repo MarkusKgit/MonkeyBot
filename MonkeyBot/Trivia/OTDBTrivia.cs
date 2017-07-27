@@ -1,7 +1,8 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Services;
+using MonkeyBot.Databases;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -24,6 +25,7 @@ namespace MonkeyBot.Trivia
         private int loadingRetries = 0;
 
         private DiscordSocketClient client;
+        private TriviaScoresDB scoresDB;
 
         private List<OTDBQuestion> questions;
 
@@ -46,9 +48,10 @@ namespace MonkeyBot.Trivia
         /// <param name="client">Running Client instance</param>
         /// <param name="guildID">Id of the Discord guild</param>
         /// <param name="channelID">Id of the Discord channel</param>
-        public OTDBTrivia(DiscordSocketClient client, ulong guildID, ulong channelID)
+        public OTDBTrivia(IServiceProvider provider, ulong guildID, ulong channelID)
         {
-            this.client = client;
+            client = provider.GetService<DiscordSocketClient>();
+            scoresDB = provider.GetService<TriviaScoresDB>();
             questions = new List<OTDBQuestion>();
             this.guildID = guildID;
             this.channelID = channelID;
@@ -107,7 +110,7 @@ namespace MonkeyBot.Trivia
             client.MessageReceived -= Client_MessageReceived; // Remove the message received handler
             string msg = "The quiz has ended." + Environment.NewLine
                 + GetCurrentHighScores() + Environment.NewLine
-                + await OTDBTriviaService.GetAllTimeHighScoresAsync(client, 5, guildID);
+                + await scoresDB.GetAllTimeHighScoresAsync(client, 5, guildID);
             await Helpers.SendChannelMessageAsync(client, guildID, channelID, msg);
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
@@ -175,13 +178,7 @@ namespace MonkeyBot.Trivia
         {
             // Add points to current scores and global scores
             AddPoint(user, userScoresCurrent);
-            var globalScores = await OTDBTriviaService.LoadScoreAsync(guildID);
-            if (globalScores == null)
-                globalScores = new Dictionary<ulong, int>();
-            AddPoint(user, globalScores);
-            // If multiple instances of trivia are played at the same time in the same guild this could lead to data loss
-            // if another instance wants to save between this load and save -> this should not be an issue atm but possibly switch to a database instead
-            await OTDBTriviaService.SaveScoresAsync(guildID, globalScores);
+            await scoresDB.IncreaseScoreAsync(guildID, user.Id);
         }
 
         private void AddPoint(IUser user, Dictionary<ulong, int> pointsDict)

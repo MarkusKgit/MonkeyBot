@@ -1,14 +1,7 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot;
 using MonkeyBot.Common;
-using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-
-
-//https://github.com/Aux/Dogey
 
 public class Program
 {

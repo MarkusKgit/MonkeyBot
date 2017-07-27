@@ -2,7 +2,9 @@
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
+using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MonkeyBot.Modules
 {
@@ -15,9 +17,9 @@ namespace MonkeyBot.Modules
     {
         private ITriviaService triviaService; // The TriviaService will get injected in CommandHandler
 
-        public TriviaModule(ITriviaService triviaService) // Create a constructor for the TriviaService dependency
+        public TriviaModule(IServiceProvider provider) // Create a constructor for the TriviaService dependency
         {
-            this.triviaService = triviaService;
+            this.triviaService = provider.GetService<ITriviaService>();
         }
 
         [Command("Start")]

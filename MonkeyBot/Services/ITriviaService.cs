@@ -33,12 +33,6 @@ namespace MonkeyBot.Services
         /// <returns>success</returns>
         Task<bool> StopAsync(ulong guildID, ulong channelID);
 
-        /// <summary>
-        /// Returns a formated string that contains the specified amount of high scores in the specified guild
-        /// </summary>
-        /// <param name="count">max number of high scores to get</param>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <returns></returns>
-        Task<string> GetAllTimeHighScoresAsync(int Count, ulong guildID);
+        Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID);
     }
 }

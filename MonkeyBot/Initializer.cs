@@ -22,7 +22,7 @@ namespace MonkeyBot
             services.AddSingleton<CommandManager>();
             services.AddDbContext<TriviaScoresDB>(ServiceLifetime.Transient);
             services.AddSingleton<IAnnouncementService>(new AnnouncementService(discordClient));
-            services.AddSingleton<ITriviaService>(new OTDBTriviaService(discordClient));
+            services.AddSingleton(typeof(ITriviaService), typeof(OTDBTriviaService));
             
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
@@ -51,7 +51,7 @@ namespace MonkeyBot
             discordClient.UserJoined += Client_UserJoined;
             discordClient.Connected += Client_Connected;
 
-            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
+            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).TestingToken);
             await discordClient.StartAsync();
             return discordClient;
         }
