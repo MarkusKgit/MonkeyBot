@@ -11,35 +11,36 @@ using System.Threading.Tasks;
 namespace MonkeyBot
 {
     /// <summary> Detect whether a message is a command, then execute it. </summary>
-    public class CommandHandler
+    public class CommandManager
     {
-        private DiscordSocketClient client;
+        private DiscordSocketClient discordClient;
         private CommandService commandService;
-        private IServiceProvider services;
+        private IServiceProvider serviceProvider;
 
         public CommandService CommandService
         {
             get { return commandService; }
         }
 
-        public async Task InstallAsync(DiscordSocketClient client)
+        public CommandManager(IServiceProvider provider)
         {
-            this.client = client;                                                 // Save an instance of the discord client.
-            CommandServiceConfig commandConfig = new CommandServiceConfig();
-            commandConfig.CaseSensitiveCommands = false;
-            commandConfig.DefaultRunMode = RunMode.Async;
-            commandConfig.LogLevel = LogSeverity.Error;
-            commandConfig.ThrowOnError = true;
-            commandService = new CommandService(commandConfig);                    // Create a new instance of the commandservice.
+            serviceProvider = provider;
+            discordClient = provider.GetService<DiscordSocketClient>();
+            commandService = provider.GetService<CommandService>();
+        }
+
+        public async Task StartAsync()
+        {   
+            
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));
             serviceCollection.AddSingleton<ITriviaService>(new OTDBTriviaService(client));
-            services = serviceCollection.BuildServiceProvider();
+            serviceProvider = serviceCollection.BuildServiceProvider();
 
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
 
-            this.client.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
+            discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
         }
 
         private async Task HandleCommandAsync(SocketMessage socketMsg)
@@ -48,13 +49,13 @@ namespace MonkeyBot
             if (msg == null)                                          // Check if the received message is from a user.
                 return;
 
-            var context = new SocketCommandContext(client, msg);     // Create a new command context.
+            var context = new SocketCommandContext(discordClient, msg);     // Create a new command context.
 
             int argPos = 0;                                           // Check if the message has either a string or mention prefix.
             if (msg.HasStringPrefix((await Configuration.LoadAsync()).Prefix, ref argPos) ||
-                msg.HasMentionPrefix(client.CurrentUser, ref argPos))
+                msg.HasMentionPrefix(discordClient.CurrentUser, ref argPos))
             {                                                         // Try and execute a command with the given context.
-                var result = await commandService.ExecuteAsync(context, argPos, services);
+                var result = await commandService.ExecuteAsync(context, argPos, serviceProvider);
 
                 if (!result.IsSuccess)                                // If execution failed, reply with the error message.
                 {
