@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -31,13 +32,6 @@ namespace MonkeyBot
 
         public async Task StartAsync()
         {   
-            
-
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IAnnouncementService>(new AnnouncementService(client));
-            serviceCollection.AddSingleton<ITriviaService>(new OTDBTriviaService(client));
-            serviceProvider = serviceCollection.BuildServiceProvider();
-
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
 
             discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
@@ -65,6 +59,13 @@ namespace MonkeyBot
                         await context.Channel.SendMessageAsync(result.ToString());
                 }
             }
+        }
+
+        public async Task BuildDocumentation()
+        {
+            string docu = await DocumentationBuilder.BuildHtmlDocumentationAsync(commandService);
+            string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");
+            await Helpers.WriteTextAsync(file, docu);
         }
     }
 }
