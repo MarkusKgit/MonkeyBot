@@ -19,12 +19,14 @@ namespace MonkeyBot.Modules
     public class TriviaModule : ModuleBase
     {
         private ITriviaService triviaService; // The TriviaService will get injected in CommandHandler
+        private CommandManager commandManager;
         private DbService db;
 
         public TriviaModule(IServiceProvider provider) // Create a constructor for the TriviaService dependency
         {
-            this.triviaService = provider.GetService<ITriviaService>();
-            this.db = provider.GetService<DbService>();
+            triviaService = provider.GetService<ITriviaService>();
+            commandManager = provider.GetService<CommandManager>();
+            db = provider.GetService<DbService>();
         }
 
         [Command("Start")]
@@ -40,7 +42,7 @@ namespace MonkeyBot.Modules
         public async Task StopTriviaAsync()
         {
             if (!(await triviaService?.StopAsync(Context.Guild.Id, Context.Channel.Id)))
-                await ReplyAsync($"No trivia is running! Use {(await Configuration.LoadAsync())?.Prefix}trivia start to create a new one.");
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefix(Context.Guild)}trivia start to create a new one.");
         }
 
         [Command("Skip")]
@@ -48,7 +50,7 @@ namespace MonkeyBot.Modules
         public async Task SkipQuestionAsync()
         {
             if (!(await triviaService?.SkipQuestionAsync(Context.Guild.Id, Context.Channel.Id)))
-                await ReplyAsync($"No trivia is running! Use {(await Configuration.LoadAsync())?.Prefix}trivia start to create a new one.");
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefix(Context.Guild)}trivia start to create a new one.");
         }
 
         [Command("Scores")]

@@ -4,15 +4,14 @@ using MonkeyBot.Preconditions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyBot
 {
     public static class DocumentationBuilder
     {
-        public static async Task<string> BuildHtmlDocumentationAsync(CommandService commandService)
+        public static string BuildHtmlDocumentationAsync(CommandService commandService)
         {
-            string prefix = (await Configuration.LoadAsync()).Prefix;
+            string prefix = Configuration.DefaultPrefix;
             StringBuilder builder = new StringBuilder();
 
             foreach (var module in commandService.Modules)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot;
 using MonkeyBot.Common;
+using MonkeyBot.Services;
 using System.Threading.Tasks;
 
 public class Program
@@ -15,6 +16,9 @@ public class Program
 
         var manager = services.GetService<CommandManager>();
         await manager.StartAsync();
+
+        var eventHandler = services.GetService<EventHandlerService>();
+        eventHandler.Start();
 
         await manager.BuildDocumentation(); // Write the documentation
 

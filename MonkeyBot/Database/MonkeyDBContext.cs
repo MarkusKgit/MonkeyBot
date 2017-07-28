@@ -7,6 +7,7 @@ namespace MonkeyBot.Database
 {
     public class MonkeyDBContext : DbContext
     {
+        public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
 
         public MonkeyDBContext() : base()

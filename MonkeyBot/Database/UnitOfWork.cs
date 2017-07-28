@@ -8,6 +8,9 @@ namespace MonkeyBot.Database
     {
         public MonkeyDBContext context { get; }
 
+        private IGuildConfigRepository guildConfigs;
+        public IGuildConfigRepository GuildConfigs => guildConfigs ?? (guildConfigs = new GuildConfigRepository(context));
+
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 

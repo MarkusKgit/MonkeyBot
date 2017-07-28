@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
@@ -14,17 +15,19 @@ namespace MonkeyBot.Modules
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private CommandService commandService;
+        private CommandManager commandManager;
 
-        public HelpModule(CommandService service) // Create a constructor for the commandservice dependency
+        public HelpModule(IServiceProvider provider) // Create a constructor for the commandservice dependency
         {
-            commandService = service;
+            commandService = provider.GetService<CommandService>();
+            commandManager = provider.GetService<CommandManager>();
         }
 
         [Command("help")]
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
         {
-            string prefix = (await Configuration.LoadAsync()).Prefix;
+            string prefix = commandManager.GetPrefix(Context.Guild);
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),
@@ -71,7 +74,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            string prefix = (await Configuration.LoadAsync()).Prefix;
+            string prefix = commandManager.GetPrefix(Context.Guild);
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),

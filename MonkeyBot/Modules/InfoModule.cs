@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
+using MonkeyBot.Services;
+using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -10,18 +12,26 @@ namespace MonkeyBot.Modules
     [Name("Info")]
     public class InfoModule : ModuleBase
     {
+        private DbService db;
+
+        public InfoModule(IServiceProvider provider)
+        {
+            db = provider.GetService<DbService>();
+        }
+
         [Command("Rules")]
         [Remarks("The bot replies with the server rules in a PM")]
         [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine("**Our rules:**");
-            builder.AppendLine("1) Do not be a troll. Be gentle, kind, funny and good to each other");
-            builder.AppendLine("2) Do not spam in the text or voice chat");
-            builder.AppendLine("3) Be respectful and do not disrespect others");
-            builder.AppendLine("4) Do not mention cookies :cookie:");
-            await Context.User.SendMessageAsync(builder.ToString());
+            using (var uow = db.UnitOfWork)
+            {
+                var rules = uow.GuildConfigs.GetOrCreate(Context.Guild.Id).Rules;
+                if (rules == null || rules.Count < 1)
+                    await ReplyAsync("No rules set!");
+                else
+                    await Context.User.SendMessageAsync(string.Join(Environment.NewLine, rules));
+            }
         }
 
         [Command("games")]

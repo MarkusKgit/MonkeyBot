@@ -6,7 +6,7 @@ namespace MonkeyBot.Services
     public class DbService
     {
         private IUnitOfWork unitOfWork;
-        public IUnitOfWork UnitOfWork => unitOfWork ?? new UnitOfWork(GetDBContext());
+        public IUnitOfWork UnitOfWork => unitOfWork ?? (unitOfWork = new UnitOfWork(GetDBContext()));
 
         private MonkeyDBContext GetDBContext()
         {

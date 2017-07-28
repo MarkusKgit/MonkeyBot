@@ -11,14 +11,14 @@ namespace MonkeyBot.Common
     public class Configuration
     {
         [JsonIgnore]
+        public static readonly string DefaultPrefix = "!";
+
+        [JsonIgnore]
         /// <summary> The location and name of the bot's configuration file. </summary>
         public static string FileName { get; private set; } = "config/configuration.json";
 
         /// <summary> Ids of users who will have owner access to the bot. </summary>
         public ulong[] Owners { get; set; }
-
-        /// <summary> The bot's command prefix. </summary>
-        public string Prefix { get; set; } = "!";
 
         /// <summary> The bot's productive login token. </summary>
         public string ProductiveToken { get; set; } = "";
