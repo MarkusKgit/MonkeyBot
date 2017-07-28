@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
     public class OTDBQuestionTypeConverter : JsonConverter
     {
@@ -13,23 +13,23 @@ namespace MonkeyBot.Trivia
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if ((string)reader.Value == "boolean")
-                return QuestionType.TrueFalse;
+                return TriviaQuestionType.TrueFalse;
             else if ((string)reader.Value == "multiple")
-                return QuestionType.MultipleChoice;
+                return TriviaQuestionType.MultipleChoice;
             else
                 return null;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            QuestionType type = (QuestionType)value;
+            TriviaQuestionType type = (TriviaQuestionType)value;
             switch (type)
             {
-                case QuestionType.TrueFalse:
+                case TriviaQuestionType.TrueFalse:
                     writer.WriteValue("boolean");
                     break;
 
-                case QuestionType.MultipleChoice:
+                case TriviaQuestionType.MultipleChoice:
                     writer.WriteValue("multiple");
                     break;
 

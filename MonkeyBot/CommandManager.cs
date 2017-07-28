@@ -1,9 +1,7 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Services;
 using System;
 using System.IO;
 using System.Reflection;
@@ -31,7 +29,7 @@ namespace MonkeyBot
         }
 
         public async Task StartAsync()
-        {   
+        {
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
 
             discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.

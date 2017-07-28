@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
     //https://opentdb.com/api_config.php
 

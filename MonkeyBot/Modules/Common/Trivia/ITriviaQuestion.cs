@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
-    public interface IQuestion
+    public interface ITriviaQuestion
     {
         string Category { get; set; }
 
-        QuestionType Type { get; set; }
+        TriviaQuestionType Type { get; set; }
 
-        QuestionDifficulty Difficulty { get; set; }
+        TriviaQuestionDifficulty Difficulty { get; set; }
 
         string Question { get; set; }
 

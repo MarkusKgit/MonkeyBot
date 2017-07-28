@@ -1,8 +1,7 @@
 ﻿using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Databases;
-using MonkeyBot.Trivia;
+using MonkeyBot.Modules.Common.Trivia;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,18 +15,16 @@ namespace MonkeyBot.Services
     public class OTDBTriviaService : ITriviaService
     {
         private DiscordSocketClient client;
-        private TriviaScoresDB scoresDB;
         private IServiceProvider serviceProvider;
 
         // holds all trivia instances on a per guild and channel basis
-        private Dictionary<CombinedID, OTDBTrivia> trivias;
+        private Dictionary<CombinedID, OTDBTriviaInstance> trivias;
 
         public OTDBTriviaService(IServiceProvider provider)
         {
             this.serviceProvider = provider;
             client = provider.GetService<DiscordSocketClient>();
-            scoresDB = provider.GetService<TriviaScoresDB>();
-            trivias = new Dictionary<CombinedID, OTDBTrivia>();
+            trivias = new Dictionary<CombinedID, OTDBTriviaInstance>();
         }
 
         /// <summary>
@@ -43,7 +40,7 @@ namespace MonkeyBot.Services
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
             CombinedID id = new CombinedID(guildID, channelID, null);
             if (!trivias.ContainsKey(id))
-                trivias.Add(id, new OTDBTrivia(serviceProvider, guildID, channelID));
+                trivias.Add(id, new OTDBTriviaInstance(serviceProvider, guildID, channelID));
             return await trivias[id].StartAsync(questionsToPlay);
         }
 
@@ -81,11 +78,6 @@ namespace MonkeyBot.Services
                 trivias.Remove(id);
                 return result;
             }
-        }
-
-        public async Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID)
-        {
-            return await scoresDB.GetAllTimeHighScoresAsync(client, count, guildID);
         }
     }
 }

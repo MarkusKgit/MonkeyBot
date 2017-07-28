@@ -35,7 +35,7 @@ namespace MonkeyBot
                     foreach (var precondition in cmd.Preconditions)
                     {
                         preconditions.Add(Translateprecondition(precondition));
-                    }                    
+                    }
                     if (preconditions.Count > 0)
                         builder.AppendLine($"Command Preconditions: {string.Join(", ", preconditions)}");
                     if (!string.IsNullOrEmpty(cmd.Remarks))

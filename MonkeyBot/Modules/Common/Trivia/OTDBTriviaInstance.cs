@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Databases;
+using MonkeyBot.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,12 +11,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
     /// <summary>
     /// Manages a single instance of a trivia game in a Discord channel. Uses Open trivia database https://opentdb.com
     /// </summary>
-    public class OTDBTrivia
+    public class OTDBTriviaInstance
     {
         // The api token enables us to use a session with opentdb so that we don't get the same question twice during a session
         private string apiToken = string.Empty;
@@ -25,7 +25,7 @@ namespace MonkeyBot.Trivia
         private int loadingRetries = 0;
 
         private DiscordSocketClient client;
-        private TriviaScoresDB scoresDB;
+        private DbService db;
 
         private List<OTDBQuestion> questions;
 
@@ -48,10 +48,10 @@ namespace MonkeyBot.Trivia
         /// <param name="client">Running Client instance</param>
         /// <param name="guildID">Id of the Discord guild</param>
         /// <param name="channelID">Id of the Discord channel</param>
-        public OTDBTrivia(IServiceProvider provider, ulong guildID, ulong channelID)
+        public OTDBTriviaInstance(IServiceProvider provider, ulong guildID, ulong channelID)
         {
             client = provider.GetService<DiscordSocketClient>();
-            scoresDB = provider.GetService<TriviaScoresDB>();
+            db = provider.GetService<DbService>();
             questions = new List<OTDBQuestion>();
             this.guildID = guildID;
             this.channelID = channelID;
@@ -109,8 +109,7 @@ namespace MonkeyBot.Trivia
                 return false;
             client.MessageReceived -= Client_MessageReceived; // Remove the message received handler
             string msg = "The quiz has ended." + Environment.NewLine
-                + GetCurrentHighScores() + Environment.NewLine
-                + await scoresDB.GetAllTimeHighScoresAsync(client, 5, guildID);
+                + GetCurrentHighScores() + Environment.NewLine;
             await Helpers.SendChannelMessageAsync(client, guildID, channelID, msg);
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
@@ -126,11 +125,11 @@ namespace MonkeyBot.Trivia
                 if (currentIndex >= questions.Count) // we want to play more questions than available
                     await LoadQuestionsAsync(10); // load more questions
                 currentQuestion = questions.ElementAt(currentIndex);
-                if (currentQuestion.Type == QuestionType.TrueFalse)
+                if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
                     await Helpers.SendChannelMessageAsync(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
                 }
-                else if (currentQuestion.Type == QuestionType.MultipleChoice)
+                else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
                 {
                     // add the correct answer to the list of correct answers to form the list of possible answers
                     var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
@@ -178,7 +177,10 @@ namespace MonkeyBot.Trivia
         {
             // Add points to current scores and global scores
             AddPoint(user, userScoresCurrent);
-            await scoresDB.IncreaseScoreAsync(guildID, user.Id);
+            using (var uow = db.UnitOfWork)
+            {
+                await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id);
+            }
         }
 
         private void AddPoint(IUser user, Dictionary<ulong, int> pointsDict)

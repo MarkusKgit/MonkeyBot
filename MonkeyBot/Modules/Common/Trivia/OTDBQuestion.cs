@@ -1,24 +1,24 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
     /// <summary>
     /// Question type as used by Open trivia database
     /// https://opentdb.com
     /// </summary>
-    public class OTDBQuestion : IQuestion
+    public class OTDBQuestion : ITriviaQuestion
     {
         [JsonProperty(PropertyName = "category")]
         public string Category { get; set; }
 
         [JsonProperty(PropertyName = "type")]
         [JsonConverter(typeof(OTDBQuestionTypeConverter))]
-        public QuestionType Type { get; set; }
+        public TriviaQuestionType Type { get; set; }
 
         [JsonProperty(PropertyName = "difficulty")]
         [JsonConverter(typeof(OTDBDifficultyConverter))]
-        public QuestionDifficulty Difficulty { get; set; }
+        public TriviaQuestionDifficulty Difficulty { get; set; }
 
         [JsonProperty(PropertyName = "question")]
         public string Question { get; set; }

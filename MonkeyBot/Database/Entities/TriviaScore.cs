@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MonkeyBot.Databases.Entities
+namespace MonkeyBot.Database.Entities
 {
-    public class TriviaScore
+    public class TriviaScore : BaseEntity
     {
-        [Key]
-        public int ID { get; set; }
-
         [Required]
         public ulong GuildID { get; set; }
 
@@ -15,7 +12,9 @@ namespace MonkeyBot.Databases.Entities
 
         public int Score { get; set; }
 
-        public TriviaScore() { }
+        public TriviaScore()
+        {
+        }
 
         public TriviaScore(ulong guildID, ulong userID, int score)
         {

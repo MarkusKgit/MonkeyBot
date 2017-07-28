@@ -3,32 +3,31 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Databases;
 using MonkeyBot.Services;
 using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot
 {
-    public class Initializer
+    public static class Initializer
     {
-        public async Task<IServiceProvider> ConfigureServices()
+        public static async Task<IServiceProvider> ConfigureServices()
         {
-            var services = new ServiceCollection();            
+            var services = new ServiceCollection();
+            services.AddSingleton<DbService>();
             var discordClient = await StartDiscordClient();
             services.AddSingleton(discordClient);
             var commandService = BuildCommandService();
             services.AddSingleton(commandService);
             services.AddSingleton<CommandManager>();
-            services.AddDbContext<TriviaScoresDB>(ServiceLifetime.Transient);
-            services.AddSingleton<IAnnouncementService>(new AnnouncementService(discordClient));
+            services.AddSingleton(typeof(IAnnouncementService), typeof(AnnouncementService));
             services.AddSingleton(typeof(ITriviaService), typeof(OTDBTriviaService));
-            
+
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
         }
 
-        private CommandService BuildCommandService()
+        private static CommandService BuildCommandService()
         {
             CommandServiceConfig commandConfig = new CommandServiceConfig();
             commandConfig.CaseSensitiveCommands = false;
@@ -40,7 +39,7 @@ namespace MonkeyBot
             return commandService;
         }
 
-        private async Task<DiscordSocketClient> StartDiscordClient()
+        private static async Task<DiscordSocketClient> StartDiscordClient()
         {
             DiscordSocketConfig discordConfig = new DiscordSocketConfig(); //Create a new config for the Discord Client
             discordConfig.LogLevel = LogSeverity.Verbose;
@@ -55,13 +54,13 @@ namespace MonkeyBot
             await discordClient.StartAsync();
             return discordClient;
         }
-                
-        private async Task Client_Connected()
+
+        private static async Task Client_Connected()
         {
             await Console.Out.WriteLineAsync("Connected");
         }
 
-        private async Task Client_UserJoined(SocketGuildUser arg)
+        private static async Task Client_UserJoined(SocketGuildUser arg)
         {
             var channel = arg.Guild.DefaultChannel;
             await channel?.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info or type !rules for a list of rules and !help for a list of commands you can use with our bot. If you have any issues feel free to contact our Admins or Leaders."); //Welcomes the new user

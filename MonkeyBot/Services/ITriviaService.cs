@@ -32,7 +32,5 @@ namespace MonkeyBot.Services
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
         Task<bool> StopAsync(ulong guildID, ulong channelID);
-
-        Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID);
     }
 }

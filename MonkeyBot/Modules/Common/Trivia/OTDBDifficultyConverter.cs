@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MonkeyBot.Trivia
+namespace MonkeyBot.Modules.Common.Trivia
 {
     public class OTDBDifficultyConverter : JsonConverter
     {
@@ -13,29 +13,29 @@ namespace MonkeyBot.Trivia
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if ((string)reader.Value == "easy")
-                return QuestionDifficulty.Easy;
+                return TriviaQuestionDifficulty.Easy;
             else if ((string)reader.Value == "medium")
-                return QuestionDifficulty.Medium;
+                return TriviaQuestionDifficulty.Medium;
             else if ((string)reader.Value == "hard")
-                return QuestionDifficulty.Hard;
+                return TriviaQuestionDifficulty.Hard;
             else
                 return null;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            QuestionDifficulty difficulty = (QuestionDifficulty)value;
+            TriviaQuestionDifficulty difficulty = (TriviaQuestionDifficulty)value;
             switch (difficulty)
             {
-                case QuestionDifficulty.Easy:
+                case TriviaQuestionDifficulty.Easy:
                     writer.WriteValue("easy");
                     break;
 
-                case QuestionDifficulty.Medium:
+                case TriviaQuestionDifficulty.Medium:
                     writer.WriteValue("medium");
                     break;
 
-                case QuestionDifficulty.Hard:
+                case TriviaQuestionDifficulty.Hard:
                     writer.WriteValue("hard");
                     break;
 

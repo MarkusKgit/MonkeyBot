@@ -1,15 +1,16 @@
 ﻿using Discord.WebSocket;
 using FluentScheduler;
+using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Announcements;
 using MonkeyBot.Common;
 using NCrontab;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace MonkeyBot.Services
 {
@@ -25,9 +26,9 @@ namespace MonkeyBot.Services
         /// <summary>A List containing all announcements</summary>
         private List<Announcement> announcements;
 
-        public AnnouncementService(DiscordSocketClient client)
+        public AnnouncementService(IServiceProvider provider)
         {
-            this.client = client;
+            client = provider.GetService<DiscordSocketClient>();
             announcements = new List<Announcement>();
             var registry = new Registry();
             JobManager.Initialize(registry);

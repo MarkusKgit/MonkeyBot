@@ -5,15 +5,13 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    private Initializer initializer = new Initializer();
-
     private static void Main(string[] args) => new Program().StartAsync().GetAwaiter().GetResult();
 
     public async Task StartAsync()
     {
         await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
-        var services = await initializer.ConfigureServices();        
+        var services = await Initializer.ConfigureServices();
 
         var manager = services.GetService<CommandManager>();
         await manager.StartAsync();
@@ -21,5 +19,5 @@ public class Program
         await manager.BuildDocumentation(); // Write the documentation
 
         await Task.Delay(-1); // Prevent the console window from closing.
-    }        
+    }
 }
