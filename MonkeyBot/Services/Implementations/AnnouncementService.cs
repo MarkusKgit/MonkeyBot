@@ -1,13 +1,11 @@
 ﻿using Discord.WebSocket;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot.Announcements;
 using MonkeyBot.Common;
+using MonkeyBot.Modules.Common.Announcements;
 using NCrontab;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -19,9 +17,8 @@ namespace MonkeyBot.Services
     /// </summary>
     public class AnnouncementService : IAnnouncementService
     {
+        private DbService db;
         private DiscordSocketClient client;
-
-        private const string persistanceFilename = "Announcements.json";
 
         /// <summary>A List containing all announcements</summary>
         private List<Announcement> announcements;
@@ -29,49 +26,50 @@ namespace MonkeyBot.Services
         public AnnouncementService(IServiceProvider provider)
         {
             client = provider.GetService<DiscordSocketClient>();
+            db = provider.GetService<DbService>();
             announcements = new List<Announcement>();
             var registry = new Registry();
             JobManager.Initialize(registry);
             JobManager.JobEnd += JobManager_JobEnd;
-            LoadAnnouncementsAsync().Wait(); // Load stored announcements
+            LoadAnnouncements(); // Load stored announcements
         }
 
         private async void JobManager_JobEnd(JobEndInfo obj)
         {
             // When a job is done check if old jobs exist and remove them
             RemovePastJobs();
-            await SaveAnnouncementsAsync();
+            await SaveAnnouncements();
         }
 
         /// <summary>
         /// Add an announcement that should be broadcasted regularly based on the interval defined by the Cron Expression
         /// </summary>
-        /// <param name="ID">The unique ID of the announcement</param>
+        /// <param name="name">The unique ID of the announcement</param>
         /// <param name="cronExpression">The cron expression that defines the broadcast intervall. See https://github.com/atifaziz/NCrontab/wiki/Crontab-Expression for details</param>
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="guildID">The ID of the Guild where the message will be broadcasted</param>
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
-        public async Task AddRecurringAnnouncementAsync(string ID, string cronExpression, string message, ulong guildID, ulong channelID)
+        public async Task AddRecurringAnnouncementAsync(string name, string cronExpression, string message, ulong guildID, ulong channelID)
         {
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Please provide an ID");
             // Try to parse the CronExpression -> if it fails the cron expression was not valid
             var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
             if (cnSchedule == null)
                 throw new ArgumentException("Cron expression is wrong!");
             // Create the announcement, add it to the list and persist it
-            var announcement = new RecurringAnnouncement(ID, cronExpression, message, guildID, channelID);
+            var announcement = new RecurringAnnouncement(name, cronExpression, message, guildID, channelID);
             announcements.Add(announcement);
             AddRecurringJob(announcement);
-            await SaveAnnouncementsAsync();
+            await SaveAnnouncements();
         }
 
         private void AddRecurringJob(RecurringAnnouncement announcement)
         {
             // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID), (x) => x.WithName(announcement.ID).ToRunEvery(5).Seconds());
+            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(announcement.Name).ToRunEvery(5).Seconds());
             // Retrieve the schedule from the newly created job
-            var schedule = JobManager.AllSchedules.Where(x => x.Name == announcement.ID).FirstOrDefault();
+            var schedule = JobManager.AllSchedules.Where(x => x.Name == announcement.Name).FirstOrDefault();
             // Create a cronSchedule with the provided cronExpression
             var cnSchedule = CrontabSchedule.Parse(announcement.CronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
             // Because FluentScheduler does not support cron expressions we have to override the default method that
@@ -91,28 +89,28 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Add an announcement that should be broadcasted once on the provided Execution Time
         /// </summary>
-        /// <param name="ID">The unique ID of the announcement</param>
+        /// <param name="name">The unique ID of the announcement</param>
         /// <param name="excecutionTime">The date and time at which the message should be broadcasted. Must be in the future</param>
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="guildID">The ID of the Guild where the message will be broadcasted</param>
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
-        public async Task AddSingleAnnouncementAsync(string ID, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
+        public async Task AddSingleAnnouncementAsync(string name, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
         {
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Please provide an ID");
             if (excecutionTime < DateTime.Now)
                 throw new ArgumentException("The time you provided is in the past!");
             // Create the announcement, add it to the list and persist it
-            var announcement = new SingleAnnouncement(ID, excecutionTime, message, guildID, channelID);
+            var announcement = new SingleAnnouncement(name, excecutionTime, message, guildID, channelID);
             announcements.Add(announcement);
             AddSingleJob(announcement);
-            await SaveAnnouncementsAsync();
+            await SaveAnnouncements();
         }
 
         private void AddSingleJob(SingleAnnouncement announcement)
         {
             // Add a new RunOnce job with the provided ID to the Jobmanager
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID), (x) => x.WithName(announcement.ID).ToRunOnceAt(announcement.ExcecutionTime));
+            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(announcement.Name).ToRunOnceAt(announcement.ExcecutionTime));
         }
 
         /// <summary>
@@ -123,13 +121,13 @@ namespace MonkeyBot.Services
         public async Task RemoveAsync(string announcementID, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = announcements.Where(x => x.ID.ToLower() == announcementID.ToLower() && x.GuildID == guildID).SingleOrDefault();
+            var announcement = announcements.Where(x => x.Name.ToLower() == announcementID.ToLower() && x.GuildId == guildID).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             // Remove the announcement and persist the changes
             announcements.Remove(announcement);
             JobManager.RemoveJob(announcementID);
-            await SaveAnnouncementsAsync();
+            await SaveAnnouncements();
         }
 
         /// <summary>
@@ -140,7 +138,7 @@ namespace MonkeyBot.Services
         public DateTime GetNextOccurence(string announcementID, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = announcements.Where(x => x.ID == announcementID && x.GuildID == guildID).SingleOrDefault();
+            var announcement = announcements.Where(x => x.Name == announcementID && x.GuildId == guildID).SingleOrDefault();
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             var jobs = JobManager.AllSchedules.ToList();
@@ -157,8 +155,8 @@ namespace MonkeyBot.Services
                 if (announcement is SingleAnnouncement && (announcement as SingleAnnouncement).ExcecutionTime < DateTime.Now)
                 {
                     announcements.Remove(announcement);
-                    if (JobManager.GetSchedule(announcement.ID) != null)
-                        JobManager.RemoveJob(announcement.ID);
+                    if (JobManager.GetSchedule(announcement.Name) != null)
+                        JobManager.RemoveJob(announcement.Name);
                 }
             }
         }
@@ -177,42 +175,22 @@ namespace MonkeyBot.Services
         }
 
         /// <summary>Load the stored announcements</summary>
-        public async Task LoadAnnouncementsAsync()
+        private void LoadAnnouncements()
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, persistanceFilename);
-            if (!File.Exists(filePath))
-                return;
-            try
-            {
-                var jsonSettings = new JsonSerializerSettings();
-                jsonSettings.TypeNameHandling = TypeNameHandling.All;
-                string json = await Helpers.ReadTextAsync(filePath);
-                announcements = JsonConvert.DeserializeObject<List<Announcement>>(json, jsonSettings);
-                RemovePastJobs();
-                BuildJobs();
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.Message);
-                throw ex;
-            }
+            announcements = GetAnnouncements();
+            RemovePastJobs();
+            BuildJobs();
         }
 
         /// <summary>Persist the announcements to disk</summary>
-        public async Task SaveAnnouncementsAsync()
+        private async Task SaveAnnouncements()
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, persistanceFilename);
-            try
+            using (var uow = db.UnitOfWork)
             {
-                var jsonSettings = new JsonSerializerSettings();
-                jsonSettings.TypeNameHandling = TypeNameHandling.All;
-                var json = JsonConvert.SerializeObject(announcements, Formatting.Indented, jsonSettings);
-                await Helpers.WriteTextAsync(filePath, json);
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.Message);
-                throw ex;
+                foreach (var announcement in announcements)
+                {
+                    var dbAnnouncement = await uow.Announcements.AddOrUpdateAsync(announcement);
+                }
             }
         }
 
@@ -221,9 +199,28 @@ namespace MonkeyBot.Services
             await Helpers.SendChannelMessageAsync(client, guildID, channelID, message);
         }
 
+        private List<Announcement> GetAnnouncements()
+        {
+            using (var uow = db.UnitOfWork)
+            {
+                var dbAnnouncements = uow.Announcements.GetAll();
+                if (dbAnnouncements == null)
+                    return null;
+                List<Announcement> announcements = new List<Announcement>();
+                foreach (var item in dbAnnouncements)
+                {
+                    if (item.Type == Database.Entities.AnnouncementType.Recurring && !string.IsNullOrEmpty(item.CronExpression))
+                        announcements.Add(new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId));
+                    if (item.Type == Database.Entities.AnnouncementType.Single && item.ExecutionTime.HasValue)
+                        announcements.Add(new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId));
+                }
+                return announcements;
+            }
+        }
+
         public List<Announcement> GetAnnouncements(ulong guildID)
         {
-            return announcements.Where(x => x.GuildID == guildID).ToList();
+            return GetAnnouncements().Where(x => x.GuildId == guildID).ToList();
         }
     }
 }

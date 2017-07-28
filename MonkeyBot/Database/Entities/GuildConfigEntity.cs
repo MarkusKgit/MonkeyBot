@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MonkeyBot.Database.Entities
 {
-    public class GuildConfig : BaseEntity
+    public class GuildConfigEntity : BaseEntity
     {
         [Required]
         public ulong GuildId { get; set; }

@@ -12,6 +12,8 @@ namespace MonkeyBot.Database
 
         ITriviaScoresRepository TriviaScores { get; }
 
+        IAnnouncementRepository Announcements { get; }
+
         int Complete();
 
         Task<int> CompleteAsync();

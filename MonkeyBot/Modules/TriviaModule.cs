@@ -64,7 +64,7 @@ namespace MonkeyBot.Modules
 
         private async Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID)
         {
-            List<TriviaScore> userScoresAllTime;
+            List<TriviaScoreEntity> userScoresAllTime;
             using (var uow = db.UnitOfWork)
             {
                 userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(guildID));

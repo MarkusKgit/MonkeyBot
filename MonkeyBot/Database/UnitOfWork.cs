@@ -11,6 +11,9 @@ namespace MonkeyBot.Database
         private IGuildConfigRepository guildConfigs;
         public IGuildConfigRepository GuildConfigs => guildConfigs ?? (guildConfigs = new GuildConfigRepository(context));
 
+        private IAnnouncementRepository announcements;
+        public IAnnouncementRepository Announcements => announcements ?? (announcements = new AnnouncementRepository(context));
+
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 

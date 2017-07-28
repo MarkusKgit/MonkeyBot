@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IGuildConfigRepository : IRepository<GuildConfig>
+    public interface IGuildConfigRepository : IRepository<GuildConfigEntity>
     {
-        GuildConfig GetOrCreate(ulong guildId);
+        GuildConfigEntity GetOrCreate(ulong guildId);
 
-        Task<GuildConfig> GetOrCreateAsync(ulong guildId);
+        Task<GuildConfigEntity> GetOrCreateAsync(ulong guildId);
     }
 }

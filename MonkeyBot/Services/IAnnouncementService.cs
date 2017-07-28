@@ -1,4 +1,4 @@
-﻿using MonkeyBot.Announcements;
+﻿using MonkeyBot.Modules.Common.Announcements;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -41,11 +41,5 @@ namespace MonkeyBot.Services
 
         /// <summary>Returns all announcements of the current guild</summary>
         List<Announcement> GetAnnouncements(ulong guildID);
-
-        /// <summary>A method that provides a way to load persisted announcements</summary>
-        Task LoadAnnouncementsAsync();
-
-        /// <summary>A method that provides a way to persist announcements</summary>
-        Task SaveAnnouncementsAsync();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Announcements
+﻿namespace MonkeyBot.Modules.Common.Announcements
 {
     /// <summary>
     /// An announcement that can be broadcasted regularly based on a cron schedule
@@ -17,11 +17,11 @@
 
         public RecurringAnnouncement(string id, string cronExpression, string message, ulong guildID, ulong channelID)
         {
-            ID = id;
+            Name = id;
             CronExpression = cronExpression;
             Message = message;
-            GuildID = guildID;
-            ChannelID = channelID;
+            GuildId = guildID;
+            ChannelId = channelID;
         }
     }
 }

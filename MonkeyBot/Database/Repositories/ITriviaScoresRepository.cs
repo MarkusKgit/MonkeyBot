@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface ITriviaScoresRepository : IRepository<TriviaScore>
+    public interface ITriviaScoresRepository : IRepository<TriviaScoreEntity>
     {
-        Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID);
+        Task<List<TriviaScoreEntity>> GetGuildScoresAsync(ulong guildID);
 
-        Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID);
+        Task<TriviaScoreEntity> GetGuildUserScoreAsync(ulong guildID, ulong userID);
 
         Task IncreaseScoreAsync(ulong guildID, ulong userID);
     }

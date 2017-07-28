@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
-using MonkeyBot.Announcements;
 using MonkeyBot.Common;
+using MonkeyBot.Modules.Common.Announcements;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
@@ -63,7 +63,7 @@ namespace MonkeyBot.Modules
             }
             // ID must be unique per guild -> check if it already exists
             var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
-            if (announcements?.Where(x => x.ID == announcementId).Count() > 0)
+            if (announcements?.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
@@ -121,7 +121,7 @@ namespace MonkeyBot.Modules
             }
             // ID must be unique per guild -> check if it already exists
             var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
-            if (announcements.Where(x => x.ID == announcementId).Count() > 0)
+            if (announcements.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
@@ -151,15 +151,15 @@ namespace MonkeyBot.Modules
                 message = "The following upcoming announcements exist:";
             foreach (var announcement in announcements)
             {
-                var nextRun = announcementService.GetNextOccurence(announcement.ID, Context.Guild.Id);
-                var channel = await Context.Guild.GetChannelAsync(announcement.ChannelID);
+                var nextRun = announcementService.GetNextOccurence(announcement.Name, Context.Guild.Id);
+                var channel = await Context.Guild.GetChannelAsync(announcement.ChannelId);
                 if (announcement is RecurringAnnouncement)
                 {
-                    message += Environment.NewLine + $"Recurring announcement with ID: \"{announcement.ID}\" will run next on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
+                    message += Environment.NewLine + $"Recurring announcement with ID: \"{announcement.Name}\" will run next on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
                 }
                 else if (announcement is SingleAnnouncement)
                 {
-                    message += Environment.NewLine + $"Single announcement with ID: \"{announcement.ID}\" will run on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
+                    message += Environment.NewLine + $"Single announcement with ID: \"{announcement.Name}\" will run on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
                 }
             }
             await Context.User.SendMessageAsync(message);

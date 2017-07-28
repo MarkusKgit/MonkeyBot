@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class TriviaScoresRepository : BaseRepository<TriviaScore>, ITriviaScoresRepository
+    public class TriviaScoresRepository : BaseRepository<TriviaScoreEntity>, ITriviaScoresRepository
     {
         public TriviaScoresRepository(DbContext context) : base(context)
         {
         }
 
-        public Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID)
+        public Task<List<TriviaScoreEntity>> GetGuildScoresAsync(ulong guildID)
         {
             return dbSet.Where(x => x.GuildID == guildID).ToListAsync();
         }
 
-        public Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID)
+        public Task<TriviaScoreEntity> GetGuildUserScoreAsync(ulong guildID, ulong userID)
         {
             return dbSet.FirstOrDefaultAsync(x => x.GuildID == guildID && x.UserID == userID);
         }
@@ -28,11 +28,11 @@ namespace MonkeyBot.Database.Repositories
             await IncreaseScoreAsync(score);
         }
 
-        public async Task IncreaseScoreAsync(TriviaScore score)
+        public async Task IncreaseScoreAsync(TriviaScoreEntity score)
         {
             var ts = await dbSet.FirstOrDefaultAsync(x => x == score);
             if (ts == null)
-                await dbSet.AddAsync(ts = new TriviaScore(score.GuildID, score.UserID, 1));
+                await dbSet.AddAsync(ts = new TriviaScoreEntity(score.GuildID, score.UserID, 1));
             else
                 ts.Score++;
             await context.SaveChangesAsync();

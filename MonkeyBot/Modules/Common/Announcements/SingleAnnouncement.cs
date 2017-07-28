@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonkeyBot.Announcements
+namespace MonkeyBot.Modules.Common.Announcements
 {
     /// <summary>
     /// A single announcement that will only be broadcasted once on the Execution Time
@@ -16,11 +16,11 @@ namespace MonkeyBot.Announcements
 
         public SingleAnnouncement(string id, DateTime executionTime, string message, ulong guildID, ulong channelID)
         {
-            ID = id;
+            Name = id;
             ExcecutionTime = executionTime;
             Message = message;
-            GuildID = guildID;
-            ChannelID = channelID;
+            GuildId = guildID;
+            ChannelId = channelID;
         }
     }
 }
