@@ -11,20 +11,23 @@ namespace MonkeyBot.Database.Entities
         [Required]
         public ulong ChannelId { get; set; }
 
+        [Required]
         public AnnouncementType Type { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
         public DateTime? ExecutionTime { get; set; }
 
         public string CronExpression { get; set; }
 
+        [Required]
         public string Message { get; set; }
     }
 
     public enum AnnouncementType
     {
-        Single,
-        Recurring
+        Single = 0,
+        Recurring = 1
     }
 }

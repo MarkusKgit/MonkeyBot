@@ -12,8 +12,7 @@ namespace MonkeyBot.Database
         public DbSet<AnnouncementEntity> Announcements { get; set; }
 
         public MonkeyDBContext() : base()
-        {
-            Database.EnsureCreated();
+        {            
         }
 
         public MonkeyDBContext(DbContextOptions options) : base(options)
@@ -26,7 +25,7 @@ namespace MonkeyBot.Database
             if (!Directory.Exists(databasePath))
                 Directory.CreateDirectory(databasePath);
             string datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
-            optionsBuilder.UseSqlite($"Filename={datadir}");
+            optionsBuilder.UseSqlite($"Filename={datadir}");            
         }
 
         public void EnsureSeedData()

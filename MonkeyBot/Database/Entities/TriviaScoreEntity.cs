@@ -10,6 +10,7 @@ namespace MonkeyBot.Database.Entities
         [Required]
         public ulong UserID { get; set; }
 
+        [Required]
         public int Score { get; set; }
 
         public TriviaScoreEntity()
