@@ -20,7 +20,7 @@ public class Program
         var eventHandler = services.GetService<EventHandlerService>();
         eventHandler.Start();
 
-        var announcements = services.GetService<AnnouncementService>();
+        var announcements = services.GetService<IAnnouncementService>();
         await announcements.InitializeAsync();
 
         await manager.BuildDocumentationAsync(); // Write the documentation

@@ -41,5 +41,7 @@ namespace MonkeyBot.Services
 
         /// <summary>Returns all announcements of the current guild</summary>
         Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID);
+
+        Task InitializeAsync();
     }
 }

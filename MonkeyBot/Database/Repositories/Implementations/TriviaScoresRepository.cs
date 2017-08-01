@@ -39,12 +39,15 @@ namespace MonkeyBot.Database.Repositories
         public async Task IncreaseScoreAsync(ulong guildID, ulong userID)
         {
             var score = await dbSet.FirstOrDefaultAsync(x => x.GuildId == guildID && x.UserId == userID);
-            await IncreaseScoreAsync(score);
+            if (score != null)
+                await IncreaseScoreAsync(score);
+            else
+                await dbSet.AddAsync(new TriviaScoreEntity(guildID, userID, 1));
         }
 
         private async Task IncreaseScoreAsync(TriviaScoreEntity score)
-        {            
-            var ts = await dbSet.FirstOrDefaultAsync(x => x.Id == score.Id);
+        {
+            TriviaScoreEntity ts = await dbSet.FirstOrDefaultAsync(x => x.Id == score.Id);
             if (ts == null)
                 await dbSet.AddAsync(ts = new TriviaScoreEntity(score.GuildId, score.UserId, 1));
             else

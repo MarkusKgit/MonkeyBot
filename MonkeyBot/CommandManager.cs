@@ -47,7 +47,7 @@ namespace MonkeyBot
                 return Configuration.DefaultPrefix;
             using (var uow = db.UnitOfWork)
             {
-                var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value)).CommandPrefix;
+                var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value))?.CommandPrefix;
                 if (prefix != null)
                     return prefix;
                 else

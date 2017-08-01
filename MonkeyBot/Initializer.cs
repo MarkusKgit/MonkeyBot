@@ -31,7 +31,7 @@ namespace MonkeyBot
         private static async Task<IServiceProvider> ConfigureServicesAsync()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<DbService>();
+            services.AddSingleton(new DbService());
             var discordClient = await StartDiscordClientAsync();
             services.AddSingleton(discordClient);
             var commandService = BuildCommandService();

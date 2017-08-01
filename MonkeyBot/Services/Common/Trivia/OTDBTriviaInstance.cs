@@ -151,18 +151,18 @@ namespace MonkeyBot.Services.Common.Trivia
             if (msg == null) // Check if the received message is from a user.
                 return;
             if (msg.Channel?.Id == channelID)
-                await CheckAnswer(msg.Content, msg.Author);
+                await CheckAnswerAsync(msg.Content, msg.Author);
         }
 
-        private async Task CheckAnswer(string answer, IUser user)
+        private async Task CheckAnswerAsync(string answer, IUser user)
         {
-            if (status == TriviaStatus.Running && currentQuestion != null)
+            if (status == TriviaStatus.Running && currentQuestion != null && !user.IsBot)
             {
                 // answer must be identical to correct answer atm. TODO: Consider allowing partial answers
                 if (CleanHtmlString(currentQuestion.CorrectAnswer).ToLower().Trim() == answer.ToLower().Trim())
                 {
                     // Answer is correct.
-                    await AddPointToUser(user);
+                    await AddPointToUserAsync(user);
                     string msg = $"*{user.Username}* is right! The correct answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**";
                     if (currentIndex < questions.Count - 1)
                         msg += Environment.NewLine + GetCurrentHighScores();
@@ -172,7 +172,7 @@ namespace MonkeyBot.Services.Common.Trivia
             }
         }
 
-        private async Task AddPointToUser(IUser user)
+        private async Task AddPointToUserAsync(IUser user)
         {
             // Add points to current scores and global scores
             AddPointCurrent(user, userScoresCurrent);
