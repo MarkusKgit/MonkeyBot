@@ -39,15 +39,15 @@ namespace MonkeyBot
             discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
         }
 
-        public string GetPrefix(IGuild guild) => GetPrefix(guild?.Id);
+        public Task<string> GetPrefixAsync(IGuild guild) => GetPrefixAsync(guild?.Id);
 
-        public string GetPrefix(ulong? guildId)
+        public async Task<string> GetPrefixAsync(ulong? guildId)
         {
             if (guildId == null)
                 return Configuration.DefaultPrefix;
             using (var uow = db.UnitOfWork)
             {
-                var prefix = uow.GuildConfigs.GetOrCreate(guildId.Value).CommandPrefix;
+                var prefix = (await uow.GuildConfigs.GetOrCreateAsync(guildId.Value)).CommandPrefix;
                 if (prefix != null)
                     return prefix;
                 else
@@ -64,7 +64,7 @@ namespace MonkeyBot
             var context = new SocketCommandContext(discordClient, msg);     // Create a new command context.
 
             var guild = (msg.Channel as SocketTextChannel)?.Guild;
-            var prefix = GetPrefix(guild?.Id);
+            var prefix = await GetPrefixAsync(guild?.Id);
 
             int argPos = 0;                                           // Check if the message has either a string or mention prefix.
             if (msg.HasStringPrefix(prefix, ref argPos) ||
@@ -82,7 +82,7 @@ namespace MonkeyBot
             }
         }
 
-        public async Task BuildDocumentation()
+        public async Task BuildDocumentationAsync()
         {
             string docu = DocumentationBuilder.BuildHtmlDocumentationAsync(commandService);
             string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");

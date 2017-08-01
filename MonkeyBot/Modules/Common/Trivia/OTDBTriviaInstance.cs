@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules.Common.Trivia
         /// </summary>
         /// <param name="questionsToPlay">Amount of questions to be played (max 50)</param>
         /// <returns>success</returns>
-        public async Task<bool> StartAsync(int questionsToPlay)
+        public async Task<bool> StartTriviaAsync(int questionsToPlay)
         {
             if (questionsToPlay < 1)
             {
@@ -103,7 +103,7 @@ namespace MonkeyBot.Modules.Common.Trivia
         /// Stops the current trivia. Returns false if trivia is not running
         /// </summary>
         /// <returns>success</returns>
-        public async Task<bool> StopAsync()
+        public async Task<bool> StopTriviaAsync()
         {
             if (!(status == TriviaStatus.Running))
                 return false;
@@ -143,7 +143,7 @@ namespace MonkeyBot.Modules.Common.Trivia
                 currentIndex++;
             }
             else
-                await StopAsync();
+                await StopTriviaAsync();
         }
 
         private async Task Client_MessageReceived(SocketMessage socketMsg)
@@ -176,14 +176,15 @@ namespace MonkeyBot.Modules.Common.Trivia
         private async Task AddPointToUser(IUser user)
         {
             // Add points to current scores and global scores
-            AddPoint(user, userScoresCurrent);
+            AddPointCurrent(user, userScoresCurrent);
             using (var uow = db.UnitOfWork)
             {
                 await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id);
+                await uow.CompleteAsync();
             }
         }
 
-        private void AddPoint(IUser user, Dictionary<ulong, int> pointsDict)
+        private void AddPointCurrent(IUser user, Dictionary<ulong, int> pointsDict)
         {
             if (pointsDict == null)
                 pointsDict = new Dictionary<ulong, int>();

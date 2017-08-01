@@ -1,6 +1,4 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot.Common;
+﻿using MonkeyBot.Common;
 using MonkeyBot.Modules.Common.Trivia;
 using System;
 using System.Collections.Generic;
@@ -14,7 +12,6 @@ namespace MonkeyBot.Services
     /// </summary>
     public class OTDBTriviaService : ITriviaService
     {
-        private DiscordSocketClient client;
         private IServiceProvider serviceProvider;
 
         // holds all trivia instances on a per guild and channel basis
@@ -23,7 +20,6 @@ namespace MonkeyBot.Services
         public OTDBTriviaService(IServiceProvider provider)
         {
             this.serviceProvider = provider;
-            client = provider.GetService<DiscordSocketClient>();
             trivias = new Dictionary<CombinedID, OTDBTriviaInstance>();
         }
 
@@ -35,13 +31,13 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        public async Task<bool> StartAsync(int questionsToPlay, ulong guildID, ulong channelID)
+        public async Task<bool> StartTriviaAsync(int questionsToPlay, ulong guildID, ulong channelID)
         {
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
             CombinedID id = new CombinedID(guildID, channelID, null);
             if (!trivias.ContainsKey(id))
                 trivias.Add(id, new OTDBTriviaInstance(serviceProvider, guildID, channelID));
-            return await trivias[id].StartAsync(questionsToPlay);
+            return await trivias[id].StartTriviaAsync(questionsToPlay);
         }
 
         /// <summary>
@@ -66,7 +62,7 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        public async Task<bool> StopAsync(ulong guildID, ulong channelID)
+        public async Task<bool> StopTriviaAsync(ulong guildID, ulong channelID)
         {
             // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
             CombinedID id = new CombinedID(guildID, channelID, null);
@@ -74,7 +70,7 @@ namespace MonkeyBot.Services
                 return false;
             else
             {
-                var result = await trivias[id].StopAsync();
+                var result = await trivias[id].StopTriviaAsync();
                 trivias.Remove(id);
                 return result;
             }

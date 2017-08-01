@@ -31,7 +31,12 @@ namespace MonkeyBot.Services
             var registry = new Registry();
             JobManager.Initialize(registry);
             JobManager.JobEnd += JobManager_JobEnd;
-            LoadAnnouncements(); // Load stored announcements
+            Initialize();
+        }
+
+        private async void Initialize()
+        {
+            await LoadAnnouncementsAsync(); // Load stored announcements
         }
 
         private async void JobManager_JobEnd(JobEndInfo obj)
@@ -175,9 +180,9 @@ namespace MonkeyBot.Services
         }
 
         /// <summary>Load the stored announcements</summary>
-        private void LoadAnnouncements()
+        private async Task LoadAnnouncementsAsync()
         {
-            announcements = GetAnnouncements();
+            announcements = await GetAnnouncementsAsync();
             RemovePastJobs();
             BuildJobs();
         }
@@ -190,6 +195,7 @@ namespace MonkeyBot.Services
                 foreach (var announcement in announcements)
                 {
                     var dbAnnouncement = await uow.Announcements.AddOrUpdateAsync(announcement);
+                    await uow.CompleteAsync();
                 }
             }
         }
@@ -199,11 +205,11 @@ namespace MonkeyBot.Services
             await Helpers.SendChannelMessageAsync(client, guildID, channelID, message);
         }
 
-        private List<Announcement> GetAnnouncements()
+        private async Task<List<Announcement>> GetAnnouncementsAsync()
         {
             using (var uow = db.UnitOfWork)
             {
-                var dbAnnouncements = uow.Announcements.GetAll();
+                var dbAnnouncements = await uow.Announcements.GetAllAsync();
                 if (dbAnnouncements == null)
                     return null;
                 List<Announcement> announcements = new List<Announcement>();
@@ -218,9 +224,9 @@ namespace MonkeyBot.Services
             }
         }
 
-        public List<Announcement> GetAnnouncements(ulong guildID)
+        public async Task<List<Announcement>> GetAnnouncementsAsync(ulong guildID)
         {
-            return GetAnnouncements().Where(x => x.GuildId == guildID).ToList();
+            return (await GetAnnouncementsAsync()).Where(x => x.GuildId == guildID).ToList();
         }
     }
 }

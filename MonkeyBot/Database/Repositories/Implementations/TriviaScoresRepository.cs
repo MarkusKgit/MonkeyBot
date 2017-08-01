@@ -34,8 +34,10 @@ namespace MonkeyBot.Database.Repositories
             if (ts == null)
                 await dbSet.AddAsync(ts = new TriviaScoreEntity(score.GuildID, score.UserID, 1));
             else
+            {
                 ts.Score++;
-            await context.SaveChangesAsync();
+                dbSet.Update(ts);
+            }
         }
     }
 }

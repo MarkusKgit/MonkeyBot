@@ -19,7 +19,7 @@ namespace MonkeyBot
                 List<string> preconditions = new List<string>();
                 foreach (var precondition in module.Preconditions)
                 {
-                    preconditions.Add(Translateprecondition(precondition));
+                    preconditions.Add(TranslatePrecondition(precondition));
                 }
                 builder.AppendLine($"<strong>Module: {module.Name}</strong>");
                 if (preconditions.Count > 0)
@@ -33,7 +33,7 @@ namespace MonkeyBot
                     preconditions.Clear();
                     foreach (var precondition in cmd.Preconditions)
                     {
-                        preconditions.Add(Translateprecondition(precondition));
+                        preconditions.Add(TranslatePrecondition(precondition));
                     }
                     if (preconditions.Count > 0)
                         builder.AppendLine($"Command Preconditions: {string.Join(", ", preconditions)}");
@@ -45,7 +45,7 @@ namespace MonkeyBot
             return builder.ToString();
         }
 
-        private static string Translateprecondition(PreconditionAttribute precondition)
+        private static string TranslatePrecondition(PreconditionAttribute precondition)
         {
             if (precondition is MinPermissionsAttribute)
                 return $"Minimum permission: <em>{(precondition as MinPermissionsAttribute).AccessLevel.ToString()}</em>";

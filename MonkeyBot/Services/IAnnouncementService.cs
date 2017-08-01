@@ -40,6 +40,6 @@ namespace MonkeyBot.Services
         DateTime GetNextOccurence(string announcementID, ulong guildID);
 
         /// <summary>Returns all announcements of the current guild</summary>
-        List<Announcement> GetAnnouncements(ulong guildID);
+        Task<List<Announcement>> GetAnnouncementsAsync(ulong guildID);
     }
 }

@@ -18,7 +18,7 @@ namespace MonkeyBot.Modules
     {
         [Command("Add")]
         [Remarks("Adds the specified role to your own roles.")]
-        public async Task AddAsync([Summary("The name of the role to add.")] [Remainder] string roleName = null)
+        public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName = null)
         {
             if (string.IsNullOrEmpty(roleName))
             {
@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules
 
         [Command("Remove")]
         [Remarks("Removes the specified role from your roles.")]
-        public async Task RemoveAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
+        public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
             if (string.IsNullOrEmpty(roleName))
             {
@@ -81,7 +81,7 @@ namespace MonkeyBot.Modules
 
         [Command("List")]
         [Remarks("Lists all roles that can be mentioned and assigned.")]
-        public async Task ListAsync()
+        public async Task ListRolesAsync()
         {
             List<string> allRoles = new List<string>();
             // Get the role of the bot with permission manage roles

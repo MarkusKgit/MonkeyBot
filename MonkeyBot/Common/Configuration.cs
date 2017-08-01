@@ -47,13 +47,13 @@ namespace MonkeyBot.Common
                 config.TestingToken = token;
                 config.Owners = new ulong[] { 327885109560737793 };
 
-                await config.SaveJsonAsync(); // Save the new configuration object to file.
+                await config.SaveAsync(); // Save the new configuration object to file.
             }
             await Console.Out.WriteLineAsync("Configuration Loaded");
         }
 
         /// <summary> Save the configuration to the path specified in FileName. </summary>
-        public async Task SaveJsonAsync()
+        public async Task SaveAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
             await Helpers.WriteTextAsync(filePath, ToJson());

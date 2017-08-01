@@ -19,7 +19,7 @@ namespace MonkeyBot.Modules
         [Alias("Vote")]
         [Priority(1)]
         [Remarks("Starts a new poll with the specified question and automatically adds reactions")]
-        public async Task Vote([Summary("The question")][Remainder] string question)
+        public async Task StartPollAsync([Summary("The question")][Remainder] string question)
         {
             question = question.Trim('\"');
             if (string.IsNullOrEmpty(question))
@@ -41,11 +41,11 @@ namespace MonkeyBot.Modules
         [Alias("Vote")]
         [Priority(2)]
         [Remarks("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
-        public async Task Vote([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
+        public async Task StartPollAsync([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
         {
             if (answers == null || answers.Length <= 0)
             {
-                await Vote(question);
+                await StartPollAsync(question);
                 return;
             }
             question = question.Trim('\"');

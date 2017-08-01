@@ -6,7 +6,7 @@ namespace MonkeyBot.Database
 {
     public class UnitOfWork : IUnitOfWork
     {
-        public MonkeyDBContext context { get; }
+        private MonkeyDBContext context { get; }
 
         private IGuildConfigRepository guildConfigs;
         public IGuildConfigRepository GuildConfigs => guildConfigs ?? (guildConfigs = new GuildConfigRepository(context));
@@ -20,11 +20,6 @@ namespace MonkeyBot.Database
         public UnitOfWork(MonkeyDBContext context)
         {
             this.context = context;
-        }
-
-        public int Complete()
-        {
-            return context.SaveChanges();
         }
 
         public Task<int> CompleteAsync()

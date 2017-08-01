@@ -11,11 +11,11 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task<IServiceProvider> ConfigureServices()
+        public static async Task<IServiceProvider> ConfigureServicesAsync()
         {
             var services = new ServiceCollection();
             services.AddSingleton<DbService>();
-            var discordClient = await StartDiscordClient();
+            var discordClient = await StartDiscordClientAsync();
             services.AddSingleton(discordClient);
             var commandService = BuildCommandService();
             services.AddSingleton(commandService);
@@ -40,7 +40,7 @@ namespace MonkeyBot
             return commandService;
         }
 
-        private static async Task<DiscordSocketClient> StartDiscordClient()
+        private static async Task<DiscordSocketClient> StartDiscordClientAsync()
         {
             DiscordSocketConfig discordConfig = new DiscordSocketConfig(); //Create a new config for the Discord Client
             discordConfig.LogLevel = LogSeverity.Verbose;

@@ -6,15 +6,11 @@ namespace MonkeyBot.Database
 {
     public interface IUnitOfWork : IDisposable
     {
-        MonkeyDBContext context { get; }
-
         IGuildConfigRepository GuildConfigs { get; }
 
         ITriviaScoresRepository TriviaScores { get; }
 
         IAnnouncementRepository Announcements { get; }
-
-        int Complete();
 
         Task<int> CompleteAsync();
     }

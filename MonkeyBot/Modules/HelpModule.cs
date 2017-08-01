@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
         {
-            string prefix = commandManager.GetPrefix(Context.Guild);
+            string prefix = await commandManager.GetPrefixAsync(Context.Guild);
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),
@@ -74,7 +74,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            string prefix = commandManager.GetPrefix(Context.Guild);
+            string prefix = await commandManager.GetPrefixAsync(Context.Guild);
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),

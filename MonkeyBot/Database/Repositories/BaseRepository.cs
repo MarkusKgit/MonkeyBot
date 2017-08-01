@@ -17,20 +17,11 @@ namespace MonkeyBot.Database.Repositories
             dbSet = context.Set<T>();
         }
 
-        public void Add(T obj) =>
-            dbSet.Add(obj);
-
         public Task AddAsync(T obj) =>
             dbSet.AddAsync(obj);
 
-        public void AddRange(params T[] objs) =>
-            dbSet.AddRange(objs);
-
         public Task AddRangeAsync(params T[] objs) =>
             dbSet.AddRangeAsync(objs);
-
-        public T Get(int id) =>
-            dbSet.FirstOrDefault(e => e.Id == id);
 
         public Task<T> GetAsync(int id) =>
             dbSet.FirstOrDefaultAsync(e => e.Id == id);
@@ -42,7 +33,7 @@ namespace MonkeyBot.Database.Repositories
             dbSet.ToListAsync();
 
         public void Remove(int id) =>
-            dbSet.Remove(this.Get(id));
+            dbSet.Remove(dbSet.FirstOrDefault(e => e.Id == id));
 
         public void Remove(T obj) =>
             dbSet.Remove(obj);

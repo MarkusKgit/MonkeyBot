@@ -37,7 +37,7 @@ namespace MonkeyBot.Database.Repositories
                 dbAnnouncement.ExecutionTime = (announcement as SingleAnnouncement).ExcecutionTime;
                 dbAnnouncement.Type = AnnouncementType.Single;
             }
-            context.SaveChanges();
+            dbSet.Update(dbAnnouncement);
             return dbAnnouncement;
         }
     }

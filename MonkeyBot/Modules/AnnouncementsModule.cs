@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
             if (announcements?.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -120,7 +120,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
             if (announcements.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -144,7 +144,7 @@ namespace MonkeyBot.Modules
         public async Task ListAsync()
         {
             string message;
-            var announcements = announcementService.GetAnnouncements(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
             if (announcements.Count == 0)
                 message = "No upcoming announcements";
             else

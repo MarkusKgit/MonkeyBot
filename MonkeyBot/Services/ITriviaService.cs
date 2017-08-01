@@ -15,7 +15,7 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        Task<bool> StartAsync(int questionsToPlay, ulong guildID, ulong channelID);
+        Task<bool> StartTriviaAsync(int questionsToPlay, ulong guildID, ulong channelID);
 
         /// <summary>
         /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
@@ -31,6 +31,6 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        Task<bool> StopAsync(ulong guildID, ulong channelID);
+        Task<bool> StopTriviaAsync(ulong guildID, ulong channelID);
     }
 }

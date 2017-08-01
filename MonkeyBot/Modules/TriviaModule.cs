@@ -33,7 +33,7 @@ namespace MonkeyBot.Modules
         [Remarks("Starts a new trivia with the specified amount of questions.")]
         public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questionAmount = 10)
         {
-            if (!await triviaService?.StartAsync(questionAmount, Context.Guild.Id, Context.Channel.Id))
+            if (!await triviaService?.StartTriviaAsync(questionAmount, Context.Guild.Id, Context.Channel.Id))
                 await ReplyAsync("Trivia could not be started :(");
         }
 
@@ -41,8 +41,8 @@ namespace MonkeyBot.Modules
         [Remarks("Stops a running trivia")]
         public async Task StopTriviaAsync()
         {
-            if (!(await triviaService?.StopAsync(Context.Guild.Id, Context.Channel.Id)))
-                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefix(Context.Guild)}trivia start to create a new one.");
+            if (!(await triviaService?.StopTriviaAsync(Context.Guild.Id, Context.Channel.Id)))
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
         }
 
         [Command("Skip")]
@@ -50,7 +50,7 @@ namespace MonkeyBot.Modules
         public async Task SkipQuestionAsync()
         {
             if (!(await triviaService?.SkipQuestionAsync(Context.Guild.Id, Context.Channel.Id)))
-                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefix(Context.Guild)}trivia start to create a new one.");
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
         }
 
         [Command("Scores")]

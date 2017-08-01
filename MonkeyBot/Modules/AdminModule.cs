@@ -16,7 +16,7 @@ namespace MonkeyBot.Modules
         [Command("AddOwner")]
         [Remarks("Adds the specified user to the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
-        public async Task AddOwner([Summary("The name of the user to add")] string username)
+        public async Task AddOwnerAsync([Summary("The name of the user to add")] string username)
         {
             var match = (await Context.Guild.GetUsersAsync()).Where(x => x.Username == username);
             if (match == null || match.Count() <= 0)
@@ -32,7 +32,7 @@ namespace MonkeyBot.Modules
                 {
                     owners.Add(userToAdd.Id);
                     config.Owners = owners.ToArray();
-                    await config.SaveJsonAsync();
+                    await config.SaveAsync();
                     await ReplyAsync($"{userToAdd.Username} has been added to the list of bot owners!");
                 }
                 else
@@ -43,7 +43,7 @@ namespace MonkeyBot.Modules
         [Command("RemoveOwner")]
         [Remarks("Removes the specified user from the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
-        public async Task RemoveOwner([Summary("The name of the user to remove")] string username)
+        public async Task RemoveOwnerAsync([Summary("The name of the user to remove")] string username)
         {
             var match = (await Context.Guild.GetUsersAsync()).Where(x => x.Username == username);
             if (match == null || match.Count() <= 0)
@@ -59,7 +59,7 @@ namespace MonkeyBot.Modules
                 {
                     owners.Remove(userToRemove.Id);
                     config.Owners = owners.ToArray();
-                    await config.SaveJsonAsync();
+                    await config.SaveAsync();
                     await ReplyAsync($"{userToRemove.Username} has been removed from the list of bot owners!");
                 }
                 else

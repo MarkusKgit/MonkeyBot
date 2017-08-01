@@ -12,7 +12,7 @@ public class Program
     {
         await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
-        var services = await Initializer.ConfigureServices();
+        var services = await Initializer.ConfigureServicesAsync();
 
         var manager = services.GetService<CommandManager>();
         await manager.StartAsync();
@@ -20,7 +20,7 @@ public class Program
         var eventHandler = services.GetService<EventHandlerService>();
         eventHandler.Start();
 
-        await manager.BuildDocumentation(); // Write the documentation
+        await manager.BuildDocumentationAsync(); // Write the documentation
 
         await Task.Delay(-1); // Prevent the console window from closing.
     }

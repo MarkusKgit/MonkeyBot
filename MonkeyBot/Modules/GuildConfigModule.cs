@@ -23,7 +23,7 @@ namespace MonkeyBot.Modules
 
         [Command("SetWelcomeMsg")]
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
-        public async Task SetWelcomeMessage([Summary("The welcome message")][Remainder] string welcomeMsg)
+        public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
             if (string.IsNullOrEmpty(welcomeMsg))
             {
@@ -35,13 +35,14 @@ namespace MonkeyBot.Modules
             {
                 var config = await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id);
                 config.WelcomeMessageText = welcomeMsg;
+                uow.GuildConfigs.Update(config);
                 await uow.CompleteAsync();
             }
         }
 
         [Command("AddRule")]
         [Remarks("Adds a rule to the server.")]
-        public async Task AddRule([Summary("The rule to add")][Remainder] string rule)
+        public async Task AddRuleAsync([Summary("The rule to add")][Remainder] string rule)
         {
             if (string.IsNullOrEmpty(rule))
             {
@@ -54,19 +55,21 @@ namespace MonkeyBot.Modules
                 if (config.Rules == null)
                     config.Rules = new List<string>();
                 config.Rules.Add(rule);
+                uow.GuildConfigs.Update(config);
                 await uow.CompleteAsync();
             }
         }
 
         [Command("RemoveRules")]
         [Remarks("Removes the rules from a server.")]
-        public async Task RemoveRules()
+        public async Task RemoveRulesAsync()
         {
             using (var uow = db.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id);
                 if (config.Rules != null)
                     config.Rules.Clear();
+                uow.GuildConfigs.Update(config);
                 await uow.CompleteAsync();
             }
         }

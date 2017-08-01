@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
             string welcomeMessage = string.Empty;
             using (var uow = db.UnitOfWork)
             {
-                welcomeMessage = uow.GuildConfigs.GetOrCreate(arg.Guild.Id).WelcomeMessageText;
+                welcomeMessage = (await uow.GuildConfigs.GetOrCreateAsync(arg.Guild.Id)).WelcomeMessageText;
             }
             welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name);
             welcomeMessage = welcomeMessage.Replace("%user%", arg.Mention);
