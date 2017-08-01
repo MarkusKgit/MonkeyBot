@@ -1,5 +1,5 @@
 ﻿using MonkeyBot.Common;
-using MonkeyBot.Modules.Common.Trivia;
+using MonkeyBot.Services.Common.Trivia;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

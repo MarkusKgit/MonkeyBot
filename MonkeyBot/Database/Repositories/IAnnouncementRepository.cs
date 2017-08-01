@@ -1,13 +1,12 @@
 ﻿using MonkeyBot.Database.Entities;
-using MonkeyBot.Modules.Common.Announcements;
+using MonkeyBot.Services.Common.Announcements;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IAnnouncementRepository : IRepository<AnnouncementEntity>
+    public interface IAnnouncementRepository : IRepository<AnnouncementEntity, Announcement>
     {
-        Task<AnnouncementEntity> GetAsync(Announcement announcement);
-
-        Task<AnnouncementEntity> AddOrUpdateAsync(Announcement announcement);
+        Task<Announcement> GetAnnouncementAsync(ulong guildId, ulong channelId, string announcementName);        
     }
 }

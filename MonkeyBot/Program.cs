@@ -12,13 +12,16 @@ public class Program
     {
         await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
-        var services = await Initializer.ConfigureServicesAsync();
+        var services = await Initializer.InitializeAsync();
 
         var manager = services.GetService<CommandManager>();
         await manager.StartAsync();
 
         var eventHandler = services.GetService<EventHandlerService>();
         eventHandler.Start();
+
+        var announcements = services.GetService<AnnouncementService>();
+        await announcements.InitializeAsync();
 
         await manager.BuildDocumentationAsync(); // Write the documentation
 

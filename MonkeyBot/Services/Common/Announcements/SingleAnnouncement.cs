@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonkeyBot.Modules.Common.Announcements
+namespace MonkeyBot.Services.Common.Announcements
 {
     /// <summary>
     /// A single announcement that will only be broadcasted once on the Execution Time

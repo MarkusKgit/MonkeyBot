@@ -13,9 +13,9 @@ namespace MonkeyBot.Database.Entities
         public ulong GuildId { get; set; }
 
         [Required]
-        public string CommandPrefix { get; set; } = Configuration.DefaultPrefix;
+        public string CommandPrefix { get; set; }
 
-        public string WelcomeMessageText { get; set; } = "Welcome to the %server% server, %user%!";
+        public string WelcomeMessageText { get; set; }
 
         [Column("Rules")]
         public string RulesAsString { get; set; }

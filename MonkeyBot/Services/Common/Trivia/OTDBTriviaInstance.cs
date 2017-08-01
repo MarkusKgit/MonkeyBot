@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace MonkeyBot.Modules.Common.Trivia
+namespace MonkeyBot.Services.Common.Trivia
 {
     /// <summary>
     /// Manages a single instance of a trivia game in a Discord channel. Uses Open trivia database https://opentdb.com

@@ -1,9 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using MonkeyBot.Common;
-using MonkeyBot.Modules.Common.Announcements;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Announcements;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id);
             if (announcements?.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -120,7 +120,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id);
             if (announcements.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use");
@@ -144,7 +144,7 @@ namespace MonkeyBot.Modules
         public async Task ListAsync()
         {
             string message;
-            var announcements = await announcementService.GetAnnouncementsAsync(Context.Guild.Id);
+            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id);
             if (announcements.Count == 0)
                 message = "No upcoming announcements";
             else

@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Modules.Common.Announcements
+﻿namespace MonkeyBot.Services.Common.Announcements
 {
     /// <summary>
     /// An announcement that can be broadcasted regularly based on a cron schedule

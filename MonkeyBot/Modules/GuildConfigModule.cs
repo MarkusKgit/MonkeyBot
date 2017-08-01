@@ -33,9 +33,11 @@ namespace MonkeyBot.Modules
 
             using (var uow = db.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig();
                 config.WelcomeMessageText = welcomeMsg;
-                uow.GuildConfigs.Update(config);
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
         }
@@ -51,11 +53,11 @@ namespace MonkeyBot.Modules
             }
             using (var uow = db.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id);
-                if (config.Rules == null)
-                    config.Rules = new List<string>();
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig();                
                 config.Rules.Add(rule);
-                uow.GuildConfigs.Update(config);
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
         }
@@ -66,10 +68,10 @@ namespace MonkeyBot.Modules
         {
             using (var uow = db.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id);
-                if (config.Rules != null)
-                    config.Rules.Clear();
-                uow.GuildConfigs.Update(config);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig();                
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
         }

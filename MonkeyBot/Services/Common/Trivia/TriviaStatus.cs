@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Modules.Common.Trivia
+﻿namespace MonkeyBot.Services.Common.Trivia
 {
     public enum TriviaStatus
     {

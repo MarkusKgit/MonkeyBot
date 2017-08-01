@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Modules.Common.Announcements
+﻿namespace MonkeyBot.Services.Common.Announcements
 {
     /// <summary>
     /// Base class for an announcement with common properties

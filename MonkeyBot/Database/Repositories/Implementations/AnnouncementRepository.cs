@@ -1,25 +1,68 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
-using MonkeyBot.Modules.Common.Announcements;
+using MonkeyBot.Services.Common.Announcements;
 using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class AnnouncementRepository : BaseRepository<AnnouncementEntity>, IAnnouncementRepository
+    public class AnnouncementRepository : BaseRepository<AnnouncementEntity, Announcement>, IAnnouncementRepository
     {
         public AnnouncementRepository(DbContext context) : base(context)
         {
         }
 
-        public Task<AnnouncementEntity> GetAsync(Announcement announcement)
+        public override async Task<List<Announcement>> GetAllAsync()
         {
-            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name == announcement.Name && x.GuildId == announcement.GuildId && x.ChannelId == announcement.ChannelId && x.Message == announcement.Message);
-            return dbAnnouncement;
+            var dbAnnouncements = await dbSet.ToListAsync();
+            if (dbAnnouncements == null)
+                return null;
+            List<Announcement> announcements = new List<Announcement>();
+            foreach (var item in dbAnnouncements)
+            {
+                if (item.Type == AnnouncementType.Recurring && !string.IsNullOrEmpty(item.CronExpression))
+                    announcements.Add(new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId));
+                if (item.Type == AnnouncementType.Single && item.ExecutionTime.HasValue)
+                    announcements.Add(new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId));
+            }
+            return announcements;
         }
 
-        public async Task<AnnouncementEntity> AddOrUpdateAsync(Announcement announcement)
+        public async Task<Announcement> GetAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)
         {
-            var dbAnnouncement = await GetAsync(announcement);
+            var dbAnnouncement = await GetDbAnnouncementAsync(guildId, channelId, announcementName);
+            if (dbAnnouncement == null)
+                return null;
+            if (dbAnnouncement.Type == AnnouncementType.Recurring)
+            {
+                return new RecurringAnnouncement()
+                {
+                    Name = dbAnnouncement.Name,
+                    GuildId = dbAnnouncement.GuildId,
+                    ChannelId = dbAnnouncement.ChannelId,
+                    CronExpression = dbAnnouncement.CronExpression,
+                    Message = dbAnnouncement.Message
+                };
+            }
+            else if (dbAnnouncement.Type == AnnouncementType.Single)
+            {
+                return new SingleAnnouncement()
+                {
+                    Name = dbAnnouncement.Name,
+                    GuildId = dbAnnouncement.GuildId,
+                    ChannelId = dbAnnouncement.ChannelId,
+                    ExcecutionTime = dbAnnouncement.ExecutionTime.Value,
+                    Message = dbAnnouncement.Message
+                };
+            }
+            else
+                return null;
+        }
+
+        public override async Task AddOrUpdateAsync(Announcement announcement)
+        {
+            var dbAnnouncement = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
             if (dbAnnouncement == null)
                 dbSet.Add(dbAnnouncement = new AnnouncementEntity());
 
@@ -37,8 +80,13 @@ namespace MonkeyBot.Database.Repositories
                 dbAnnouncement.ExecutionTime = (announcement as SingleAnnouncement).ExcecutionTime;
                 dbAnnouncement.Type = AnnouncementType.Single;
             }
-            dbSet.Update(dbAnnouncement);
-            return dbAnnouncement;
+            dbSet.Update(dbAnnouncement);            
         }
+
+        private Task<AnnouncementEntity> GetDbAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)
+        {
+            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name == announcementName && x.GuildId == guildId && x.ChannelId == channelId);
+            return dbAnnouncement;
+        }                
     }
 }

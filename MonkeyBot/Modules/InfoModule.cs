@@ -26,7 +26,7 @@ namespace MonkeyBot.Modules
         {
             using (var uow = db.UnitOfWork)
             {
-                var rules = (await uow.GuildConfigs.GetOrCreateAsync(Context.Guild.Id)).Rules;
+                var rules = (await uow.GuildConfigs.GetAsync(Context.Guild.Id)).Rules;
                 if (rules == null || rules.Count < 1)
                     await ReplyAsync("No rules set!");
                 else

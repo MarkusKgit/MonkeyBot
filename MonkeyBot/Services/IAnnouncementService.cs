@@ -1,4 +1,4 @@
-﻿using MonkeyBot.Modules.Common.Announcements;
+﻿using MonkeyBot.Services.Common.Announcements;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -40,6 +40,6 @@ namespace MonkeyBot.Services
         DateTime GetNextOccurence(string announcementID, ulong guildID);
 
         /// <summary>Returns all announcements of the current guild</summary>
-        Task<List<Announcement>> GetAnnouncementsAsync(ulong guildID);
+        Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID);
     }
 }

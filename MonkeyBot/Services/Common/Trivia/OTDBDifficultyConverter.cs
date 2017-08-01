@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MonkeyBot.Modules.Common.Trivia
+namespace MonkeyBot.Services.Common.Trivia
 {
     public class OTDBDifficultyConverter : JsonConverter
     {

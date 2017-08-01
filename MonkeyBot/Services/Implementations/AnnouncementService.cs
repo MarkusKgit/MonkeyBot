@@ -2,7 +2,7 @@
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Modules.Common.Announcements;
+using MonkeyBot.Services.Common.Announcements;
 using NCrontab;
 using System;
 using System.Collections.Generic;
@@ -30,13 +30,14 @@ namespace MonkeyBot.Services
             announcements = new List<Announcement>();
             var registry = new Registry();
             JobManager.Initialize(registry);
-            JobManager.JobEnd += JobManager_JobEnd;
-            Initialize();
+            JobManager.JobEnd += JobManager_JobEnd;            
         }
 
-        private async void Initialize()
+        public async Task InitializeAsync()
         {
-            await LoadAnnouncementsAsync(); // Load stored announcements
+            announcements = await GetAnnouncementsAsync();
+            RemovePastJobs();
+            BuildJobs();
         }
 
         private async void JobManager_JobEnd(JobEndInfo obj)
@@ -178,15 +179,7 @@ namespace MonkeyBot.Services
                     AddSingleJob(announcement as SingleAnnouncement);
             }
         }
-
-        /// <summary>Load the stored announcements</summary>
-        private async Task LoadAnnouncementsAsync()
-        {
-            announcements = await GetAnnouncementsAsync();
-            RemovePastJobs();
-            BuildJobs();
-        }
-
+        
         /// <summary>Persist the announcements to disk</summary>
         private async Task SaveAnnouncements()
         {
@@ -194,7 +187,7 @@ namespace MonkeyBot.Services
             {
                 foreach (var announcement in announcements)
                 {
-                    var dbAnnouncement = await uow.Announcements.AddOrUpdateAsync(announcement);
+                    await uow.Announcements.AddOrUpdateAsync(announcement);
                     await uow.CompleteAsync();
                 }
             }
@@ -209,22 +202,11 @@ namespace MonkeyBot.Services
         {
             using (var uow = db.UnitOfWork)
             {
-                var dbAnnouncements = await uow.Announcements.GetAllAsync();
-                if (dbAnnouncements == null)
-                    return null;
-                List<Announcement> announcements = new List<Announcement>();
-                foreach (var item in dbAnnouncements)
-                {
-                    if (item.Type == Database.Entities.AnnouncementType.Recurring && !string.IsNullOrEmpty(item.CronExpression))
-                        announcements.Add(new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId));
-                    if (item.Type == Database.Entities.AnnouncementType.Single && item.ExecutionTime.HasValue)
-                        announcements.Add(new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId));
-                }
-                return announcements;
+                return await uow.Announcements.GetAllAsync();
             }
         }
 
-        public async Task<List<Announcement>> GetAnnouncementsAsync(ulong guildID)
+        public async Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
         {
             return (await GetAnnouncementsAsync()).Where(x => x.GuildId == guildID).ToList();
         }

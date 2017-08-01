@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MonkeyBot.Modules.Common.Trivia
+namespace MonkeyBot.Services.Common.Trivia
 {
     public interface ITriviaQuestion
     {

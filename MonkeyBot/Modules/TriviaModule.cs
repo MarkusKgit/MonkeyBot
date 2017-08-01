@@ -1,9 +1,9 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.Database.Entities;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Trivia;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +64,7 @@ namespace MonkeyBot.Modules
 
         private async Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID)
         {
-            List<TriviaScoreEntity> userScoresAllTime;
+            List<TriviaScore> userScoresAllTime;
             using (var uow = db.UnitOfWork)
             {
                 userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(guildID));

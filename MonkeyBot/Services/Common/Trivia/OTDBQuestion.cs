@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace MonkeyBot.Modules.Common.Trivia
+namespace MonkeyBot.Services.Common.Trivia
 {
     /// <summary>
     /// Question type as used by Open trivia database

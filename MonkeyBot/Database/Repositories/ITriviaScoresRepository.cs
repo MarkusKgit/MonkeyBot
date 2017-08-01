@@ -1,14 +1,15 @@
 ﻿using MonkeyBot.Database.Entities;
+using MonkeyBot.Services.Common.Trivia;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface ITriviaScoresRepository : IRepository<TriviaScoreEntity>
+    public interface ITriviaScoresRepository : IRepository<TriviaScoreEntity, TriviaScore>
     {
-        Task<List<TriviaScoreEntity>> GetGuildScoresAsync(ulong guildID);
+        Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID);
 
-        Task<TriviaScoreEntity> GetGuildUserScoreAsync(ulong guildID, ulong userID);
+        Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID);
 
         Task IncreaseScoreAsync(ulong guildID, ulong userID);
     }

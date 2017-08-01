@@ -1,17 +1,34 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
 using System.Threading.Tasks;
+using AutoMapper.Configuration;
+using MonkeyBot.Database.Entities;
+using MonkeyBot.Common;
 
 namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task<IServiceProvider> ConfigureServicesAsync()
+        public static Task<IServiceProvider> InitializeAsync()
+        {
+            InitializeMapper();
+            return ConfigureServicesAsync();
+        }
+
+        private static void InitializeMapper()
+        {
+            var cfg = new MapperConfigurationExpression();
+            cfg.CreateMap<GuildConfigEntity, Common.GuildConfig>();
+            cfg.CreateMap<TriviaScoreEntity, Services.Common.Trivia.TriviaScore>();
+            Mapper.Initialize(cfg);
+        }
+
+        private static async Task<IServiceProvider> ConfigureServicesAsync()
         {
             var services = new ServiceCollection();
             services.AddSingleton<DbService>();
