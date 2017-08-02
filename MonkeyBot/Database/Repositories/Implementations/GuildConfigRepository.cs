@@ -24,12 +24,23 @@ namespace MonkeyBot.Database.Repositories
         {
             var dbCfg = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId);
             if (dbCfg == null)
-                dbSet.Add(dbCfg = new GuildConfigEntity());
-            dbCfg.GuildId = obj.GuildId;
-            dbCfg.Rules = obj.Rules;
-            dbCfg.CommandPrefix = obj.CommandPrefix;
-            dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
-            dbSet.Update(dbCfg);
+            {
+                dbSet.Add(dbCfg = new GuildConfigEntity()
+                {
+                    GuildId = obj.GuildId,
+                    Rules = obj.Rules,
+                    CommandPrefix = obj.CommandPrefix,
+                    WelcomeMessageText = obj.WelcomeMessageText
+                });
+            }
+            else
+            {
+                dbCfg.GuildId = obj.GuildId;
+                dbCfg.Rules = obj.Rules;
+                dbCfg.CommandPrefix = obj.CommandPrefix;
+                dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
+                dbSet.Update(dbCfg);
+            }
         }
 
         

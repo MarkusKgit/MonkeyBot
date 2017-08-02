@@ -36,14 +36,14 @@ namespace MonkeyBot.Services
         public async Task InitializeAsync()
         {
             announcements = await GetAnnouncementsAsync();
-            RemovePastJobs();
+            await RemovePastJobsAsync();
             BuildJobs();
         }
 
         private async void JobManager_JobEnd(JobEndInfo obj)
         {
             // When a job is done check if old jobs exist and remove them
-            RemovePastJobs();
+            await RemovePastJobsAsync();
             await SaveAnnouncements();
         }
 
@@ -133,7 +133,12 @@ namespace MonkeyBot.Services
             // Remove the announcement and persist the changes
             announcements.Remove(announcement);
             JobManager.RemoveJob(announcementID);
-            await SaveAnnouncements();
+            using (var uow = db.UnitOfWork)
+            {
+                await uow.Announcements.RemoveAsync(announcement);
+                await uow.CompleteAsync();
+            }
+                await SaveAnnouncements();
         }
 
         /// <summary>
@@ -153,17 +158,23 @@ namespace MonkeyBot.Services
         }
 
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>
-        private void RemovePastJobs()
+        private async Task RemovePastJobsAsync()
         {
-            for (int i = announcements.Count - 1; i >= 0; i--)
+            using (var uow = db.UnitOfWork)
             {
-                var announcement = announcements[i];
-                if (announcement is SingleAnnouncement && (announcement as SingleAnnouncement).ExcecutionTime < DateTime.Now)
+                for (int i = announcements.Count - 1; i >= 0; i--)
                 {
-                    announcements.Remove(announcement);
-                    if (JobManager.GetSchedule(announcement.Name) != null)
-                        JobManager.RemoveJob(announcement.Name);
+                    var announcement = announcements[i];
+                    if (announcement is SingleAnnouncement && (announcement as SingleAnnouncement).ExcecutionTime < DateTime.Now)
+                    {
+                        announcements.Remove(announcement);
+                        if (JobManager.GetSchedule(announcement.Name) != null)
+                            JobManager.RemoveJob(announcement.Name);
+                        
+                        await uow.Announcements.RemoveAsync(announcement);
+                    }
                 }
+                await uow.CompleteAsync();
             }
         }
 

@@ -14,7 +14,7 @@ namespace MonkeyBot.Database.Repositories
 
         //void Remove(int id);
 
-        //void Remove(T obj);
+        //void Remove(TB obj);
 
         //void RemoveRange(params T[] objs);
 

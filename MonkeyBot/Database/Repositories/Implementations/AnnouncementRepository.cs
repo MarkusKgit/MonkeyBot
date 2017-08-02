@@ -64,23 +64,43 @@ namespace MonkeyBot.Database.Repositories
         {
             var dbAnnouncement = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
             if (dbAnnouncement == null)
-                dbSet.Add(dbAnnouncement = new AnnouncementEntity());
+            {
+                dbSet.Add(dbAnnouncement = new AnnouncementEntity()
+                {
+                    Name = announcement.Name,
+                    GuildId = announcement.GuildId,
+                    ChannelId = announcement.ChannelId,
+                    Message = announcement.Message,
+                    Type = (announcement is RecurringAnnouncement) ? AnnouncementType.Recurring : AnnouncementType.Single,
+                    CronExpression = (announcement as RecurringAnnouncement)?.CronExpression ?? string.Empty,
+                    ExecutionTime = (announcement as SingleAnnouncement)?.ExcecutionTime
+                });
+            }
+            else
+            {
+                dbAnnouncement.Name = announcement.Name;
+                dbAnnouncement.GuildId = announcement.GuildId;
+                dbAnnouncement.ChannelId = announcement.ChannelId;
+                dbAnnouncement.Message = announcement.Message;
+                if (announcement is RecurringAnnouncement)
+                {
+                    dbAnnouncement.CronExpression = (announcement as RecurringAnnouncement).CronExpression;
+                    dbAnnouncement.Type = AnnouncementType.Recurring;
+                }
+                else if (announcement is SingleAnnouncement)
+                {
+                    dbAnnouncement.ExecutionTime = (announcement as SingleAnnouncement).ExcecutionTime;
+                    dbAnnouncement.Type = AnnouncementType.Single;
+                }
+                dbSet.Update(dbAnnouncement);
+            }
+        }
 
-            dbAnnouncement.Name = announcement.Name;
-            dbAnnouncement.GuildId = announcement.GuildId;
-            dbAnnouncement.ChannelId = announcement.ChannelId;
-            dbAnnouncement.Message = announcement.Message;
-            if (announcement is RecurringAnnouncement)
-            {
-                dbAnnouncement.CronExpression = (announcement as RecurringAnnouncement).CronExpression;
-                dbAnnouncement.Type = AnnouncementType.Recurring;
-            }
-            else if (announcement is SingleAnnouncement)
-            {
-                dbAnnouncement.ExecutionTime = (announcement as SingleAnnouncement).ExcecutionTime;
-                dbAnnouncement.Type = AnnouncementType.Single;
-            }
-            dbSet.Update(dbAnnouncement);            
+        public async Task RemoveAsync(Announcement announcement)
+        {
+            var entity = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
+            if (entity != null)
+                dbSet.Remove(entity);
         }
 
         private Task<AnnouncementEntity> GetDbAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)

@@ -41,10 +41,7 @@ namespace MonkeyBot.Database.Repositories
 
         //public void Remove(int id) =>
         //    dbSet.Remove(dbSet.FirstOrDefault(e => e.Id == id));
-
-        //public void Remove(T obj) =>
-        //    dbSet.Remove(obj);
-
+        
         //public void RemoveRange(params T[] objs) =>
         //    dbSet.RemoveRange(objs);
 

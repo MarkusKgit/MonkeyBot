@@ -19,11 +19,21 @@ namespace MonkeyBot.Database.Repositories
         {
             var dbScore = await dbSet.FirstOrDefaultAsync(x => x.GuildId == tvs.GuildID && x.UserId == tvs.UserID);
             if (dbScore == null)
-                await dbSet.AddAsync(dbScore = new TriviaScoreEntity());
-            dbScore.GuildId = tvs.GuildID;
-            dbScore.UserId = tvs.UserID;
-            dbScore.Score = tvs.Score;
-            dbSet.Update(dbScore);
+            {
+                await dbSet.AddAsync(dbScore = new TriviaScoreEntity()
+                {
+                    GuildId = tvs.GuildID,
+                    UserId = tvs.UserID,
+                    Score = tvs.Score
+                });
+            }
+            else
+            {
+                dbScore.GuildId = tvs.GuildID;
+                dbScore.UserId = tvs.UserID;
+                dbScore.Score = tvs.Score;
+                dbSet.Update(dbScore);
+            }
         }
         
         public Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID)
