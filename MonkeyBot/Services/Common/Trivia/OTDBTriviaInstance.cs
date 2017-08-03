@@ -128,10 +128,10 @@ namespace MonkeyBot.Services.Common.Trivia
                 builder.Color = new Color(26, 137, 185);
                 builder.Title = $"Question **{currentIndex + 1}**";
                 int points = QuestionToPoints(currentQuestion);
-                builder.Description = $"*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty} : {points} point {(points == 1 ? "" : "s")}*";
+                builder.Description = $"{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {                    
-                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}? : True or false", null);
+                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", "True or false?");
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
                 {
@@ -140,7 +140,7 @@ namespace MonkeyBot.Services.Common.Trivia
                     Random rand = new Random();
                     // randomize the order of the answers
                     var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);                                      
-                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}?", string.Join(Environment.NewLine, randomizedAnswers));                    
+                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", string.Join(Environment.NewLine, randomizedAnswers));                    
                 }
                 await Helpers.SendChannelMessageAsync(client, guildID, channelID, "", false, builder.Build());
                 currentIndex++;

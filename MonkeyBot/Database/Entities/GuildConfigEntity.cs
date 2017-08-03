@@ -22,10 +22,10 @@ namespace MonkeyBot.Database.Entities
         [NotMapped]
         public List<string> Rules
         {
-            get { return RulesAsString.Split(';').ToList(); }
+            get { return string.IsNullOrEmpty(RulesAsString) ? null : RulesAsString.Split(';').ToList(); }
             set
             {
-                RulesAsString = string.Join(";", value);
+                RulesAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);
             }
         }
     }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
@@ -36,7 +37,7 @@ namespace MonkeyBot.Database.Repositories
             else
             {
                 dbCfg.GuildId = obj.GuildId;
-                dbCfg.Rules = obj.Rules;
+                dbCfg.Rules = new List<string>(obj.Rules);
                 dbCfg.CommandPrefix = obj.CommandPrefix;
                 dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
                 dbSet.Update(dbCfg);

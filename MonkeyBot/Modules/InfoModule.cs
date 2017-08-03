@@ -30,7 +30,12 @@ namespace MonkeyBot.Modules
                 if (rules == null || rules.Count < 1)
                     await ReplyAsync("No rules set!");
                 else
-                    await Context.User.SendMessageAsync(string.Join(Environment.NewLine, rules));
+                {
+                    var builder = new EmbedBuilder();
+                    builder.Color = new Color(255, 0, 0);
+                    builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
+                    await Context.User.SendMessageAsync("", false, builder.Build());
+                }                    
             }
         }
 

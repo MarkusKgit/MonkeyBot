@@ -14,7 +14,7 @@ namespace MonkeyBot.Common
 
         public GuildConfig()
         {
-            Rules = new List<string>();
+            
         }
     }
 }
