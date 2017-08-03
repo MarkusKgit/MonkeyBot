@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
@@ -57,34 +58,29 @@ namespace MonkeyBot.Modules
         [Remarks("Gets the global scores")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            string scores = await GetAllTimeHighScoresAsync(amount, Context.Guild.Id);
-            if (!string.IsNullOrEmpty(scores))
-                await ReplyAsync(scores);
-        }
-
-        private async Task<string> GetAllTimeHighScoresAsync(int count, ulong guildID)
-        {
             List<TriviaScore> userScoresAllTime;
             using (var uow = db.UnitOfWork)
             {
-                userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(guildID));
+                userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(Context.Guild.Id));
             }
-            int correctedCount = Math.Min(count, userScoresAllTime.Count());
+            int correctedCount = Math.Min(amount, userScoresAllTime.Count());
             if (userScoresAllTime == null || correctedCount < 1)
-                return "No scores found!";
-            var sortedScores = userScoresAllTime.OrderByDescending(x => x.Score);
-            sortedScores.Take(correctedCount);
-            List<string> scoresList = new List<string>();
-            foreach (var score in sortedScores)
             {
-                var userName = (await Context.Client.GetUserAsync(score.UserID)).Username;
-                if (score.Score == 1)
-                    scoresList.Add($"{userName}: 1 point");
-                else
-                    scoresList.Add($"{userName}: {score.Score} points");
+                await ReplyAsync("No scores found!");
+                return;
             }
-            string scores = $"**Top {correctedCount} of all time**:{Environment.NewLine}{string.Join(", ", scoresList)}";
-            return scores;
-        }
+            var sortedScores = userScoresAllTime.OrderByDescending(x => x.Score).Take(correctedCount).ToList();
+            List<string> scoresList = new List<string>();
+            for (int i = 0; i < sortedScores.Count; i++)
+            {
+                var score = sortedScores[i];
+                var userName = (await Context.Client.GetUserAsync(score.UserID))?.Username;
+                scoresList.Add($"**#{i+1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
+            }            
+            var builder = new EmbedBuilder();
+            builder.Color = new Color(46, 191, 84);
+            builder.AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, scoresList));
+            await ReplyAsync("", false, builder.Build());
+        }        
     }
 }

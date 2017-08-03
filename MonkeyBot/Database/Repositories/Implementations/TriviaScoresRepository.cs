@@ -45,16 +45,16 @@ namespace MonkeyBot.Database.Repositories
             return dbSet.Where(x => x.GuildId == guildID && x.UserId == userID).Select(x => Mapper.Map<TriviaScore>(x)).FirstOrDefaultAsync();
         }
 
-        public async Task IncreaseScoreAsync(ulong guildID, ulong userID)
+        public async Task IncreaseScoreAsync(ulong guildID, ulong userID, int points)
         {
             var score = await dbSet.FirstOrDefaultAsync(x => x.GuildId == guildID && x.UserId == userID);
             if (score != null)
             {
-                score.Score++;
+                score.Score += points;
                 dbSet.Update(score);
             }
             else
-                await dbSet.AddAsync(new TriviaScoreEntity(guildID, userID, 1));
+                await dbSet.AddAsync(new TriviaScoreEntity(guildID, userID, points));
         }
 
         public override async Task RemoveAsync(TriviaScore obj)

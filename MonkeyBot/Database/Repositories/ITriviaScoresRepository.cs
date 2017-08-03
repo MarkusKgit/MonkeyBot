@@ -11,6 +11,6 @@ namespace MonkeyBot.Database.Repositories
 
         Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID);
 
-        Task IncreaseScoreAsync(ulong guildID, ulong userID);
+        Task IncreaseScoreAsync(ulong guildID, ulong userID, int points);
     }
 }

@@ -79,11 +79,11 @@ namespace MonkeyBot.Common
         /// <param name="guildID">Id of the Discord guild</param>
         /// <param name="channelID">Id of the Discord channel</param>
         /// <param name="text">Text to post</param>
-        public static async Task SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text)
+        public static async Task SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
             var guild = await client?.GetGuildAsync(guildID);
             var channel = await guild?.GetChannelAsync(channelID) as SocketTextChannel;
-            await channel?.SendMessageAsync(text);
+            await channel?.SendMessageAsync(text, isTTS, embed, options);
         }
     }
 }

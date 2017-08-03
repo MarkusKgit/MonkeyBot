@@ -124,9 +124,14 @@ namespace MonkeyBot.Services.Common.Trivia
                 if (currentIndex >= questions.Count) // we want to play more questions than available
                     await LoadQuestionsAsync(10); // load more questions
                 currentQuestion = questions.ElementAt(currentIndex);
+                var builder = new EmbedBuilder();
+                builder.Color = new Color(26, 137, 185);
+                builder.Title = $"Question **{currentIndex + 1}**";
+                int points = QuestionToPoints(currentQuestion);
+                builder.Description = $"*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty} : {points} point {(points == 1 ? "" : "s")}*";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
-                {
-                    await Helpers.SendChannelMessageAsync(client, guildID, channelID, $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}? (*true or false*)");
+                {                    
+                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}? : True or false", null);
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
                 {
@@ -134,11 +139,10 @@ namespace MonkeyBot.Services.Common.Trivia
                     var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
                     Random rand = new Random();
                     // randomize the order of the answers
-                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
-                    string message = $"Question **{currentIndex + 1}** [*{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty}*]: {CleanHtmlString(currentQuestion.Question)}?";
-                    message += Environment.NewLine + string.Join(Environment.NewLine, randomizedAnswers);
-                    await Helpers.SendChannelMessageAsync(client, guildID, channelID, message);
+                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);                                      
+                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}?", string.Join(Environment.NewLine, randomizedAnswers));                    
                 }
+                await Helpers.SendChannelMessageAsync(client, guildID, channelID, "", false, builder.Build());
                 currentIndex++;
             }
             else
@@ -162,7 +166,7 @@ namespace MonkeyBot.Services.Common.Trivia
                 if (CleanHtmlString(currentQuestion.CorrectAnswer).ToLower().Trim() == answer.ToLower().Trim())
                 {
                     // Answer is correct.
-                    await AddPointToUserAsync(user);
+                    await AddPointsToUserAsync(user, QuestionToPoints(currentQuestion));
                     string msg = $"*{user.Username}* is right! The correct answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**";
                     if (currentIndex < questions.Count - 1)
                         msg += Environment.NewLine + GetCurrentHighScores();
@@ -172,24 +176,46 @@ namespace MonkeyBot.Services.Common.Trivia
             }
         }
 
-        private async Task AddPointToUserAsync(IUser user)
+        private int QuestionToPoints(ITriviaQuestion question)
+        {
+            if (question.Type == TriviaQuestionType.TrueFalse)
+                return 1;
+            else if (question.Type == TriviaQuestionType.MultipleChoice)
+            {
+                switch (question.Difficulty)
+                {
+                    case TriviaQuestionDifficulty.Easy:
+                        return 1;
+                    case TriviaQuestionDifficulty.Medium:
+                        return 2;
+                    case TriviaQuestionDifficulty.Hard:
+                        return 3;
+                    default:
+                        return 0;
+                }
+            }
+            return 0;
+        }
+
+        private async Task AddPointsToUserAsync(IUser user, int pointsToAdd)
         {
             // Add points to current scores and global scores
-            AddPointCurrent(user, userScoresCurrent);
+            AddPointsCurrent(user, userScoresCurrent, pointsToAdd);
             using (var uow = db.UnitOfWork)
             {
-                await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id);
+                await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id, pointsToAdd);
                 await uow.CompleteAsync();
             }
         }
 
-        private void AddPointCurrent(IUser user, Dictionary<ulong, int> pointsDict)
+        private void AddPointsCurrent(IUser user, Dictionary<ulong, int> pointsDict, int pointsToAdd)
         {
             if (pointsDict == null)
                 pointsDict = new Dictionary<ulong, int>();
             if (!pointsDict.ContainsKey(user.Id))
-                pointsDict.Add(user.Id, 0);
-            pointsDict[user.Id]++;
+                pointsDict.Add(user.Id, pointsToAdd);
+            else
+                pointsDict[user.Id] += pointsToAdd;
         }
 
         private string GetCurrentHighScores()
@@ -201,10 +227,7 @@ namespace MonkeyBot.Services.Common.Trivia
             List<string> scoresList = new List<string>();
             foreach (var score in sortedScores)
             {
-                if (score.Value == 1)
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: 1 point");
-                else
-                    scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} points");
+                scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} point{(score.Value == 1 ? "" : "s")}");                
             }
             string scores = $"**Scores**: {string.Join(", ", scoresList.ToList())}";
             return scores;
