@@ -35,12 +35,14 @@ namespace MonkeyBot.Services
             string welcomeMessage = string.Empty;
             using (var uow = db.UnitOfWork)
             {
-                welcomeMessage = (await uow.GuildConfigs.GetAsync(arg.Guild.Id)).WelcomeMessageText;
+                welcomeMessage = (await uow.GuildConfigs.GetAsync(arg.Guild.Id))?.WelcomeMessageText;
             }
-            welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name);
-            welcomeMessage = welcomeMessage.Replace("%user%", arg.Mention);
-            await channel?.SendMessageAsync(welcomeMessage);
-            //await channel?.SendMessageAsync("Hello there " + arg.Mention + "! Welcome to Monkey-Gamers. Read our welcome page for rules and info or type !rules for a list of rules and !help for a list of commands you can use with our bot. If you have any issues feel free to contact our Admins or Leaders.");
+            if (!string.IsNullOrEmpty(welcomeMessage))
+            {
+                welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name);
+                welcomeMessage = welcomeMessage.Replace("%user%", arg.Mention);
+                await channel?.SendMessageAsync(welcomeMessage);
+            }
         }
     }
 }

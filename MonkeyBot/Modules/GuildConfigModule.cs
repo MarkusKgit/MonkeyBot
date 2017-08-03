@@ -4,7 +4,6 @@ using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -55,7 +54,7 @@ namespace MonkeyBot.Modules
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
-                    config = new GuildConfig() { GuildId = Context.Guild.Id};                
+                    config = new GuildConfig() { GuildId = Context.Guild.Id };
                 config.Rules.Add(rule);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
@@ -69,10 +68,12 @@ namespace MonkeyBot.Modules
             using (var uow = db.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
-                if (config == null)
-                    config = new GuildConfig();                
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                if (config != null)
+                {
+                    config.Rules.Clear();
+                    await uow.GuildConfigs.AddOrUpdateAsync(config);
+                    await uow.CompleteAsync();
+                }
             }
         }
     }

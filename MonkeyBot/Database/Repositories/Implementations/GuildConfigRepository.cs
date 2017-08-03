@@ -19,7 +19,7 @@ namespace MonkeyBot.Database.Repositories
                 return null;
             return Mapper.Map<GuildConfig>(dbConfig);
         }
-        
+
         public override async Task AddOrUpdateAsync(GuildConfig obj)
         {
             var dbCfg = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId);
@@ -43,7 +43,13 @@ namespace MonkeyBot.Database.Repositories
             }
         }
 
-        
-        
+        public override async Task RemoveAsync(GuildConfig obj)
+        {
+            if (obj == null)
+                return;
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId);
+            if (entity != null)
+                dbSet.Remove(entity);
+        }
     }
 }

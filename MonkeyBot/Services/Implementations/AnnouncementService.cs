@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
             announcements = new List<Announcement>();
             var registry = new Registry();
             JobManager.Initialize(registry);
-            JobManager.JobEnd += JobManager_JobEnd;            
+            JobManager.JobEnd += JobManager_JobEnd;
         }
 
         public async Task InitializeAsync()
@@ -138,7 +138,7 @@ namespace MonkeyBot.Services
                 await uow.Announcements.RemoveAsync(announcement);
                 await uow.CompleteAsync();
             }
-                await SaveAnnouncements();
+            await SaveAnnouncements();
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace MonkeyBot.Services
                         announcements.Remove(announcement);
                         if (JobManager.GetSchedule(announcement.Name) != null)
                             JobManager.RemoveJob(announcement.Name);
-                        
+
                         await uow.Announcements.RemoveAsync(announcement);
                     }
                 }
@@ -190,7 +190,7 @@ namespace MonkeyBot.Services
                     AddSingleJob(announcement as SingleAnnouncement);
             }
         }
-        
+
         /// <summary>Persist the announcements to disk</summary>
         private async Task SaveAnnouncements()
         {
@@ -219,7 +219,7 @@ namespace MonkeyBot.Services
 
         public async Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
         {
-            return (await GetAnnouncementsAsync()).Where(x => x.GuildId == guildID).ToList();
+            return (await GetAnnouncementsAsync())?.Where(x => x.GuildId == guildID).ToList();
         }
     }
 }

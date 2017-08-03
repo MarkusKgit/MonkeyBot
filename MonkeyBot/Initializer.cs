@@ -1,14 +1,14 @@
-﻿using Discord;
+﻿using AutoMapper;
+using AutoMapper.Configuration;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
+using MonkeyBot.Common;
+using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
 using System;
 using System.Threading.Tasks;
-using AutoMapper.Configuration;
-using MonkeyBot.Database.Entities;
-using MonkeyBot.Common;
 
 namespace MonkeyBot
 {

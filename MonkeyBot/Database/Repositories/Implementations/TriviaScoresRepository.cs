@@ -1,11 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services.Common.Trivia;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System;
-using AutoMapper;
 
 namespace MonkeyBot.Database.Repositories
 {
@@ -35,36 +34,36 @@ namespace MonkeyBot.Database.Repositories
                 dbSet.Update(dbScore);
             }
         }
-        
+
         public Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID)
-        {            
-            return dbSet.Where(x => x.GuildId == guildID).Select(x => Mapper.Map<TriviaScore>(x)).ToListAsync();            
+        {
+            return dbSet.Where(x => x.GuildId == guildID).Select(x => Mapper.Map<TriviaScore>(x)).ToListAsync();
         }
 
         public Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID)
         {
-            return dbSet.Where(x => x.GuildId == guildID && x.UserId == userID).Select(x => Mapper.Map<TriviaScore>(x)).FirstOrDefaultAsync();            
+            return dbSet.Where(x => x.GuildId == guildID && x.UserId == userID).Select(x => Mapper.Map<TriviaScore>(x)).FirstOrDefaultAsync();
         }
 
         public async Task IncreaseScoreAsync(ulong guildID, ulong userID)
         {
             var score = await dbSet.FirstOrDefaultAsync(x => x.GuildId == guildID && x.UserId == userID);
             if (score != null)
-                await IncreaseScoreAsync(score);
+            {
+                score.Score++;
+                dbSet.Update(score);
+            }
             else
                 await dbSet.AddAsync(new TriviaScoreEntity(guildID, userID, 1));
         }
 
-        private async Task IncreaseScoreAsync(TriviaScoreEntity score)
+        public override async Task RemoveAsync(TriviaScore obj)
         {
-            TriviaScoreEntity ts = await dbSet.FirstOrDefaultAsync(x => x.Id == score.Id);
-            if (ts == null)
-                await dbSet.AddAsync(ts = new TriviaScoreEntity(score.GuildId, score.UserId, 1));
-            else
-            {
-                ts.Score++;
-                dbSet.Update(ts);
-            }
+            if (obj == null)
+                return;
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildID && x.UserId == obj.UserID);
+            if (entity != null)
+                dbSet.Remove(entity);
         }
     }
 }

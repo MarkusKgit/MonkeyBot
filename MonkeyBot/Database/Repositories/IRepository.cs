@@ -10,16 +10,6 @@ namespace MonkeyBot.Database.Repositories
 
         Task AddOrUpdateAsync(TB obj);
 
-        //Task AddRangeAsync(params T[] objs);
-
-        //void Remove(int id);
-
-        //void Remove(TB obj);
-
-        //void RemoveRange(params T[] objs);
-
-        //void Update(TB obj);
-
-        //void UpdateRange(params T[] objs);
+        Task RemoveAsync(TB obj);
     }
 }

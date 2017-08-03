@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services.Common.Announcements;
-using System.Threading.Tasks;
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
@@ -29,7 +28,7 @@ namespace MonkeyBot.Database.Repositories
             return announcements;
         }
 
-        public async Task<Announcement> GetAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)
+        public async Task<Announcement> GetAsync(ulong guildId, ulong channelId, string announcementName)
         {
             var dbAnnouncement = await GetDbAnnouncementAsync(guildId, channelId, announcementName);
             if (dbAnnouncement == null)
@@ -96,9 +95,11 @@ namespace MonkeyBot.Database.Repositories
             }
         }
 
-        public async Task RemoveAsync(Announcement announcement)
+        public override async Task RemoveAsync(Announcement obj)
         {
-            var entity = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
+            if (obj == null)
+                return;
+            var entity = await GetDbAnnouncementAsync(obj.GuildId, obj.ChannelId, obj.Name);
             if (entity != null)
                 dbSet.Remove(entity);
         }
@@ -107,6 +108,6 @@ namespace MonkeyBot.Database.Repositories
         {
             var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name == announcementName && x.GuildId == guildId && x.ChannelId == channelId);
             return dbAnnouncement;
-        }                
+        }
     }
 }
