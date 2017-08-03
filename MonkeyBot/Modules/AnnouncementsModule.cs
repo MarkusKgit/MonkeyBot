@@ -72,7 +72,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, Context.Guild.Id, channelID);
-                var nextRun = announcementService.GetNextOccurence(announcementId, Context.Guild.Id);
+                var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
@@ -130,7 +130,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, Context.Guild.Id, channelID);
-                var nextRun = announcementService.GetNextOccurence(announcementId, Context.Guild.Id);
+                var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id);
                 await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
             }
             catch (ArgumentException ex)
@@ -151,7 +151,7 @@ namespace MonkeyBot.Modules
                 message = "The following upcoming announcements exist:";
             foreach (var announcement in announcements)
             {
-                var nextRun = announcementService.GetNextOccurence(announcement.Name, Context.Guild.Id);
+                var nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id);
                 var channel = await Context.Guild.GetChannelAsync(announcement.ChannelId);
                 if (announcement is RecurringAnnouncement)
                 {
@@ -198,7 +198,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                var nextRun = announcementService?.GetNextOccurence(cleanID, Context.Guild.Id);
+                var nextRun = await announcementService.GetNextOccurenceAsync(cleanID, Context.Guild.Id);
                 await ReplyAsync(nextRun.ToString());
             }
             catch (Exception ex)

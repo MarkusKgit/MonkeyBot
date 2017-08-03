@@ -7,7 +7,5 @@ namespace MonkeyBot.Database.Repositories
     public interface IAnnouncementRepository : IRepository<AnnouncementEntity, Announcement>
     {
         Task<Announcement> GetAsync(ulong guildId, ulong channelId, string announcementName);
-
-        Task RemoveAsync(Announcement announcement);
     }
 }

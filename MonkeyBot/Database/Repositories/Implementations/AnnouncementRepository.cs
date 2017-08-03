@@ -106,7 +106,7 @@ namespace MonkeyBot.Database.Repositories
 
         private Task<AnnouncementEntity> GetDbAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)
         {
-            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name == announcementName && x.GuildId == guildId && x.ChannelId == channelId);
+            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name.ToLower() == announcementName.ToLower() && x.GuildId == guildId && x.ChannelId == channelId);
             return dbAnnouncement;
         }
     }

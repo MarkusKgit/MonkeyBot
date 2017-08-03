@@ -37,7 +37,7 @@ namespace MonkeyBot.Services
         /// A method that returns the next execution time of the announcement with the provided ID
         /// </summary>
         /// <returns>Next execution time</returns>
-        DateTime GetNextOccurence(string announcementID, ulong guildID);
+        Task<DateTime> GetNextOccurenceAsync(string announcementID, ulong guildID);
 
         /// <summary>Returns all announcements of the current guild</summary>
         Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID);
