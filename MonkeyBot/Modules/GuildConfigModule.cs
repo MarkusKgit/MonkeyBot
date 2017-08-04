@@ -24,6 +24,7 @@ namespace MonkeyBot.Modules
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
         public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
+            welcomeMsg = welcomeMsg.Trim('\"');
             if (string.IsNullOrEmpty(welcomeMsg))
             {
                 await ReplyAsync("Please provide a welcome message");
@@ -34,7 +35,7 @@ namespace MonkeyBot.Modules
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
-                    config = new GuildConfig();
+                    config = new GuildConfig(Context.Guild.Id);
                 config.WelcomeMessageText = welcomeMsg;
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
@@ -54,7 +55,7 @@ namespace MonkeyBot.Modules
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
-                    config = new GuildConfig() { GuildId = Context.Guild.Id };
+                    config = new GuildConfig(Context.Guild.Id);
                 config.Rules.Add(rule);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();

@@ -16,5 +16,10 @@ namespace MonkeyBot.Common
         {
             
         }
+
+        public GuildConfig(ulong guildId)
+        {
+            GuildId = guildId;
+        }
     }
 }
