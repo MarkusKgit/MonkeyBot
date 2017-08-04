@@ -28,7 +28,12 @@ namespace MonkeyBot.Modules
             {
                 int max = await GetLatestNumberAsync();
                 var rnd = new Random();
-                comic = await GetComicAsync(rnd.Next(1, max));
+                int rndNumber = rnd.Next(1, max);
+                while (rndNumber == 404) // xkcd 404 does not exist
+                {
+                    rndNumber = rnd.Next(1, max);
+                }
+                comic = await GetComicAsync(rndNumber);
             }
             await EmbedComicAsync(comic, Context.Channel);
         }
@@ -39,9 +44,9 @@ namespace MonkeyBot.Modules
         public async Task GetXkcdAsync(int number)
         {
             int maxNumer = await GetLatestNumberAsync();
-            if (number < 1 || number > maxNumer)
+            if (number < 1 || number > maxNumer || number == 404)
             {
-                await ReplyAsync($"The specified comic does not exist. The number has to be between 1 and {maxNumer}!");
+                await ReplyAsync("The specified comic does not exist!");
                 return;
             }
             var comic = await GetComicAsync(number);
