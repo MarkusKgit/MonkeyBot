@@ -50,7 +50,7 @@ namespace MonkeyBot
             CommandServiceConfig commandConfig = new CommandServiceConfig();
             commandConfig.CaseSensitiveCommands = false;
             commandConfig.DefaultRunMode = RunMode.Async;
-            commandConfig.LogLevel = LogSeverity.Verbose;
+            commandConfig.LogLevel = LogSeverity.Warning;
             commandConfig.ThrowOnError = false;
             var commandService = new CommandService(commandConfig); // Create a new instance of the commandservice.
             commandService.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
@@ -60,13 +60,13 @@ namespace MonkeyBot
         private static async Task<DiscordSocketClient> StartDiscordClientAsync()
         {
             DiscordSocketConfig discordConfig = new DiscordSocketConfig(); //Create a new config for the Discord Client
-            discordConfig.LogLevel = LogSeverity.Verbose;
+            discordConfig.LogLevel = LogSeverity.Warning;
             discordConfig.MessageCacheSize = 1000;
             var discordClient = new DiscordSocketClient(discordConfig);    // Create a new instance of DiscordSocketClient with the specified config.
 
             discordClient.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
 
-            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).TestingToken);
+            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
             await discordClient.StartAsync();
             return discordClient;
         }

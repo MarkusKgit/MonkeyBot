@@ -20,7 +20,7 @@ namespace MonkeyBot.Modules
         public async Task GetXkcdAsync(string arg = null)
         {
             xkcdResponse comic = null;
-            if (arg.ToLower() == "latest")
+            if (arg != null && arg.ToLower() == "latest")
             {
                 comic = await GetComicAsync(null);
             }
