@@ -66,6 +66,7 @@ namespace MonkeyBot.Services
             using (var uow = db.UnitOfWork)
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
+                await uow.CompleteAsync();
             }                     
         }
 
@@ -112,6 +113,7 @@ namespace MonkeyBot.Services
             using (var uow = db.UnitOfWork)
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
+                await uow.CompleteAsync();
             }            
         }
 
