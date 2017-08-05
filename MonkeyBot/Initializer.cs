@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Implementations;
 using System;
 using System.Threading.Tasks;
 
@@ -39,6 +40,7 @@ namespace MonkeyBot
             services.AddSingleton<CommandManager>();
             services.AddSingleton(typeof(IAnnouncementService), typeof(AnnouncementService));
             services.AddSingleton(typeof(ITriviaService), typeof(OTDBTriviaService));
+            services.AddSingleton(typeof(IPollService), typeof(PollService));
             services.AddSingleton<EventHandlerService>();
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);

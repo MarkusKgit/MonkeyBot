@@ -2,8 +2,14 @@
 using Discord.Commands;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
+using MonkeyBot.Services.Implementations;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Poll;
 
 namespace MonkeyBot.Modules
 {
@@ -15,6 +21,13 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class PollModule : ModuleBase
     {
+        private IPollService pollService;
+
+        public PollModule(IServiceProvider provider)
+        {
+            pollService = provider.GetService<IPollService>();           
+        }
+        
         [Command("Poll")]
         [Alias("Vote")]
         [Priority(1)]
@@ -27,16 +40,17 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question");
                 return;
             }
-
-            var msg = await Context.Channel.SendMessageAsync(question);
-            if (msg != null)
+            List<Emoji> reactions = new List<Emoji>() { new Emoji("👍"), new Emoji("👎"), new Emoji("🤷") };
+            Poll poll = new Poll()
             {
-                await msg.AddReactionAsync(new Emoji("👍"));
-                await msg.AddReactionAsync(new Emoji("👎"));
-                await msg.AddReactionAsync(new Emoji("🤷"));
-            }
+                GuildId = Context.Guild.Id,
+                ChannelId = Context.Channel.Id,
+                Question = question,
+                Answers = new List<Emoji>(reactions)
+            };
+            await pollService.AddPollAsync(poll);            
         }
-
+        
         [Command("Poll")]
         [Alias("Vote")]
         [Priority(2)]
@@ -48,6 +62,11 @@ namespace MonkeyBot.Modules
                 await StartPollAsync(question);
                 return;
             }
+            if (answers.Length > 7)
+            {
+                await ReplyAsync("Please provide a maximum of 7 answers");
+                return;
+            }
             question = question.Trim('\"');
             if (string.IsNullOrEmpty(question))
             {
@@ -55,21 +74,23 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine(question);
+            StringBuilder questionBuilder = new StringBuilder();
+            List<Emoji> reactions = new List<Emoji>();
+            questionBuilder.AppendLine(question);
             for (int i = 0; i < answers.Length; i++)
             {
                 char reactionLetter = (char)('A' + i);
-                builder.AppendLine($"{reactionLetter}: {answers[i]}");
+                questionBuilder.AppendLine($"{reactionLetter}: {answers[i].Trim()}");
+                reactions.Add(new Emoji(GetUnicodeRegionalLetter(i)));
             }
-            var msg = await Context.Channel.SendMessageAsync(builder.ToString());
-            if (msg != null)
+            Poll poll = new Poll()
             {
-                for (int i = 0; i < answers.Length; i++)
-                {
-                    await msg.AddReactionAsync(new Emoji(GetUnicodeRegionalLetter(i)));
-                }
-            }
+                GuildId = Context.Guild.Id,
+                ChannelId = Context.Channel.Id,
+                Question = questionBuilder.ToString(),
+                Answers = new List<Emoji>(reactions)
+            };
+            await pollService.AddPollAsync(poll);
         }
 
         private string GetUnicodeRegionalLetter(int index)
