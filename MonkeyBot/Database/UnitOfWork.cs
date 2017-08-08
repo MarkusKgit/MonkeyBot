@@ -17,6 +17,9 @@ namespace MonkeyBot.Database
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 
+        private IBenzenFactsRespository benzenFacts;
+        public IBenzenFactsRespository BenzenFacts => benzenFacts ?? (benzenFacts = new BenzenFactsRespository(context));
+
         public UnitOfWork(MonkeyDBContext context)
         {
             this.context = context;

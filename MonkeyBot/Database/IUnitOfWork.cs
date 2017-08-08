@@ -12,6 +12,8 @@ namespace MonkeyBot.Database
 
         IAnnouncementRepository Announcements { get; }
 
+        IBenzenFactsRespository BenzenFacts { get; }
+
         Task<int> CompleteAsync();
     }
 }
