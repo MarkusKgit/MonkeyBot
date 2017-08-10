@@ -23,6 +23,9 @@ public class Program
         var announcements = services.GetService<IAnnouncementService>();
         await announcements.InitializeAsync();
 
+        var backgroundTasks = services.GetService<IBackgroundService>();
+        backgroundTasks.Start();
+
         await manager.BuildDocumentationAsync(); // Write the documentation
 
         await Task.Delay(-1); // Prevent the console window from closing.

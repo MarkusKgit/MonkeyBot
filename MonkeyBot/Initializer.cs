@@ -42,6 +42,7 @@ namespace MonkeyBot
             services.AddSingleton(typeof(ITriviaService), typeof(OTDBTriviaService));
             services.AddSingleton(typeof(IPollService), typeof(PollService));
             services.AddSingleton<EventHandlerService>();
+            services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;

@@ -10,6 +10,10 @@ namespace MonkeyBot.Common
 
         public string WelcomeMessageText { get; set; } = "Welcome to the %server% server, %user%!";
 
+        public bool ListenToFeed { get; set; } = false;
+
+        public string Feedurl { get; set; }
+
         public List<string> Rules { get; set; }
 
         public GuildConfig()
