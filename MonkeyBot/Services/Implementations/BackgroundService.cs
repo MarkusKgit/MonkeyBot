@@ -26,38 +26,41 @@ namespace MonkeyBot.Services
 
         public void Start()
         {
-            JobManager.AddJob(async () => await GetForumUpdatesAsync(), (x) => x.ToRunEvery(30).Minutes());
+            JobManager.AddJob(async () => await GetForumUpdatesAsync(), (x) => x.ToRunNow().AndEvery(30).Minutes().DelayFor(10).Seconds());
         }
 
         private async Task GetForumUpdatesAsync()
         {
             foreach (var guild in client?.Guilds)
             {
-                string feedUrl = string.Empty;
+                List<string> feedUrls = null;
                 using (var uow = db?.UnitOfWork)
                 {
                     var cfg = await uow.GuildConfigs.GetAsync(guild.Id);
-                    if (cfg == null || !cfg.ListenToFeed || string.IsNullOrEmpty(feedUrl))
+                    if (cfg == null || !cfg.ListenToFeeds || feedUrls == null || feedUrls.Count < 1)
                         continue;
-                    feedUrl = cfg.Feedurl;
+                    feedUrls = new List<string>(cfg.FeedUrls);
                 }
                 using (var client = new HttpClient())
                 {
-                    client.BaseAddress = new Uri(feedUrl);
-                    var responseMessage = await client.GetAsync(feedUrl);
-                    var responseString = await responseMessage.Content.ReadAsStringAsync();
+                    foreach (var feedUrl in feedUrls)
+                    {
+                        client.BaseAddress = new Uri(feedUrl);
+                        var responseMessage = await client.GetAsync(feedUrl);
+                        var responseString = await responseMessage.Content.ReadAsStringAsync();
 
-                    //extract feed items
-                    XDocument doc = XDocument.Parse(responseString);
-                    var feedItems = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
-                                    select new FeedItem
-                                    {
-                                        Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
-                                        Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
-                                        PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
-                                        Title = item.Elements().First(i => i.Name.LocalName == "title").Value
-                                    };
-                    var articles = feedItems.ToList();
+                        //extract feed items
+                        XDocument doc = XDocument.Parse(responseString);
+                        var feedItems = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
+                                        select new FeedItem
+                                        {
+                                            Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
+                                            Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
+                                            PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
+                                            Title = item.Elements().First(i => i.Name.LocalName == "title").Value
+                                        };
+                        var articles = feedItems.ToList();
+                    }                    
                 }
             }
         }

@@ -25,7 +25,7 @@ namespace MonkeyBot
         {
             var cfg = new MapperConfigurationExpression();
             cfg.CreateMap<GuildConfigEntity, Common.GuildConfig>();
-            cfg.CreateMap<TriviaScoreEntity, Services.Common.Trivia.TriviaScore>();
+            cfg.CreateMap<TriviaScoreEntity, Services.Common.Trivia.TriviaScore>();            
             Mapper.Initialize(cfg);
         }
 

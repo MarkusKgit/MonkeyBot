@@ -183,7 +183,7 @@ namespace MonkeyBot.Services
         /// <summary>Creates actual jobs from the announcements in the Announcements List to activate them</summary>
         private async Task BuildJobsAsync()
         {
-            JobManager.RemoveAllJobs();            
+            //JobManager.RemoveAllJobs();            
             var announcements = await GetAnnouncementsAsync();
             foreach (var announcement in announcements)
             {

@@ -77,5 +77,69 @@ namespace MonkeyBot.Modules
                 }
             }
         }
+
+        [Command("AddFeedUrl")]
+        [Remarks("Adds a rule to the server.")]
+        public async Task AddFeedUrlAsync([Summary("The url to the rss feed")][Remainder] string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                await ReplyAsync("Please enter a feed url");
+                return;
+            }
+            using (var uow = db.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                config.FeedUrls.Add(url);
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+        }
+
+        [Command("RemoveFeedUrls")]
+        [Remarks("Removes all feed urls")]
+        public async Task RemoveFeedUrlsAsync()
+        {
+            using (var uow = db.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config != null)
+                {
+                    config.FeedUrls.Clear();
+                    await uow.GuildConfigs.AddOrUpdateAsync(config);
+                    await uow.CompleteAsync();
+                }
+            }
+        }
+
+        [Command("EnableFeeds")]
+        [Remarks("Enables the feed listener")]
+        public async Task EnableFeedsAsync()
+        {
+            await ToggleFeedsInternal(true);
+        }
+
+        [Command("DisableFeeds")]
+        [Remarks("Disables the feed listener")]
+        public async Task DisableFeedsAsync()
+        {
+            await ToggleFeedsInternal(false);
+        }
+
+        private async Task ToggleFeedsInternal(bool enable)
+        {
+            using (var uow = db.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                config.ListenToFeeds = enable;
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+            await ReplyAsync($"Feeds have been {(enable ? "enabled" : "disabled.")}");
+        }
     }
 }
