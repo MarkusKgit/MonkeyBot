@@ -9,7 +9,7 @@ namespace MonkeyBot.Database.Entities
     {
         [Required]
         [Column]
-        public ulong GuildId { get; set; }
+        public long GuildId { get; set; }
 
         [Required]
         public string CommandPrefix { get; set; }
@@ -44,5 +44,7 @@ namespace MonkeyBot.Database.Entities
                 FeedUrlsAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);
             }
         }
+
+        public long FeedChannelId { get; set; }
     }
 }

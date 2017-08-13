@@ -16,6 +16,8 @@ namespace MonkeyBot.Common
 
         public List<string> FeedUrls { get; set; } = new List<string>();
 
+        public ulong FeedChannelId { get; set; }
+
         public GuildConfig()
         {
             

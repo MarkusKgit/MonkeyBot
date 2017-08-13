@@ -9,9 +9,10 @@ using MonkeyBot.Database.Entities;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    partial class MonkeyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20170811173239_2017-08-11")]
+    partial class _20170811
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");
@@ -62,12 +63,10 @@ namespace MonkeyBot.Migrations
                     b.Property<string>("CommandPrefix")
                         .IsRequired();
 
-                    b.Property<long>("FeedChannelId");
-
                     b.Property<string>("FeedUrlsAsString")
                         .HasColumnName("FeedUrls");
 
-                    b.Property<long>("GuildId");
+                    b.Property<ulong>("GuildId");
 
                     b.Property<bool>("ListenToFeeds");
 

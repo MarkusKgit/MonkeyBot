@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -14,13 +16,17 @@ namespace MonkeyBot.Modules
     public class GuildConfigModule : ModuleBase
     {
         private DbService db;
+        private IBackgroundService backgroundService;
 
         public GuildConfigModule(IServiceProvider provider)
         {
             db = provider.GetService<DbService>();
+            backgroundService = provider.GetService<IBackgroundService>();
         }
 
-        [Command("SetWelcomeMsg")]
+        #region WelcomeMessage
+
+        [Command("SetWelcomeMessage")]
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
         public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
@@ -41,6 +47,10 @@ namespace MonkeyBot.Modules
                 await uow.CompleteAsync();
             }
         }
+
+        #endregion WelcomeMessage
+
+        #region Rules
 
         [Command("AddRule")]
         [Remarks("Adds a rule to the server.")]
@@ -78,8 +88,12 @@ namespace MonkeyBot.Modules
             }
         }
 
+        #endregion Rules
+
+        #region Feeds
+
         [Command("AddFeedUrl")]
-        [Remarks("Adds a rule to the server.")]
+        [Remarks("Adds a feed to the list of listened feeds.")]
         public async Task AddFeedUrlAsync([Summary("The url to the rss feed")][Remainder] string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -92,7 +106,38 @@ namespace MonkeyBot.Modules
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
+                if (config.FeedUrls.Contains(url))
+                {
+                    await ReplyAsync("The specified feed is already in the list!");
+                    return;
+                }
                 config.FeedUrls.Add(url);
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+            await backgroundService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, url);
+        }
+
+        [Command("RemoveFeedUrl")]
+        [Remarks("Removes the specified feed from the list of feeds.")]
+        public async Task RemoveFeedUrlAsync([Summary("The url of the rss feed")][Remainder] string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                await ReplyAsync("Please enter a feed url");
+                return;
+            }
+            using (var uow = db.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                if (!config.FeedUrls.Contains(url))
+                {
+                    await ReplyAsync("The specified feed is not in the list!");
+                    return;
+                }
+                config.FeedUrls.Remove(url);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
@@ -115,10 +160,21 @@ namespace MonkeyBot.Modules
         }
 
         [Command("EnableFeeds")]
-        [Remarks("Enables the feed listener")]
-        public async Task EnableFeedsAsync()
+        [Remarks("Enables the feed listener in the specified channel")]
+        public async Task EnableFeedsAsync([Summary("The channel where the feed updates should be broadcasted")]string channelName = "")
         {
-            await ToggleFeedsInternal(true);
+            IGuildChannel channel;
+            if (channelName == "")
+                channel = Context.Channel as IGuildChannel;
+            else
+                channel = (await Context.Guild?.GetChannelsAsync())?.FirstOrDefault(x => x.Name == channelName);
+            if (channel == null)
+            {
+                await ReplyAsync("The specified channel does not exist");
+                return;
+            }
+            await ToggleFeedsInternal(true, channel.Id);
+            await backgroundService?.RunOnceAllFeedsAsync(Context.Guild.Id);
         }
 
         [Command("DisableFeeds")]
@@ -128,7 +184,7 @@ namespace MonkeyBot.Modules
             await ToggleFeedsInternal(false);
         }
 
-        private async Task ToggleFeedsInternal(bool enable)
+        private async Task ToggleFeedsInternal(bool enable, ulong channelID = 0)
         {
             using (var uow = db.UnitOfWork)
             {
@@ -136,10 +192,14 @@ namespace MonkeyBot.Modules
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.ListenToFeeds = enable;
+                if (enable)
+                    config.FeedChannelId = channelID;
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
             await ReplyAsync($"Feeds have been {(enable ? "enabled" : "disabled.")}");
         }
+
+        #endregion Feeds
     }
 }
