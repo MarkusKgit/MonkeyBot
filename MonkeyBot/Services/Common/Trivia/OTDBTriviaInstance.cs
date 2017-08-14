@@ -130,7 +130,7 @@ namespace MonkeyBot.Services.Common.Trivia
                 int points = QuestionToPoints(currentQuestion);
                 builder.Description = $"{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
-                {                    
+                {
                     builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", "True or false?");
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
@@ -139,8 +139,8 @@ namespace MonkeyBot.Services.Common.Trivia
                     var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
                     Random rand = new Random();
                     // randomize the order of the answers
-                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);                                      
-                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", string.Join(Environment.NewLine, randomizedAnswers));                    
+                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
+                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", string.Join(Environment.NewLine, randomizedAnswers));
                 }
                 await Helpers.SendChannelMessageAsync(client, guildID, channelID, "", false, builder.Build());
                 currentIndex++;
@@ -186,10 +186,13 @@ namespace MonkeyBot.Services.Common.Trivia
                 {
                     case TriviaQuestionDifficulty.Easy:
                         return 1;
+
                     case TriviaQuestionDifficulty.Medium:
                         return 2;
+
                     case TriviaQuestionDifficulty.Hard:
                         return 3;
+
                     default:
                         return 0;
                 }
@@ -227,7 +230,7 @@ namespace MonkeyBot.Services.Common.Trivia
             List<string> scoresList = new List<string>();
             foreach (var score in sortedScores)
             {
-                scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} point{(score.Value == 1 ? "" : "s")}");                
+                scoresList.Add($"{client.GetUser(score.Key).Username}: {score.Value} point{(score.Value == 1 ? "" : "s")}");
             }
             string scores = $"**Scores**: {string.Join(", ", scoresList.ToList())}";
             return scores;

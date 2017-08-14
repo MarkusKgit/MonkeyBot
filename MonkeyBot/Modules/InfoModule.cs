@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                     builder.Color = new Color(255, 0, 0);
                     builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
                     await Context.User.SendMessageAsync("", false, builder.Build());
-                }                    
+                }
             }
         }
 

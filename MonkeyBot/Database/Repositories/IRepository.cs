@@ -15,6 +15,5 @@ namespace MonkeyBot.Database.Repositories
 
     public interface IRepository<TDb> where TDb : BaseEntity
     {
-        
     }
 }

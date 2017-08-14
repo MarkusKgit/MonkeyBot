@@ -17,7 +17,7 @@ namespace MonkeyBot.Database.Entities
         public string WelcomeMessageText { get; set; }
 
         [Required]
-        public bool ListenToFeeds { get; set; }       
+        public bool ListenToFeeds { get; set; }
 
         [Column("Rules")]
         public string RulesAsString { get; set; }

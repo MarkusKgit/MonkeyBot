@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace MonkeyBot.Database.Repositories
     public class BenzenFactsRespository : BaseRepository<BenzenFactEntity>, IBenzenFactsRespository
     {
         public BenzenFactsRespository(DbContext context) : base(context)
-        {            
+        {
         }
 
         public async Task AddFactAsync(string fact)

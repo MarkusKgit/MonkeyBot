@@ -1,7 +1,5 @@
 ﻿using Discord;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MonkeyBot.Services.Common.Poll
 {
@@ -19,5 +17,5 @@ namespace MonkeyBot.Services.Common.Poll
             Answers = new List<Emoji>();
             UserReactionCount = new Dictionary<ulong, int>();
         }
-    }    
+    }
 }

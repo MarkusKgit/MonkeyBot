@@ -75,12 +75,12 @@ namespace MonkeyBot.Modules
             {
                 var score = sortedScores[i];
                 var userName = (await Context.Client.GetUserAsync(score.UserID))?.Username;
-                scoresList.Add($"**#{i+1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
-            }            
+                scoresList.Add($"**#{i + 1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
+            }
             var builder = new EmbedBuilder();
             builder.Color = new Color(46, 191, 84);
             builder.AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, scoresList));
             await ReplyAsync("", false, builder.Build());
-        }        
+        }
     }
 }

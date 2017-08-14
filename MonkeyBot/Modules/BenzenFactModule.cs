@@ -29,7 +29,7 @@ namespace MonkeyBot.Modules
                     if (benzen != null)
                         fact = fact.Replace("Benzen", benzen.Mention);
                     await ReplyAsync(fact);
-                }                    
+                }
             }
         }
 

@@ -1,15 +1,14 @@
 ﻿using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
-using MonkeyBot.Services.Implementations;
-using Microsoft.Extensions.DependencyInjection;
+using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Poll;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using MonkeyBot.Services;
-using MonkeyBot.Services.Common.Poll;
 
 namespace MonkeyBot.Modules
 {
@@ -25,9 +24,9 @@ namespace MonkeyBot.Modules
 
         public PollModule(IServiceProvider provider)
         {
-            pollService = provider.GetService<IPollService>();           
+            pollService = provider.GetService<IPollService>();
         }
-        
+
         [Command("Poll")]
         [Alias("Vote")]
         [Priority(1)]
@@ -48,9 +47,9 @@ namespace MonkeyBot.Modules
                 Question = question,
                 Answers = new List<Emoji>(reactions)
             };
-            await pollService.AddPollAsync(poll);            
+            await pollService.AddPollAsync(poll);
         }
-        
+
         [Command("Poll")]
         [Alias("Vote")]
         [Priority(2)]

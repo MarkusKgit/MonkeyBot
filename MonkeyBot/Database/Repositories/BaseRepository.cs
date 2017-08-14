@@ -34,6 +34,6 @@ namespace MonkeyBot.Database.Repositories
         {
             this.context = context;
             dbSet = context.Set<TDb>();
-        }        
+        }
     }
 }
