@@ -144,9 +144,17 @@ namespace MonkeyBot.Services.Common.Trivia
                 }
                 await Helpers.SendChannelMessageAsync(client, guildID, channelID, "", false, builder.Build());
                 currentIndex++;
+                await CheckQuestionTimeOut(currentQuestion);
             }
             else
                 await StopTriviaAsync();
+        }
+
+        private async Task CheckQuestionTimeOut(OTDBQuestion question)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            if (question == currentQuestion)
+                await SkipQuestionAsync();
         }
 
         private async Task Client_MessageReceived(SocketMessage socketMsg)
