@@ -26,9 +26,7 @@ namespace MonkeyBot.Services
         public AnnouncementService(IServiceProvider provider)
         {
             client = provider.GetService<DiscordSocketClient>();
-            db = provider.GetService<DbService>();            
-            var registry = new Registry();
-            JobManager.Initialize(registry);
+            db = provider.GetService<DbService>();
             JobManager.JobEnd += JobManager_JobEnd;
         }
 
@@ -67,7 +65,7 @@ namespace MonkeyBot.Services
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
                 await uow.CompleteAsync();
-            }                     
+            }
         }
 
         private void AddRecurringJob(RecurringAnnouncement announcement)
@@ -108,13 +106,13 @@ namespace MonkeyBot.Services
             if (excecutionTime < DateTime.Now)
                 throw new ArgumentException("The time you provided is in the past!");
             // Create the announcement, add it to the list and persist it
-            var announcement = new SingleAnnouncement(name, excecutionTime, message, guildID, channelID);            
+            var announcement = new SingleAnnouncement(name, excecutionTime, message, guildID, channelID);
             AddSingleJob(announcement);
             using (var uow = db.UnitOfWork)
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
                 await uow.CompleteAsync();
-            }            
+            }
         }
 
         private void AddSingleJob(SingleAnnouncement announcement)
@@ -124,7 +122,7 @@ namespace MonkeyBot.Services
             // Add a new RunOnce job with the provided ID to the Jobmanager
             JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(uniqueName).ToRunOnceAt(announcement.ExcecutionTime));
         }
-        
+
         /// <summary>
         /// Removes the announcement with the provided ID from the list of announcements if it exists
         /// </summary>
@@ -154,7 +152,7 @@ namespace MonkeyBot.Services
             // Try to retrieve the announcement with the provided ID
             var announcement = (await GetAnnouncementsForGuildAsync(guildID))?.Where(x => x.Name.ToLower() == announcementName.ToLower()).SingleOrDefault();
             if (announcement == null)
-                throw new ArgumentException("The announcement with the specified ID does not exist");            
+                throw new ArgumentException("The announcement with the specified ID does not exist");
             var job = JobManager.GetSchedule(GetUniqueId(announcement));
             return job.NextRun;
         }
@@ -169,7 +167,7 @@ namespace MonkeyBot.Services
                 {
                     var announcement = announcements[i];
                     if (announcement is SingleAnnouncement && (announcement as SingleAnnouncement).ExcecutionTime < DateTime.Now)
-                    {                        
+                    {
                         var id = GetUniqueId(announcement);
                         if (JobManager.GetSchedule(id) != null)
                             JobManager.RemoveJob(id);
@@ -183,7 +181,7 @@ namespace MonkeyBot.Services
         /// <summary>Creates actual jobs from the announcements in the Announcements List to activate them</summary>
         private async Task BuildJobsAsync()
         {
-            //JobManager.RemoveAllJobs();            
+            //JobManager.RemoveAllJobs();
             var announcements = await GetAnnouncementsAsync();
             foreach (var announcement in announcements)
             {

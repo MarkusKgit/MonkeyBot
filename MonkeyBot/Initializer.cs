@@ -3,10 +3,12 @@ using AutoMapper.Configuration;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
 using System;
 using System.Threading.Tasks;
@@ -15,17 +17,35 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static Task<IServiceProvider> InitializeAsync()
+        public static async Task InitializeAsync()
         {
             InitializeMapper();
-            return ConfigureServicesAsync();
+
+            var services = await ConfigureServicesAsync();
+
+            var manager = services.GetService<CommandManager>();
+            await manager.StartAsync();
+
+            var eventHandler = services.GetService<EventHandlerService>();
+            eventHandler.Start();
+
+            var registry = services.GetService<Registry>();
+            JobManager.Initialize(registry);
+
+            var announcements = services.GetService<IAnnouncementService>();
+            await announcements.InitializeAsync();
+
+            var backgroundTasks = services.GetService<IBackgroundService>();
+            backgroundTasks.Start();
+
+            await manager.BuildDocumentationAsync(); // Write the documentation
         }
 
         private static void InitializeMapper()
         {
             var cfg = new MapperConfigurationExpression();
-            cfg.CreateMap<GuildConfigEntity, Common.GuildConfig>();
-            cfg.CreateMap<TriviaScoreEntity, Services.Common.Trivia.TriviaScore>();            
+            cfg.CreateMap<GuildConfigEntity, GuildConfig>();
+            cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             Mapper.Initialize(cfg);
         }
 
@@ -43,6 +63,7 @@ namespace MonkeyBot
             services.AddSingleton(typeof(IPollService), typeof(PollService));
             services.AddSingleton<EventHandlerService>();
             services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
+            services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
