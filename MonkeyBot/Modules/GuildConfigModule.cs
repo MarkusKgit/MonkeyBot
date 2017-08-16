@@ -93,8 +93,8 @@ namespace MonkeyBot.Modules
         #region Feeds
 
         [Command("AddFeedUrl")]
-        [Remarks("Adds a feed to the list of listened feeds.")]
-        public async Task AddFeedUrlAsync([Summary("The url to the rss feed")][Remainder] string url)
+        [Remarks("Adds an atom or RSS feed to the list of listened feeds.")]
+        public async Task AddFeedUrlAsync([Summary("The url to the feed (Atom/RSS)")][Remainder] string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -120,7 +120,7 @@ namespace MonkeyBot.Modules
 
         [Command("RemoveFeedUrl")]
         [Remarks("Removes the specified feed from the list of feeds.")]
-        public async Task RemoveFeedUrlAsync([Summary("The url of the rss feed")][Remainder] string url)
+        public async Task RemoveFeedUrlAsync([Summary("The url of the feed")][Remainder] string url)
         {
             if (string.IsNullOrEmpty(url))
             {

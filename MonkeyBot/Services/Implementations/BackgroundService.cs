@@ -89,14 +89,16 @@ namespace MonkeyBot.Services
 
                 //extract feed items
                 XDocument doc = XDocument.Parse(responseString);
-                var feedItems = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
-                                select new FeedItem
-                                {
-                                    Content = ParseHtml(item.Elements().First(i => i.Name.LocalName == "description").Value),
-                                    Link = ParseHtml(item.Elements().First(i => i.Name.LocalName == "link").Value),
-                                    PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
-                                    Title = ParseHtml(item.Elements().First(i => i.Name.LocalName == "title").Value)
-                                };
+                var rootName = doc.Root.Name.LocalName.ToLowerInvariant();
+                IEnumerable<FeedItem> feedItems = null;
+                if (rootName == "rss")
+                {
+                    feedItems = ParseRss(doc);
+                }
+                else if (rootName == "feed")
+                {
+                    feedItems = ParseAtom(doc);
+                }
                 // Only list feeds that have been updated since the last check
                 var updatedFeeds = feedItems?.Where(x => x.PublishDate > DateTime.Now.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes))).ToList();
                 if (updatedFeeds != null && updatedFeeds.Count > 0)
@@ -115,6 +117,47 @@ namespace MonkeyBot.Services
                     await channel?.SendMessageAsync("", false, builder.Build());
                 }
             }
+        }
+
+        private IEnumerable<FeedItem> ParseAtom(XDocument doc)
+        {
+            try
+            {
+                var entries = from item in doc.Root.Elements().Where(i => i.Name.LocalName == "entry")
+                              select new FeedItem
+                              {
+                                  Content = item.Elements().First(i => i.Name.LocalName == "content").Value,
+                                  Link = item.Elements().First(i => i.Name.LocalName == "link").Attribute("href").Value,
+                                  PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "published").Value),
+                                  Title = item.Elements().First(i => i.Name.LocalName == "title").Value
+                              };
+                return entries;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private IEnumerable<FeedItem> ParseRss(XDocument doc)
+        {
+            try
+            {
+                var entries = from item in doc.Root.Descendants().FirstOrDefault(i => i.Name.LocalName == "channel")?.Elements()?.Where(i => i.Name.LocalName == "item")
+                              select new FeedItem
+                              {
+                                  Content = ParseHtml(item.Elements().FirstOrDefault(i => i.Name.LocalName == "description")?.Value),
+                                  Link = ParseHtml(item.Elements().FirstOrDefault(i => i.Name.LocalName == "link")?.Value),
+                                  PublishDate = ParseDate(item.Elements().FirstOrDefault(i => i.Name.LocalName == "pubDate")?.Value),
+                                  Title = ParseHtml(item.Elements().FirstOrDefault(i => i.Name.LocalName == "title")?.Value)
+                              };
+                return entries;
+            }
+            catch
+            {
+                return null;
+            }
+
         }
 
         private DateTime ParseDate(string date)
