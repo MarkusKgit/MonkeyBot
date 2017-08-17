@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using CodeHollow.FeedReader;
+using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
@@ -101,21 +102,32 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url");
                 return;
             }
+            var urls = await FeedReader.GetFeedUrlsFromUrlAsync(url);
+            string feedUrl;
+            if (urls.Count() < 1) // no url - probably the url is already the right feed url
+                feedUrl = url;
+            else if (urls.Count() == 1)
+                feedUrl = urls.First().Url;
+            else
+            {
+                await ReplyAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
+                return;
+            }
             using (var uow = db.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
-                if (config.FeedUrls.Contains(url))
+                if (config.FeedUrls.Contains(feedUrl))
                 {
                     await ReplyAsync("The specified feed is already in the list!");
                     return;
                 }
-                config.FeedUrls.Add(url);
+                config.FeedUrls.Add(feedUrl);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
-            await backgroundService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, url);
+            await backgroundService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, feedUrl);
         }
 
         [Command("RemoveFeedUrl")]
