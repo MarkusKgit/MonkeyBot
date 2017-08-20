@@ -94,7 +94,7 @@ namespace MonkeyBot.Services
                 {
                     string date = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.ToString() : feedItem.PublishingDateString;
                     string maskedLink = $"[{ParseHtml(feedItem.Title)}]({feedItem.Link})";
-                    string description = $"{maskedLink}{Environment.NewLine}*{ParseHtml(feedItem.Content) ?? string.Empty}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters
+                    string description = $"{maskedLink}{Environment.NewLine}*{ParseHtml(feedItem.Description) ?? string.Empty}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters
                     builder.AddInlineField(date, description);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
