@@ -5,6 +5,7 @@ using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,15 +16,17 @@ namespace MonkeyBot.Services
 {
     public class BackgroundService : IBackgroundService
     {
-        private const int updateIntervallMinutes = 60;
+        private const int updateIntervallMinutes = 30;
 
         private DbService db;
         private DiscordSocketClient client;
+        private ConcurrentDictionary<string, DateTime> lastFeedUpdate;
 
         public BackgroundService(IServiceProvider provider)
         {
             db = provider.GetService<DbService>();
             client = provider.GetService<DiscordSocketClient>();
+            lastFeedUpdate = new ConcurrentDictionary<string, DateTime>();
         }
 
         public void Start()
@@ -82,22 +85,43 @@ namespace MonkeyBot.Services
                 return;
 
             var feed = await FeedReader.ReadAsync(feedUrl);
-            var now = DateTime.Now.ToUniversalTime();
-            var updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > now.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes)))).ToList();
+            List<FeedItem> updatedFeeds;
+            if (lastFeedUpdate.TryGetValue(feedUrl, out var lastUpdate))
+            {
+                updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).ToList();
+            }
+            else
+            {
+                var now = DateTime.Now.ToUniversalTime();
+                updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > now.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes)))).ToList();
+            }
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
                 string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? feedUrl}".Truncate(255) + "\"";
                 builder.WithTitle(title);
+                DateTime latestUpdate = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
                 {
-                    string date = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.ToString() : feedItem.PublishingDateString;
+                    if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value > latestUpdate)
+                        latestUpdate = feedItem.PublishingDate.Value;
+                    string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : feedItem.PublishingDateString;
                     string maskedLink = $"[{ParseHtml(feedItem.Title)}]({feedItem.Link})";
-                    string description = $"{maskedLink}{Environment.NewLine}*{ParseHtml(feedItem.Description) ?? string.Empty}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters
-                    builder.AddInlineField(date, description);
+                    string description = ParseHtml(feedItem.Description);
+                    if (string.IsNullOrEmpty(description))
+                        description = "[...]";
+                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters
+                    builder.AddInlineField(fieldName, fieldContent);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
+                if (latestUpdate > DateTime.MinValue)
+                {
+                    if (lastFeedUpdate.TryGetValue(feedUrl, out var oldValue))
+                        lastFeedUpdate.TryUpdate(feedUrl, latestUpdate, oldValue);
+                    else
+                        lastFeedUpdate.TryAdd(feedUrl, latestUpdate);
+                }
             }
         }
 
@@ -106,8 +130,9 @@ namespace MonkeyBot.Services
             if (string.IsNullOrEmpty(html))
                 return html;
             string result = WebUtility.HtmlDecode(html);
-            result = result.Replace("<b>", "**").Replace("</b>", "**");
-            result = result.Replace("<i>", "*").Replace("</i>", "*");
+            //result = result.Replace("<b>", "**").Replace("</b>", "**");
+            //result = result.Replace("<i>", "*").Replace("</i>", "*");
+            //result = result.Replace("***", "**");
             string regex = "<(?:\"[^ \"]*\"['\"]*|'[^ ']*'['\"]*|[^'\">])+>";
             result = Regex.Replace(result, regex, "");
             result = result.Trim('\n').Trim('\t').Trim();
