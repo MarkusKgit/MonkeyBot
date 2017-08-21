@@ -86,15 +86,14 @@ namespace MonkeyBot.Services
 
             var feed = await FeedReader.ReadAsync(feedUrl);
             List<FeedItem> updatedFeeds;
-            if (lastFeedUpdate.TryGetValue(feedUrl, out var lastUpdate))
+            var lastUpdate = DateTime.UtcNow;
+            if (!lastFeedUpdate.TryGetValue(feedUrl, out lastUpdate))
             {
-                updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).ToList();
+                lastUpdate = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
+                lastFeedUpdate.TryAdd(feedUrl, lastUpdate);
             }
-            else
-            {
-                var now = DateTime.Now.ToUniversalTime();
-                updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > now.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes)))).ToList();
-            }
+            updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).ToList();
+
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new EmbedBuilder();
