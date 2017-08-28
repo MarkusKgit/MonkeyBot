@@ -1,4 +1,5 @@
 ﻿using CodeHollow.FeedReader;
+using CodeHollow.FeedReader.Feeds;
 using Discord;
 using Discord.WebSocket;
 using FluentScheduler;
@@ -92,12 +93,14 @@ namespace MonkeyBot.Services
                 lastUpdate = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
                 lastFeedUpdate.TryAdd(feedUrl, lastUpdate);
             }
-            updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).ToList();
+            updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).OrderBy(x => x.PublishingDate).ToList();
 
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
+                if (!string.IsNullOrEmpty(feed.ImageUrl))
+                    builder.WithImageUrl(feed.ImageUrl);
                 string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? feedUrl}".Truncate(255) + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdate = DateTime.MinValue;
@@ -106,8 +109,18 @@ namespace MonkeyBot.Services
                     if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value > latestUpdate)
                         latestUpdate = feedItem.PublishingDate.Value;
                     string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : feedItem.PublishingDateString;
-                    string maskedLink = $"[{ParseHtml(feedItem.Title)}]({feedItem.Link})";
+                    string author = feedItem.Author;
+                    if (string.IsNullOrEmpty(author))
+                    {
+                        if (feed.Type == FeedType.Rss_1_0)
+                            author = (feedItem.SpecificItem as Rss10FeedItem)?.DC?.Creator;
+                        else if (feed.Type == FeedType.Rss_2_0)
+                            author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
+                    }
+                    author = !string.IsNullOrEmpty(author) ? $"{author}: " : string.Empty;
+                    string maskedLink = $"[{author}{ParseHtml(feedItem.Title)}]({feedItem.Link})";
                     string description = ParseHtml(feedItem.Description);
+                    description = description.Truncate(200, "[...]");
                     if (string.IsNullOrEmpty(description))
                         description = "[...]";
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters

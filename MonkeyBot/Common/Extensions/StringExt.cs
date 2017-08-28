@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MonkeyBot.Common.Extensions
+﻿namespace MonkeyBot.Common.Extensions
 {
     public static class StringExt
     {
@@ -18,7 +14,11 @@ namespace MonkeyBot.Common.Extensions
                 }
                 if ((text != null) && (text.Length > maxLength))
                 {
-                    return (text.Substring(0, length).TrimEnd(new char[0]) + suffix);
+                    int pos = text.LastIndexOf(" ", length);
+                    if (pos > 0)
+                        return (text.Substring(0, pos).TrimEnd(new char[0]) + suffix);
+                    else
+                        return (text.Substring(0, length).TrimEnd(new char[0]) + suffix);
                 }
             }
             return str;
