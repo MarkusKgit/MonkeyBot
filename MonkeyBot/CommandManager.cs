@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -75,7 +77,27 @@ namespace MonkeyBot
                 if (!result.IsSuccess)                                // If execution failed, reply with the error message.
                 {
                     if (result.Error.HasValue && result.Error.Value == CommandError.UnknownCommand)
-                        await context.Channel.SendMessageAsync($"Command *{msg.Content.Substring(argPos)}* was not found. Type !help to get a list of commands");
+                    {
+                        List<string> possibleCommands = new List<string>();
+                        string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
+                        foreach (var module in commandService.Modules)
+                        {
+                            foreach (var command in module.Commands)
+                            {
+                                foreach (var alias in command.Aliases)
+                                {
+                                    if (alias.ToLowerInvariant().Contains(commandText))
+                                        possibleCommands.Add(alias);
+                                }
+                            }
+                        }
+                        string message = $"Command *{msg.Content.Substring(argPos)}* was not found. Type {prefix}help to get a list of commands";
+                        if (possibleCommands.Count == 1)
+                            message = $"Did you mean *{possibleCommands.First()}* ? Type {prefix}help to get a list of commands";
+                        else if (possibleCommands.Count > 1)
+                            message = $"Did you mean one of the following commands:{Environment.NewLine}{string.Join(Environment.NewLine, possibleCommands)}{Environment.NewLine}Type {prefix}help to get a list of commands";
+                        await context.Channel.SendMessageAsync(message);
+                    }
                     else
                         await context.Channel.SendMessageAsync(result.ToString());
                 }
