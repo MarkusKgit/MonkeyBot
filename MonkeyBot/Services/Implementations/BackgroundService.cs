@@ -84,8 +84,18 @@ namespace MonkeyBot.Services
         {
             if (channel == null || string.IsNullOrEmpty(feedUrl))
                 return;
-
-            var feed = await FeedReader.ReadAsync(feedUrl);
+            Feed feed;
+            try
+            {
+                feed = await FeedReader.ReadAsync(feedUrl);
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync("Error getting feeds" + Environment.NewLine + ex.Message);
+                return;
+            }
+            if (feed == null || feed.Items == null || feed.Items.Count < 1)
+                return;
             List<FeedItem> updatedFeeds;
             var lastUpdate = DateTime.UtcNow;
             if (!lastFeedUpdate.TryGetValue(feedUrl, out lastUpdate))
