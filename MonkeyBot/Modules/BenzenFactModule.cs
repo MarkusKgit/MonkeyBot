@@ -23,13 +23,8 @@ namespace MonkeyBot.Modules
             using (var uow = db.UnitOfWork)
             {
                 var fact = await uow.BenzenFacts.GetRandomFactAsync();
-                var benzen = (await Context.Guild?.GetUsersAsync())?.FirstOrDefault(x => x.Username.ToLower().StartsWith("benzen"));
                 if (!string.IsNullOrEmpty(fact))
-                {
-                    if (benzen != null)
-                        fact = fact.Replace("Benzen", benzen.Mention);
                     await ReplyAsync(fact);
-                }
             }
         }
 
