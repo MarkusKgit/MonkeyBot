@@ -21,7 +21,7 @@ namespace MonkeyBot.Services
         {
             db = provider.GetService<DbService>();
             client = provider.GetService<DiscordSocketClient>();
-            JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunEvery(5).Minutes());
+            JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunEvery(15).Seconds());
         }
 
         public async Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
@@ -55,6 +55,10 @@ namespace MonkeyBot.Services
                 builder.WithTitle("Server Update");
                 builder.WithDescription(serverInfo.Name);
                 builder.AddField("Online Players", $"{serverInfo.Players}/{serverInfo.MaxPlayers}");
+                builder.AddField("Current Map", serverInfo.Map);
+                string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.IP.Address}:{serverInfo.Port}";
+
+                builder.AddField("Connect", $"[Click to connect]({connectLink})");
                 if (discordGameServer.Message == null)
                     discordGameServer.Message = await channel?.SendMessageAsync("", false, builder.Build());
                 else
