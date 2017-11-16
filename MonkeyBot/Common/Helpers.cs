@@ -1,9 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Common
@@ -84,6 +86,17 @@ namespace MonkeyBot.Common
             var guild = await client?.GetGuildAsync(guildID);
             var channel = await guild?.GetChannelAsync(channelID) as SocketTextChannel;
             await channel?.SendMessageAsync(text, isTTS, embed, options);
+        }
+
+        public static async Task<T> WithCancellation<T>(
+    this Task<T> task, CancellationToken cancellationToken)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(
+                        s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+                if (task != await Task.WhenAny(task, tcs.Task))
+                    throw new OperationCanceledException(cancellationToken);
+            return await task;
         }
     }
 }
