@@ -10,7 +10,11 @@ namespace MonkeyBot.Services.Common.SteamServerQuery
 
         public ulong ChannelId { get; private set; }
 
-        public Discord.Rest.RestUserMessage Message { get; internal set; }
+        public ulong? MessageId { get; internal set; }
+
+        public DiscordGameServerInfo()
+        {
+        }
 
         public DiscordGameServerInfo(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {

@@ -22,10 +22,10 @@ namespace MonkeyBot.Services.Implementations
 
         public void Initialize()
         {
-            client.UserUpdated += Client_UserUpdated;
+            client.GuildMemberUpdated += Client_GuildMemberUpdated;
         }
 
-        private async Task Client_UserUpdated(SocketUser before, SocketUser after)
+        private async Task Client_GuildMemberUpdated(SocketUser before, SocketUser after)
         {
             string joinedGame = null;
             if (before.Game.HasValue && after.Game.HasValue && after.Game.Value.Name != before.Game.Value.Name)

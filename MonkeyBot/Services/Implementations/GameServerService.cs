@@ -65,16 +65,28 @@ namespace MonkeyBot.Services
                 builder.WithColor(new Color(21, 26, 35));
                 builder.WithTitle($"{serverInfo.Description} Server");
                 builder.WithDescription(serverInfo.Name);
-                string correctPlayerCount = (playerInfo?.Count > 0) ? $"({playerInfo.Count})" : "";
+                string correctPlayerCount = (playerInfo?.Count > 0 && playerInfo?.Count != serverInfo.Players) ? $"({playerInfo.Count})" : "";
                 builder.AddField("Online Players", $"{serverInfo.Players}{correctPlayerCount}/{serverInfo.MaxPlayers}");
                 builder.AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null)
-                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name)));
+                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x)).OrderBy(x => x)));
+                string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.IP.Address}:{serverInfo.Port}";
+                builder.AddField("Connect", $"[Click to connect]({connectLink})");
                 builder.WithFooter($"Last update: {DateTime.Now}");
-                if (discordGameServer.Message == null)
-                    discordGameServer.Message = await channel?.SendMessageAsync("", false, builder.Build());
+                if (discordGameServer.MessageId == null)
+                {
+                    discordGameServer.MessageId = (await channel?.SendMessageAsync("", false, builder.Build())).Id;
+                    using (var uow = db.UnitOfWork)
+                    {
+                        await uow.GameServers.AddOrUpdateAsync(discordGameServer);
+                        await uow.CompleteAsync();
+                    }
+                }
                 else
-                    await discordGameServer.Message.ModifyAsync(x => x.Embed = builder.Build());
+                {
+                    var msg = await channel.GetMessageAsync(discordGameServer.MessageId.Value) as Discord.Rest.RestUserMessage;
+                    await msg?.ModifyAsync(x => x.Embed = builder.Build());
+                }
             }
             catch
             {
@@ -89,9 +101,14 @@ namespace MonkeyBot.Services
             var serverToRemove = servers.Where(x => x.IP.Address == endPoint.Address && x.IP.Port == endPoint.Port && x.GuildId == guildID).FirstOrDefault();
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
-            if (serverToRemove.Message != null)
-                await serverToRemove.Message.DeleteAsync();
-            //servers.Remove(serverToRemove);
+            if (serverToRemove.MessageId != null)
+            {
+                var guild = client.GetGuild(serverToRemove.GuildId);
+                var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
+                var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
+                await msg?.DeleteAsync();
+            }
+
             using (var uow = db.UnitOfWork)
             {
                 await uow.GameServers.RemoveAsync(serverToRemove);

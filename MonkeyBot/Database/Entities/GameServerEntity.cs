@@ -38,5 +38,7 @@ namespace MonkeyBot.Database.Entities
 
         [Required]
         public long ChannelId { get; set; }
+
+        public long? MessageId { get; set; }
     }
 }
