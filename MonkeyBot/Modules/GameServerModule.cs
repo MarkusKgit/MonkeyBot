@@ -24,6 +24,13 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Add")]
+        [Remarks("Adds the specified game server and posts it's info info in the current channel")]
+        public async Task AddGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip)
+        {
+            await AddGameServerInternalAsync(ip, Context.Channel.Id);
+        }
+
+        [Command("Add")]
         [Remarks("Adds the specified game server and sets the channel of the current guild where the info will be posted.")]
         public async Task AddGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip, [Summary("The name of the channel where the server info should be posted")] string channelName)
         {
@@ -32,46 +39,81 @@ namespace MonkeyBot.Modules
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
             else
-                await AddGameServerAsync(ip, channel.Id);
+                await AddGameServerInternalAsync(ip, channel.Id);
         }
 
-        private async Task AddGameServerAsync(string ip, ulong channelID)
+        private async Task AddGameServerInternalAsync(string ip, ulong channelID)
         {
             //Do parameter checks
+            var endPoint = await ParseIPAsync(ip);
+            if (endPoint == null)
+                return;
+
+            try
+            {
+                // Add the Server to the Service to activate it
+                await gameServerService.AddServerAsync(endPoint, Context.Guild.Id, channelID);
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}");
+                await Console.Out.WriteLineAsync(ex.Message);
+            }
+        }
+
+        [Command("Remove")]
+        [Remarks("Removes the specified game server")]
+        public async Task RemoveGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip)
+        {
+            await RemoveGameServerInternalAsync(ip);
+        }
+
+        private async Task RemoveGameServerInternalAsync(string ip)
+        {
+            //Do parameter checks
+            var endPoint = await ParseIPAsync(ip);
+            if (endPoint == null)
+                return;
+
+            try
+            {
+                // Remove the server from the Service
+                await gameServerService.RemoveServerAsync(endPoint, Context.Guild.Id);
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}");
+                await Console.Out.WriteLineAsync(ex.Message);
+            }
+        }
+
+        private async Task<IPEndPoint> ParseIPAsync(string ip)
+        {
             if (string.IsNullOrEmpty(ip))
             {
                 await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234");
-                return;
+                return null;
             }
             var splitIP = ip.Split(':');
             if (splitIP == null || splitIP.Length != 2)
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
-                return;
+                return null;
             }
             IPAddress parsedIP = null;
             if (!IPAddress.TryParse(splitIP[0], out parsedIP))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
-                return;
+                return null;
             }
             int port = 0;
             if (!int.TryParse(splitIP[1], out port))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
-                return;
+                return null;
             }
             IPEndPoint endPoint = new IPEndPoint(parsedIP, port);
-
-            try
-            {
-                // Add the announcement to the Service to activate it
-                await gameServerService.AddServerAsync(endPoint, Context.Guild.Id, channelID);
-            }
-            catch (ArgumentException ex)
-            {
-                await Console.Out.WriteLineAsync(ex.Message);
-            }
+            return endPoint;
         }
     }
 }

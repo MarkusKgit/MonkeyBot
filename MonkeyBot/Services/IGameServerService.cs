@@ -7,6 +7,8 @@ namespace MonkeyBot.Services
     {
         Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID);
 
-        void RemoveServer(IPEndPoint endPoint, ulong guildID);
+        Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID);
+
+        void Initialize();
     }
 }

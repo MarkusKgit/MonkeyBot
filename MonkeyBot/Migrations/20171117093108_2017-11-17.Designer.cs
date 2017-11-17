@@ -9,9 +9,10 @@ using MonkeyBot.Database.Entities;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    partial class MonkeyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20171117093108_2017-11-17")]
+    partial class _20171117
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");

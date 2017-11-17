@@ -12,6 +12,7 @@ namespace MonkeyBot.Database
         public DbSet<TriviaScoreEntity> TriviaScores { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<BenzenFactEntity> BenzenFacts { get; set; }
+        public DbSet<GameServerEntity> GameServers { get; set; }
 
         public MonkeyDBContext() : base()
         {
