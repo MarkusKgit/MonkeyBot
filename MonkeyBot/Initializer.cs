@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.GameSubscription;
+using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
 using System;
@@ -35,6 +37,12 @@ namespace MonkeyBot
             var announcements = services.GetService<IAnnouncementService>();
             await announcements.InitializeAsync();
 
+            var gameServerService = services.GetService<IGameServerService>();
+            gameServerService.Initialize();
+
+            var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
+            gameSubscriptionService.Initialize();
+
             var backgroundTasks = services.GetService<IBackgroundService>();
             backgroundTasks.Start();
 
@@ -46,6 +54,8 @@ namespace MonkeyBot
             var cfg = new MapperConfigurationExpression();
             cfg.CreateMap<GuildConfigEntity, GuildConfig>();
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
+            cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
+            cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             Mapper.Initialize(cfg);
         }
 
@@ -64,6 +74,7 @@ namespace MonkeyBot
             services.AddSingleton<EventHandlerService>();
             services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
             services.AddSingleton(typeof(IGameServerService), typeof(GameServerService));
+            services.AddSingleton(typeof(IGameSubscriptionService), typeof(GameSubscriptionService));
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);

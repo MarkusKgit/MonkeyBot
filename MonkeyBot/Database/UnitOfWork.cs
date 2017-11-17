@@ -20,6 +20,12 @@ namespace MonkeyBot.Database
         private IBenzenFactsRespository benzenFacts;
         public IBenzenFactsRespository BenzenFacts => benzenFacts ?? (benzenFacts = new BenzenFactsRespository(context));
 
+        private IGameServersRepository gameServers;
+        public IGameServersRepository GameServers => gameServers ?? (gameServers = new GameServersRepository(context));
+
+        private IGameSubscriptionRepository gameSubscriptions;
+        public IGameSubscriptionRepository GameSubscriptions => gameSubscriptions ?? (gameSubscriptions = new GameSubscriptionRepository(context));
+
         public UnitOfWork(MonkeyDBContext context)
         {
             this.context = context;

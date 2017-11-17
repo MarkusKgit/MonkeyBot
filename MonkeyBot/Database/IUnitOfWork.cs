@@ -14,6 +14,10 @@ namespace MonkeyBot.Database
 
         IBenzenFactsRespository BenzenFacts { get; }
 
+        IGameServersRepository GameServers { get; }
+
+        IGameSubscriptionRepository GameSubscriptions { get; }
+
         Task<int> CompleteAsync();
     }
 }
