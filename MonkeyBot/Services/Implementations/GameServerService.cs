@@ -63,10 +63,13 @@ namespace MonkeyBot.Services
                     return;
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
-                builder.WithTitle("Server Update");
+                builder.WithTitle($"{serverInfo.Description} Server");
                 builder.WithDescription(serverInfo.Name);
-                builder.AddField("Online Players", $"{serverInfo.Players}/{serverInfo.MaxPlayers}");
+                string correctPlayerCount = (playerInfo?.Count > 0) ? $"({playerInfo.Count})" : "";
+                builder.AddField("Online Players", $"{serverInfo.Players}{correctPlayerCount}/{serverInfo.MaxPlayers}");
                 builder.AddField("Current Map", serverInfo.Map);
+                if (playerInfo != null)
+                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name)));
                 builder.WithFooter($"Last update: {DateTime.Now}");
                 if (discordGameServer.Message == null)
                     discordGameServer.Message = await channel?.SendMessageAsync("", false, builder.Build());
