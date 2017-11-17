@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
@@ -54,6 +55,7 @@ namespace MonkeyBot
             cfg.CreateMap<GuildConfigEntity, GuildConfig>();
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
+            cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             Mapper.Initialize(cfg);
         }
 
