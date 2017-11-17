@@ -102,7 +102,7 @@ namespace MonkeyBot
 
             discordClient.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
 
-            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).TestingToken);
+            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
             await discordClient.StartAsync();
             return discordClient;
         }
