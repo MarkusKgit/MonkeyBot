@@ -16,6 +16,8 @@ namespace MonkeyBot.Database
 
         IGameServersRepository GameServers { get; }
 
+        IGameSubscriptionRepository GameSubscriptions { get; }
+
         Task<int> CompleteAsync();
     }
 }

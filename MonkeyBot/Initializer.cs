@@ -39,6 +39,9 @@ namespace MonkeyBot
             var gameServerService = services.GetService<IGameServerService>();
             gameServerService.Initialize();
 
+            var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
+            gameSubscriptionService.Initialize();
+
             var backgroundTasks = services.GetService<IBackgroundService>();
             backgroundTasks.Start();
 
@@ -69,6 +72,7 @@ namespace MonkeyBot
             services.AddSingleton<EventHandlerService>();
             services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
             services.AddSingleton(typeof(IGameServerService), typeof(GameServerService));
+            services.AddSingleton(typeof(IGameSubscriptionService), typeof(GameSubscriptionService));
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
