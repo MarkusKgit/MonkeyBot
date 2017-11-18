@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 
@@ -40,5 +41,9 @@ namespace MonkeyBot.Database.Entities
         public long ChannelId { get; set; }
 
         public long? MessageId { get; set; }
+
+        public string GameVersion { get; set; }
+
+        public DateTime? LastVersionUpdate { get; set; }
     }
 }

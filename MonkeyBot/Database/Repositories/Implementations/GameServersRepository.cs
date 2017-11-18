@@ -24,7 +24,9 @@ namespace MonkeyBot.Database.Repositories
                     GuildId = (long)obj.GuildId,
                     ChannelId = (long)obj.ChannelId,
                     IP = obj.IP,
-                    MessageId = (long?)obj.MessageId
+                    MessageId = (long?)obj.MessageId,
+                    GameVersion = obj.GameVersion,
+                    LastVersionUpdate = obj.LastVersionUpdate
                 });
             }
             else
@@ -33,6 +35,8 @@ namespace MonkeyBot.Database.Repositories
                 dbServerInfo.ChannelId = (long)obj.ChannelId;
                 dbServerInfo.IP = obj.IP;
                 dbServerInfo.MessageId = (long?)obj.MessageId;
+                dbServerInfo.GameVersion = obj.GameVersion;
+                dbServerInfo.LastVersionUpdate = obj.LastVersionUpdate;
             }
         }
 
