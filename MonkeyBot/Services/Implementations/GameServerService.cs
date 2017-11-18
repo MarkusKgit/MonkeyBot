@@ -132,7 +132,7 @@ namespace MonkeyBot.Services
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
             var servers = await GetServersAsync();
-            var serverToRemove = servers.Where(x => x.IP.Address == endPoint.Address && x.IP.Port == endPoint.Port && x.GuildId == guildID).FirstOrDefault();
+            var serverToRemove = servers.Where(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID).FirstOrDefault();
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
             if (serverToRemove.MessageId != null)
