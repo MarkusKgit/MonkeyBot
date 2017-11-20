@@ -64,7 +64,7 @@ namespace MonkeyBot.Services
             {
                 var server = new SteamGameServer(discordGameServer.IP);
                 var serverInfo = await server?.GetServerInfoAsync();
-                var playerInfo = await server?.GetPlayersAsync();
+                var playerInfo = (await server?.GetPlayersAsync()).Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
                 if (serverInfo == null || playerInfo == null)
                     return;
                 var guild = client?.GetGuild(discordGameServer.GuildId);
