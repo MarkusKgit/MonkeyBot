@@ -58,21 +58,24 @@ namespace MonkeyBot.Services
 
         private async Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
         {
+            if (discordGameServer == null)
+                return;
             try
             {
                 var server = new SteamGameServer(discordGameServer.IP);
-                var serverInfo = await server.GetServerInfoAsync();
-                var playerInfo = await server.GetPlayersAsync();
-                var guild = client.GetGuild(discordGameServer.GuildId);
+                var serverInfo = await server?.GetServerInfoAsync();
+                var playerInfo = await server?.GetPlayersAsync();
+                if (serverInfo == null || playerInfo == null)
+                    return;
+                var guild = client?.GetGuild(discordGameServer.GuildId);
                 var channel = guild?.GetTextChannel(discordGameServer.ChannelId);
                 if (guild == null || channel == null)
                     return;
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
-                builder.WithTitle($"{serverInfo.Description} Server");
+                builder.WithTitle($"{serverInfo.Description} Server ({discordGameServer.IP.Address}:{serverInfo.Port})");
                 builder.WithDescription(serverInfo.Name);
-                string correctPlayerCount = (playerInfo?.Count > 0 && playerInfo?.Count != serverInfo.Players) ? $"({playerInfo.Count})" : "";
-                builder.AddField("Online Players", $"{serverInfo.Players}{correctPlayerCount}/{serverInfo.MaxPlayers}");
+                builder.AddField("Online Players", $"{playerInfo.Count}/{serverInfo.MaxPlayers}");
                 builder.AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null && playerInfo.Count > 0)
                     builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x)).OrderBy(x => x)));
