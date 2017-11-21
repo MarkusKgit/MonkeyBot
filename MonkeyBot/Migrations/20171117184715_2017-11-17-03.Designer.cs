@@ -9,9 +9,10 @@ using MonkeyBot.Database.Entities;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    partial class MonkeyDBContextModelSnapshot : ModelSnapshot
+    [Migration("20171117184715_2017-11-17-03")]
+    partial class _2017111703
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");
@@ -61,15 +62,11 @@ namespace MonkeyBot.Migrations
 
                     b.Property<long>("ChannelId");
 
-                    b.Property<string>("GameVersion");
-
                     b.Property<long>("GuildId");
 
                     b.Property<string>("IPAsString")
                         .IsRequired()
                         .HasColumnName("IP");
-
-                    b.Property<DateTime?>("LastVersionUpdate");
 
                     b.Property<long?>("MessageId");
 

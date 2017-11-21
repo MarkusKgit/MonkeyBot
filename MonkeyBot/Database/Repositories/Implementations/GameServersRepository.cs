@@ -16,14 +16,17 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(DiscordGameServerInfo obj)
         {
-            var dbServerInfo = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address == obj.IP.Address && x.IP.Port == obj.IP.Port);
+            var dbServerInfo = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port);
             if (dbServerInfo == null)
             {
                 dbSet.Add(dbServerInfo = new GameServerEntity()
                 {
                     GuildId = (long)obj.GuildId,
                     ChannelId = (long)obj.ChannelId,
-                    IP = obj.IP
+                    IP = obj.IP,
+                    MessageId = (long?)obj.MessageId,
+                    GameVersion = obj.GameVersion,
+                    LastVersionUpdate = obj.LastVersionUpdate
                 });
             }
             else
@@ -31,6 +34,9 @@ namespace MonkeyBot.Database.Repositories
                 dbServerInfo.GuildId = (long)obj.GuildId;
                 dbServerInfo.ChannelId = (long)obj.ChannelId;
                 dbServerInfo.IP = obj.IP;
+                dbServerInfo.MessageId = (long?)obj.MessageId;
+                dbServerInfo.GameVersion = obj.GameVersion;
+                dbServerInfo.LastVersionUpdate = obj.LastVersionUpdate;
             }
         }
 
@@ -46,7 +52,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address == obj.IP.Address && x.IP.Port == obj.IP.Port);
+            var entity = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port);
             if (entity != null)
                 dbSet.Remove(entity);
         }

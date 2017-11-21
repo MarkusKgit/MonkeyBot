@@ -22,10 +22,10 @@ namespace MonkeyBot.Services.Implementations
 
         public void Initialize()
         {
-            client.UserUpdated += Client_UserUpdated;
+            client.GuildMemberUpdated += Client_GuildMemberUpdated;
         }
 
-        private async Task Client_UserUpdated(SocketUser before, SocketUser after)
+        private async Task Client_GuildMemberUpdated(SocketUser before, SocketUser after)
         {
             string joinedGame = null;
             if (before.Game.HasValue && after.Game.HasValue && after.Game.Value.Name != before.Game.Value.Name)
@@ -35,16 +35,22 @@ namespace MonkeyBot.Services.Implementations
             if (string.IsNullOrEmpty(joinedGame))
                 return;
             var gameSubscriptions = await GetGameSubscriptionsAsync();
+            if (gameSubscriptions == null)
+                return;
             foreach (var subscription in gameSubscriptions)
             {
+                if (subscription == null)
+                    continue;
                 if (!joinedGame.ToLower().Contains(subscription.GameName.ToLower())) // Skip if user is not subscribed to game
                     continue;
                 if (subscription.UserId == after.Id) // Don't message because of own game join
                     continue;
                 var subscribedGuild = client.GetGuild(subscription.GuildId);
-                if (subscribedGuild.GetUser(after.Id) == null) // No message if in different Guild
+                if (subscribedGuild?.GetUser(after.Id) == null) // No message if in different Guild
                     continue;
                 var subscribedUser = client.GetUser(subscription.UserId);
+                if (subscribedUser == null)
+                    continue;
                 await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!");
             }
         }
