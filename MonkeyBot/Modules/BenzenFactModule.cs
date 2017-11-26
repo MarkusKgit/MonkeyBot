@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Services;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules

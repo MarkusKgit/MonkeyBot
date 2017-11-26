@@ -98,5 +98,11 @@ namespace MonkeyBot.Common
                     throw new OperationCanceledException(cancellationToken);
             return await task;
         }
+
+        //Converts all html encoded special characters
+        public static string CleanHtmlString(string html)
+        {
+            return System.Net.WebUtility.HtmlDecode(html);
+        }
     }
 }

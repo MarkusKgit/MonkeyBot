@@ -75,6 +75,7 @@ namespace MonkeyBot
             services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
             services.AddSingleton(typeof(IGameServerService), typeof(GameServerService));
             services.AddSingleton(typeof(IGameSubscriptionService), typeof(GameSubscriptionService));
+            services.AddSingleton(typeof(IChuckService), typeof(ChuckService));
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
