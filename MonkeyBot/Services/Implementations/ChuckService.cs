@@ -36,7 +36,7 @@ namespace MonkeyBot.Services
                 {
                     var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                     if (chuckResponse.Type == "success" && chuckResponse.Value != null)
-                        return Helpers.CleanHtmlString(chuckResponse.Value.Joke);
+                        return Helpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
                 }
                 return string.Empty;
             }
