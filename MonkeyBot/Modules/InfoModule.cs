@@ -38,35 +38,5 @@ namespace MonkeyBot.Modules
                 }
             }
         }
-
-        [Command("games")]
-        [Remarks("Lists all games roles and the users who have these roles")]
-        [RequireContext(ContextType.Guild)]
-        public async Task ListGamesAsync()
-        {
-            var builder = new EmbedBuilder()
-            {
-                Color = new Color(114, 137, 218),
-                Description = "These are the are all the game roles and the users assigned to them:"
-            };
-            // Get the role of the bot with permission manage roles
-            IRole botRole = await Helpers.GetManageRolesRoleAsync(Context);
-            // Get all roles that are lower than the bot's role (roles the bot can assign)
-            var guildUsers = await Context.Guild.GetUsersAsync();
-            foreach (var role in Context.Guild.Roles)
-            {
-                if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
-                {
-                    var roleUsers = guildUsers.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
-                    builder.AddField(x =>
-                    {
-                        x.Name = role.Name;
-                        x.Value = string.Join(", ", roleUsers);
-                        x.IsInline = false;
-                    });
-                }
-            }
-            await Context.User.SendMessageAsync("", false, builder.Build());
-        }
     }
 }

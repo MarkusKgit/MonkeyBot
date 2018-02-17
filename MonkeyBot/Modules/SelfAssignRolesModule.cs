@@ -99,5 +99,65 @@ namespace MonkeyBot.Modules
                 msg = "Now assignable roles exist!";
             await ReplyAsync(msg);
         }
+
+        [Command("ListMembers")]
+        [Remarks("Lists all roles and the users who have these roles")]
+        public async Task ListMembersAsync()
+        {
+            var builder = new EmbedBuilder()
+            {
+                Color = new Color(114, 137, 218),
+                Description = "These are the are all the assignable roles and the users assigned to them:"
+            };
+            // Get the role of the bot with permission manage roles
+            IRole botRole = await Helpers.GetManageRolesRoleAsync(Context);
+            // Get all roles that are lower than the bot's role (roles the bot can assign)
+            var guildUsers = await Context.Guild.GetUsersAsync();
+            foreach (var role in Context.Guild.Roles)
+            {
+                if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
+                {
+                    var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+                    if (roleUsers != null && roleUsers.Count() > 0)
+                    {
+                        builder.AddField(x =>
+                        {
+                            x.Name = role.Name;
+                            x.Value = string.Join(", ", roleUsers);
+                            x.IsInline = false;
+                        });
+                    }
+                }
+            }
+            await Context.User.SendMessageAsync("", false, builder.Build());
+        }
+
+        [Command("ListMembers")]
+        [Remarks("Lists all the members of the specified role")]
+        public async Task ListMembersAsync(string roleName)
+        {
+            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).SingleOrDefault();
+            if (role == null)
+            {
+                await ReplyAsync($"Role not found! Use roles list to get a list of all roles.");
+                return;
+            }
+            var guildUsers = await Context.Guild.GetUsersAsync();
+            var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+            if (roleUsers == null || roleUsers.Count() < 1)
+                return;
+            var builder = new EmbedBuilder()
+            {
+                Color = new Color(114, 137, 218),
+                Description = $"These are the users assigned to the {role.Name} role:"
+            };
+            builder.AddField(x =>
+                {
+                    x.Name = role.Name;
+                    x.Value = string.Join(", ", roleUsers);
+                    x.IsInline = false;
+                });
+            await Context.User.SendMessageAsync("", false, builder.Build());
+        }
     }
 }
