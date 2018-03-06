@@ -153,23 +153,33 @@ namespace MonkeyBot.Services
         {
             if (string.IsNullOrEmpty(html))
                 return html;
+            html = System.Web.HttpUtility.HtmlDecode(html);
             var htmlDoc = new HtmlDocument();
+
             htmlDoc.LoadHtml(html);
             var sb = new StringBuilder();
 
-            var textNodes = htmlDoc.DocumentNode.SelectNodes("//text()");
-            var iframes = htmlDoc.DocumentNode.SelectNodes("//iframe[@src]");
-
-            foreach (HtmlNode node in textNodes)
+            var textNodes = htmlDoc?.DocumentNode?.SelectNodes("//text()");
+            var iframes = htmlDoc?.DocumentNode?.SelectNodes("//iframe[@src]");
+            if (textNodes != null)
             {
-                if (!string.IsNullOrEmpty(node.InnerText))
-                    sb.Append(node.InnerText);
+                foreach (HtmlNode node in textNodes)
+                {
+                    if (!string.IsNullOrEmpty(node.InnerText))
+                        sb.Append(node.InnerText);
+                }
             }
-            foreach (HtmlNode node in iframes)
+            if (iframes != null)
             {
-                sb.Append(node.Attributes["src"].Value);
+                foreach (HtmlNode node in iframes)
+                {
+                    sb.Append(node.Attributes["src"].Value);
+                }
             }
-            return sb.ToString();
+            var result = sb.ToString();
+            if (!string.IsNullOrEmpty(result))
+                return result;
+            return html;
         }
     }
 }
