@@ -3,6 +3,7 @@ using CodeHollow.FeedReader.Feeds;
 using Discord;
 using Discord.WebSocket;
 using FluentScheduler;
+using HtmlAgilityPack;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common.Extensions;
 using System;
@@ -10,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -147,18 +149,27 @@ namespace MonkeyBot.Services
             }
         }
 
-        private string ParseHtml(string html)
+        private static string ParseHtml(string html)
         {
             if (string.IsNullOrEmpty(html))
                 return html;
-            string result = WebUtility.HtmlDecode(html);
-            //result = result.Replace("<b>", "**").Replace("</b>", "**");
-            //result = result.Replace("<i>", "*").Replace("</i>", "*");
-            //result = result.Replace("***", "**");
-            string regex = "<(?:\"[^ \"]*\"['\"]*|'[^ ']*'['\"]*|[^'\">])+>";
-            result = Regex.Replace(result, regex, "");
-            result = result.Trim('\n').Trim('\t').Trim();
-            return result;
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(html);
+            var sb = new StringBuilder();
+
+            var textNodes = htmlDoc.DocumentNode.SelectNodes("//text()");
+            var iframes = htmlDoc.DocumentNode.SelectNodes("//iframe[@src]");
+
+            foreach (HtmlNode node in textNodes)
+            {
+                if (!string.IsNullOrEmpty(node.InnerText))
+                    sb.Append(node.InnerText);
+            }
+            foreach (HtmlNode node in iframes)
+            {
+                sb.Append(node.Attributes["src"].Value);
+            }
+            return sb.ToString();
         }
     }
 }
