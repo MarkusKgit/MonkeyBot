@@ -132,7 +132,7 @@ namespace MonkeyBot.Services
                     author = !string.IsNullOrEmpty(author) ? $"{author}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title)}]({feedItem.Link})";
                     string description = ParseHtml(feedItem.Description);
-                    description = description.Truncate(200, "[...]");
+                    description = description.TruncateAtWord(250, "[...]");
                     if (string.IsNullOrEmpty(description))
                         description = "[...]";
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters

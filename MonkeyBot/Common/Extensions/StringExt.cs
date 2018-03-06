@@ -23,5 +23,19 @@
             }
             return str;
         }
+
+        public static string TruncateAtWord(this string text, int maxCharacters, string trailingStringIfTextCut = "...")
+        {
+            if (text == null || (text = text.Trim()).Length <= maxCharacters)
+                return text;
+
+            int trailLength = trailingStringIfTextCut.Length;
+            maxCharacters = maxCharacters - trailLength >= 0 ? maxCharacters - trailLength : 0;
+            int pos = text.LastIndexOf(" ", maxCharacters);
+            if (pos >= 0)
+                return text.Substring(0, pos) + trailingStringIfTextCut;
+
+            return string.Empty;
+        }
     }
 }
