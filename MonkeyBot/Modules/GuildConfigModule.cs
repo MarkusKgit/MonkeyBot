@@ -1,7 +1,7 @@
 ﻿using CodeHollow.FeedReader;
 using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -16,13 +16,13 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class GuildConfigModule : ModuleBase
     {
-        private DbService db;
-        private IBackgroundService backgroundService;
+        private readonly DbService dbService;
+        private readonly IBackgroundService backgroundService;
 
-        public GuildConfigModule(IServiceProvider provider)
+        public GuildConfigModule(DbService db, IBackgroundService backgroundService)
         {
-            db = provider.GetService<DbService>();
-            backgroundService = provider.GetService<IBackgroundService>();
+            this.dbService = db;
+            this.backgroundService = backgroundService;
         }
 
         #region WelcomeMessage
@@ -32,13 +32,13 @@ namespace MonkeyBot.Modules
         public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
             welcomeMsg = welcomeMsg.Trim('\"');
-            if (string.IsNullOrEmpty(welcomeMsg))
+            if (welcomeMsg.IsEmpty())
             {
                 await ReplyAsync("Please provide a welcome message");
                 return;
             }
 
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
@@ -57,12 +57,12 @@ namespace MonkeyBot.Modules
         [Remarks("Adds a rule to the server.")]
         public async Task AddRuleAsync([Summary("The rule to add")][Remainder] string rule)
         {
-            if (string.IsNullOrEmpty(rule))
+            if (rule.IsEmpty())
             {
                 await ReplyAsync("Please enter a rule");
                 return;
             }
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
@@ -77,7 +77,7 @@ namespace MonkeyBot.Modules
         [Remarks("Removes the rules from a server.")]
         public async Task RemoveRulesAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config != null)
@@ -97,7 +97,7 @@ namespace MonkeyBot.Modules
         [Remarks("Adds an atom or RSS feed to the list of listened feeds.")]
         public async Task AddFeedUrlAsync([Summary("The url to the feed (Atom/RSS)")][Remainder] string url)
         {
-            if (string.IsNullOrEmpty(url))
+            if (url.IsEmpty())
             {
                 await ReplyAsync("Please enter a feed url");
                 return;
@@ -113,7 +113,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
                 return;
             }
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
@@ -134,12 +134,12 @@ namespace MonkeyBot.Modules
         [Remarks("Removes the specified feed from the list of feeds.")]
         public async Task RemoveFeedUrlAsync([Summary("The url of the feed")][Remainder] string url)
         {
-            if (string.IsNullOrEmpty(url))
+            if (url.IsEmpty())
             {
                 await ReplyAsync("Please enter a feed url");
                 return;
             }
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
@@ -159,7 +159,7 @@ namespace MonkeyBot.Modules
         [Remarks("Removes all feed urls")]
         public async Task RemoveFeedUrlsAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config != null)
@@ -185,7 +185,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("The specified channel does not exist");
                 return;
             }
-            await ToggleFeedsInternal(true, channel.Id);
+            await ToggleFeedsInternalAsync(true, channel.Id);
             await backgroundService?.RunOnceAllFeedsAsync(Context.Guild.Id);
         }
 
@@ -193,12 +193,12 @@ namespace MonkeyBot.Modules
         [Remarks("Disables the feed listener")]
         public async Task DisableFeedsAsync()
         {
-            await ToggleFeedsInternal(false);
+            await ToggleFeedsInternalAsync(false);
         }
 
-        private async Task ToggleFeedsInternal(bool enable, ulong channelID = 0)
+        private async Task ToggleFeedsInternalAsync(bool enable, ulong channelID = 0)
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)

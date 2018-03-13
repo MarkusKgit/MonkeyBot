@@ -16,7 +16,7 @@ namespace MonkeyBot.Common
         public static async Task<IRole> GetManageRolesRoleAsync(ICommandContext context)
         {
             var thisBot = await context.Guild.GetUserAsync(context.Client.CurrentUser.Id);
-            var ownrole = context.Guild.Roles.Where(x => x.Permissions.ManageRoles == true && x.Id == thisBot.RoleIds.Max()).FirstOrDefault();
+            var ownrole = context.Guild.Roles.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
             return ownrole;
         }
 
@@ -88,7 +88,7 @@ namespace MonkeyBot.Common
             await channel?.SendMessageAsync(text, isTTS, embed, options);
         }
 
-        public static async Task<T> WithCancellation<T>(
+        public static async Task<T> WithCancellationAsync<T>(
     this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();

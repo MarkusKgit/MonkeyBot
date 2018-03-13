@@ -1,4 +1,5 @@
-﻿using MonkeyBot.Common;
+﻿using dokas.FluentStrings;
+using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Chuck;
 using Newtonsoft.Json;
 using System.Net.Http;
@@ -14,7 +15,7 @@ namespace MonkeyBot.Services
             {
                 var json = await httpClient.GetStringAsync($"http://api.icndb.com/jokes/random");
 
-                if (!string.IsNullOrEmpty(json))
+                if (!json.IsEmpty())
                 {
                     var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                     if (chuckResponse.Type == "success" && chuckResponse.Value != null)
@@ -26,13 +27,13 @@ namespace MonkeyBot.Services
 
         public async Task<string> GetChuckFactAsync(string userName)
         {
-            if (string.IsNullOrEmpty(userName))
+            if (userName.IsEmpty())
                 return string.Empty;
             using (var httpClient = new HttpClient())
             {
                 var json = await httpClient.GetStringAsync($"http://api.icndb.com/jokes/random?firstName={userName}");
 
-                if (!string.IsNullOrEmpty(json))
+                if (!json.IsEmpty())
                 {
                     var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                     if (chuckResponse.Type == "success" && chuckResponse.Value != null)

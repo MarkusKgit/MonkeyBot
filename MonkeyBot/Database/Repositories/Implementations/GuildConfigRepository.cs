@@ -26,7 +26,7 @@ namespace MonkeyBot.Database.Repositories
             var dbCfg = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId);
             if (dbCfg == null)
             {
-                dbSet.Add(dbCfg = new GuildConfigEntity()
+                dbSet.Add(dbCfg = new GuildConfigEntity
                 {
                     GuildId = (long)obj.GuildId,
                     Rules = obj.Rules,

@@ -19,15 +19,15 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class TriviaModule : ModuleBase
     {
-        private ITriviaService triviaService; // The TriviaService will get injected in CommandHandler
-        private CommandManager commandManager;
-        private DbService db;
+        private readonly ITriviaService triviaService;
+        private readonly CommandManager commandManager;
+        private readonly DbService dbService;
 
-        public TriviaModule(IServiceProvider provider) // Create a constructor for the TriviaService dependency
+        public TriviaModule(IServiceProvider provider)
         {
             triviaService = provider.GetService<ITriviaService>();
             commandManager = provider.GetService<CommandManager>();
-            db = provider.GetService<DbService>();
+            dbService = provider.GetService<DbService>();
         }
 
         [Command("Start")]
@@ -59,7 +59,7 @@ namespace MonkeyBot.Modules
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
             List<TriviaScore> userScoresAllTime;
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(Context.Guild.Id));
             }
@@ -77,8 +77,10 @@ namespace MonkeyBot.Modules
                 var userName = (await Context.Client.GetUserAsync(score.UserID))?.Username;
                 scoresList.Add($"**#{i + 1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
             }
-            var builder = new EmbedBuilder();
-            builder.Color = new Color(46, 191, 84);
+            var builder = new EmbedBuilder
+            {
+                Color = new Color(46, 191, 84)
+            };
             builder.AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, scoresList));
             await ReplyAsync("", false, builder.Build());
         }

@@ -1,10 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -12,11 +9,11 @@ namespace MonkeyBot.Modules
     [Name("Info")]
     public class InfoModule : ModuleBase
     {
-        private DbService db;
+        private readonly DbService dbService;
 
-        public InfoModule(IServiceProvider provider)
+        public InfoModule(DbService db)
         {
-            db = provider.GetService<DbService>();
+            dbService = db;
         }
 
         [Command("Rules")]
@@ -24,15 +21,17 @@ namespace MonkeyBot.Modules
         [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var rules = (await uow.GuildConfigs.GetAsync(Context.Guild.Id))?.Rules;
                 if (rules == null || rules.Count < 1)
                     await ReplyAsync("No rules set!");
                 else
                 {
-                    var builder = new EmbedBuilder();
-                    builder.Color = new Color(255, 0, 0);
+                    var builder = new EmbedBuilder
+                    {
+                        Color = new Color(255, 0, 0)
+                    };
                     builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
                     await Context.User.SendMessageAsync("", false, builder.Build());
                 }

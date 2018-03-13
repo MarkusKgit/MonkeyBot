@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -14,11 +14,11 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class ChuckModule : ModuleBase
     {
-        private IChuckService chuckService;
+        private readonly IChuckService chuckService;
 
-        public ChuckModule(IServiceProvider provider)
+        public ChuckModule(IChuckService chuckService)
         {
-            chuckService = provider.GetService<IChuckService>();
+            this.chuckService = chuckService;
         }
 
         [Command("Chuck")]
@@ -26,7 +26,7 @@ namespace MonkeyBot.Modules
         public async Task GetChuckFactAsync()
         {
             var fact = await chuckService?.GetChuckFactAsync();
-            if (string.IsNullOrEmpty(fact))
+            if (fact.IsEmpty())
             {
                 await ReplyAsync("Could not get a chuck fact :(");
                 return;
@@ -38,8 +38,11 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
         public async Task GetChuckFactAsync([Remainder][Summary("The name of the person to chuck")] string name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty())
+            {
                 await ReplyAsync("Please provide a name");
+                return;
+            }
 
             IGuildUser user = null;
             if (name.StartsWith("<@") && ulong.TryParse(name.Replace("<@", "").Replace(">", ""), out var id))
@@ -60,7 +63,7 @@ namespace MonkeyBot.Modules
             if (user == null)
                 return;
             var fact = await chuckService?.GetChuckFactAsync(name);
-            if (string.IsNullOrEmpty(fact))
+            if (fact.IsEmpty())
             {
                 await ReplyAsync("Could not get a chuck fact :(");
                 return;

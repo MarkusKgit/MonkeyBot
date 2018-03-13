@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace MonkeyBot
 {
     public static class DocumentationBuilder
     {
-        public static string BuildHtmlDocumentationAsync(CommandService commandService)
+        public static string BuildHtmlDocumentation(CommandService commandService)
         {
             string prefix = Configuration.DefaultPrefix;
             StringBuilder builder = new StringBuilder();
@@ -37,7 +38,7 @@ namespace MonkeyBot
                     }
                     if (preconditions.Count > 0)
                         builder.AppendLine($"Command Preconditions: {string.Join(", ", preconditions)}");
-                    if (!string.IsNullOrEmpty(cmd.Remarks))
+                    if (!cmd.Remarks.IsEmpty())
                         builder.AppendLine(cmd.Remarks);
                 }
                 builder.AppendLine("");

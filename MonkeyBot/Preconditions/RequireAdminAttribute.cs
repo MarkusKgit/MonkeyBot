@@ -8,7 +8,7 @@ namespace MonkeyBot.Preconditions
     /// <summary>
     /// An attribute that the defines the minimum permission level to be admin
     /// </summary>
-    public class RequireAdminAttribute : PreconditionAttribute
+    public sealed class RequireAdminAttribute : PreconditionAttribute
     {
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {

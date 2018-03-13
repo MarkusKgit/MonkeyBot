@@ -14,7 +14,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async Task AddFactAsync(string fact)
         {
-            await dbSet.AddAsync(new BenzenFactEntity() { Fact = fact });
+            await dbSet.AddAsync(new BenzenFactEntity { Fact = fact });
         }
 
         public async Task<string> GetRandomFactAsync()

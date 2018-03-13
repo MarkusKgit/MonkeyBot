@@ -1,4 +1,5 @@
-﻿using System;
+﻿using dokas.FluentStrings;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
@@ -16,7 +17,7 @@ namespace MonkeyBot.Database.Entities
         {
             get
             {
-                if (string.IsNullOrEmpty(IPAsString))
+                if (IPAsString.IsEmpty())
                     return null;
                 var splitIP = IPAsString.Split(':');
                 var ip = IPAddress.Parse(splitIP[0]);

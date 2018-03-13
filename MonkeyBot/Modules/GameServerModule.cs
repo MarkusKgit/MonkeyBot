@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -16,7 +17,7 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class GameServerModule : ModuleBase
     {
-        private IGameServerService gameServerService;
+        private readonly IGameServerService gameServerService;
 
         public GameServerModule(IGameServerService gameServerService)
         {
@@ -35,7 +36,7 @@ namespace MonkeyBot.Modules
         public async Task AddGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip, [Summary("The name of the channel where the server info should be posted")] string channelName)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.Where(x => x.Name.ToLower() == channelName.ToLower()).FirstOrDefault();
+            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
             else
@@ -89,7 +90,7 @@ namespace MonkeyBot.Modules
 
         private async Task<IPEndPoint> ParseIPAsync(string ip)
         {
-            if (string.IsNullOrEmpty(ip))
+            if (ip.IsEmpty())
             {
                 await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234");
                 return null;
@@ -100,14 +101,12 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
                 return null;
             }
-            IPAddress parsedIP = null;
-            if (!IPAddress.TryParse(splitIP[0], out parsedIP))
+            if (!IPAddress.TryParse(splitIP[0], out IPAddress parsedIP))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
                 return null;
             }
-            int port = 0;
-            if (!int.TryParse(splitIP[1], out port))
+            if (!int.TryParse(splitIP[1], out int port))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234");
                 return null;

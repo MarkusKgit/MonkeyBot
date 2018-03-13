@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using dokas.FluentStrings;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace MonkeyBot.Database.Entities
         [NotMapped]
         public List<string> Rules
         {
-            get { return string.IsNullOrEmpty(RulesAsString) ? null : RulesAsString.Split(';').ToList(); }
+            get { return RulesAsString.IsEmpty() ? null : RulesAsString.Split(';').ToList(); }
             set
             {
                 RulesAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);
@@ -38,7 +39,7 @@ namespace MonkeyBot.Database.Entities
         [NotMapped]
         public List<string> FeedUrls
         {
-            get { return string.IsNullOrEmpty(FeedUrlsAsString) ? null : FeedUrlsAsString.Split(';').ToList(); }
+            get { return FeedUrlsAsString.IsEmpty() ? null : FeedUrlsAsString.Split(';').ToList(); }
             set
             {
                 FeedUrlsAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);

@@ -11,7 +11,7 @@ namespace MonkeyBot.Database.Repositories
         protected DbContext context;
         protected DbSet<TDb> dbSet;
 
-        public BaseRepository(DbContext context)
+        protected BaseRepository(DbContext context)
         {
             this.context = context;
             dbSet = context.Set<TDb>();
@@ -30,7 +30,7 @@ namespace MonkeyBot.Database.Repositories
         protected DbContext context;
         protected DbSet<TDb> dbSet;
 
-        public BaseRepository(DbContext context)
+        protected BaseRepository(DbContext context)
         {
             this.context = context;
             dbSet = context.Set<TDb>();

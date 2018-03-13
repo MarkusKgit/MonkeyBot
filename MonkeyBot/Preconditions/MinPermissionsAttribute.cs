@@ -11,31 +11,30 @@ namespace MonkeyBot.Preconditions
     /// Set the minimum permission required to use a module or command
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class MinPermissionsAttribute : PreconditionAttribute
+    public sealed class MinPermissionsAttribute : PreconditionAttribute
     {
-        private AccessLevel level;
-
-        public AccessLevel AccessLevel
-        {
-            get { return level; }
-        }
-
         public MinPermissionsAttribute(AccessLevel level)
         {
-            this.level = level;
+            this.AccessLevel = level;
         }
+
+        public AccessLevel AccessLevel { get; }
 
         public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var access = await GetPermission(context); // Get the acccesslevel for this context
+            var access = await GetPermissionAsync(context); // Get the acccesslevel for this context
 
-            if (access >= level) // If the user's access level is greater than the required level, return success.
+            if (access >= AccessLevel) // If the user's access level is greater than the required level, return success.
+            {
                 return PreconditionResult.FromSuccess();
+            }
             else
+            {
                 return PreconditionResult.FromError("Insufficient permissions");
+            }
         }
 
-        public async Task<AccessLevel> GetPermission(ICommandContext c)
+        public async static Task<AccessLevel> GetPermissionAsync(ICommandContext c)
         {
             if (c.User.IsBot) // Prevent other bots from executing commands.
                 return AccessLevel.Blocked;
@@ -45,8 +44,8 @@ namespace MonkeyBot.Preconditions
             if (owners != null && owners.Contains(c.User.Id)) // Give configured owners special access.
                 return AccessLevel.BotOwner;
 
-            var user = c.User as SocketGuildUser; // Check if the context is in a guild.
-            if (user != null)
+            // Check if the context is in a guild.
+            if (c.User is SocketGuildUser user)
             {
                 if (c.Guild.OwnerId == user.Id) // Check if the user is the guild owner.
                     return AccessLevel.ServerOwner;

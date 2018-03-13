@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
@@ -20,13 +21,13 @@ namespace MonkeyBot.Modules
         [Remarks("Adds the specified role to your own roles.")]
         public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName = null)
         {
-            if (string.IsNullOrEmpty(roleName))
+            if (roleName.IsEmpty())
             {
                 await ReplyAsync("You need to specify a role you wish to add!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
                 return;
             }
             // Get the role with the specified name
-            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).FirstOrDefault();
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == roleName.ToLower());
             if (role == null)
             {
                 await ReplyAsync("The role you specified is invalid!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
@@ -47,19 +48,19 @@ namespace MonkeyBot.Modules
                 return;
             }
             await guser.AddRoleAsync(role);
-            await ReplyAsync(string.Format("Role {0} has been added", role.Name));
+            await ReplyAsync($"Role {role.Name} has been added");
         }
 
         [Command("Remove")]
         [Remarks("Removes the specified role from your roles.")]
         public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
-            if (string.IsNullOrEmpty(roleName))
+            if (roleName.IsEmpty())
             {
                 await ReplyAsync("You need to specify a role you wish to remove!");
             }
             // Get the role with the specified name
-            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).FirstOrDefault();
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == roleName.ToLower());
             if (role == null)
             {
                 await ReplyAsync("The role you specified is invalid!");
@@ -76,7 +77,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Insufficient permissions!");
             }
             await guser.RemoveRoleAsync(role);
-            await ReplyAsync(string.Format("Role {0} has been removed", role.Name));
+            await ReplyAsync($"Role {role.Name} has been removed");
         }
 
         [Command("List")]
@@ -104,7 +105,7 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all roles and the users who have these roles")]
         public async Task ListMembersAsync()
         {
-            var builder = new EmbedBuilder()
+            var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
                 Description = "These are the are all the assignable roles and the users assigned to them:"
@@ -136,7 +137,7 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all the members of the specified role")]
         public async Task ListMembersAsync(string roleName)
         {
-            var role = Context.Guild.Roles.Where(x => x.Name.ToLower() == roleName.ToLower()).SingleOrDefault();
+            var role = Context.Guild.Roles.SingleOrDefault(x => x.Name.ToLower() == roleName.ToLower());
             if (role == null)
             {
                 await ReplyAsync($"Role not found! Use roles list to get a list of all roles.");
@@ -146,7 +147,7 @@ namespace MonkeyBot.Modules
             var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
             if (roleUsers == null || roleUsers.Count() < 1)
                 return;
-            var builder = new EmbedBuilder()
+            var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
                 Description = $"These are the users assigned to the {role.Name} role:"

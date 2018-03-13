@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
+using dokas.FluentStrings;
 using FluentScheduler;
-using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Announcements;
 using NCrontab;
@@ -17,17 +17,17 @@ namespace MonkeyBot.Services
     /// </summary>
     public class AnnouncementService : IAnnouncementService
     {
-        private DbService db;
-        private DiscordSocketClient client;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
 
         /// <summary>A List containing all announcements</summary>
         //private List<Announcement> announcements;
 
-        public AnnouncementService(IServiceProvider provider)
+        public AnnouncementService(DbService db, DiscordSocketClient client)
         {
-            client = provider.GetService<DiscordSocketClient>();
-            db = provider.GetService<DbService>();
-            JobManager.JobEnd += JobManager_JobEnd;
+            this.dbService = db;
+            this.discordClient = client;
+            JobManager.JobEnd += JobManager_JobEndAsync;
         }
 
         public async Task InitializeAsync()
@@ -36,7 +36,7 @@ namespace MonkeyBot.Services
             await BuildJobsAsync();
         }
 
-        private async void JobManager_JobEnd(JobEndInfo obj)
+        private async void JobManager_JobEndAsync(JobEndInfo obj)
         {
             // When a job is done check if old jobs exist and remove them
             await RemovePastJobsAsync();
@@ -52,16 +52,16 @@ namespace MonkeyBot.Services
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
         public async Task AddRecurringAnnouncementAsync(string name, string cronExpression, string message, ulong guildID, ulong channelID)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty())
                 throw new ArgumentException("Please provide an ID");
             // Try to parse the CronExpression -> if it fails the cron expression was not valid
-            var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
+            var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = false });
             if (cnSchedule == null)
                 throw new ArgumentException("Cron expression is wrong!");
             // Create the announcement, add it to the list and persist it
             var announcement = new RecurringAnnouncement(name, cronExpression, message, guildID, channelID);
             AddRecurringJob(announcement);
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
                 await uow.CompleteAsync();
@@ -74,9 +74,9 @@ namespace MonkeyBot.Services
             // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
             JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(id).ToRunEvery(5).Seconds());
             // Retrieve the schedule from the newly created job
-            var schedule = JobManager.AllSchedules.Where(x => x.Name == id).FirstOrDefault();
+            var schedule = JobManager.AllSchedules.FirstOrDefault(x => x.Name == id);
             // Create a cronSchedule with the provided cronExpression
-            var cnSchedule = CrontabSchedule.Parse(announcement.CronExpression, new CrontabSchedule.ParseOptions() { IncludingSeconds = false });
+            var cnSchedule = CrontabSchedule.Parse(announcement.CronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = false });
             // Because FluentScheduler does not support cron expressions we have to override the default method that
             // calculates the next run with the appropriate method from the CrontabSchedule scheduler
             if (schedule != null)
@@ -101,14 +101,14 @@ namespace MonkeyBot.Services
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
         public async Task AddSingleAnnouncementAsync(string name, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty())
                 throw new ArgumentException("Please provide an ID");
             if (excecutionTime < DateTime.Now)
                 throw new ArgumentException("The time you provided is in the past!");
             // Create the announcement, add it to the list and persist it
             var announcement = new SingleAnnouncement(name, excecutionTime, message, guildID, channelID);
             AddSingleJob(announcement);
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.Announcements.AddOrUpdateAsync(announcement);
                 await uow.CompleteAsync();
@@ -135,7 +135,7 @@ namespace MonkeyBot.Services
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             JobManager.RemoveJob(GetUniqueId(announcement));
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.Announcements.RemoveAsync(announcement);
                 await uow.CompleteAsync();
@@ -146,6 +146,7 @@ namespace MonkeyBot.Services
         /// Returns the next execution time of the announcement with the provided ID
         /// </summary>
         /// <param name="announcementName">The unique ID of the announcement</param>
+        /// <param name="guildID">ID of the guild where the announcement is posted</param>
         /// <returns>Next execution time</returns>
         public async Task<DateTime> GetNextOccurenceAsync(string announcementName, ulong guildID)
         {
@@ -160,7 +161,7 @@ namespace MonkeyBot.Services
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var announcements = await GetAnnouncementsAsync();
                 for (int i = announcements.Count - 1; i >= 0; i--)
@@ -194,12 +195,12 @@ namespace MonkeyBot.Services
 
         private async Task AnnounceAsync(string message, ulong guildID, ulong channelID)
         {
-            await Helpers.SendChannelMessageAsync(client, guildID, channelID, message);
+            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
         }
 
         private async Task<List<Announcement>> GetAnnouncementsAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 return await uow.Announcements.GetAllAsync();
             }

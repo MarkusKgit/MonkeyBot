@@ -1,11 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using MonkeyBot.Services.Common.Poll;
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,11 +19,11 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class PollModule : ModuleBase
     {
-        private IPollService pollService;
+        private readonly IPollService pollService;
 
-        public PollModule(IServiceProvider provider)
+        public PollModule(IPollService pollService)
         {
-            pollService = provider.GetService<IPollService>();
+            this.pollService = pollService;
         }
 
         [Command("Poll")]
@@ -34,13 +33,13 @@ namespace MonkeyBot.Modules
         public async Task StartPollAsync([Summary("The question")][Remainder] string question)
         {
             question = question.Trim('\"');
-            if (string.IsNullOrEmpty(question))
+            if (question.IsEmpty())
             {
                 await ReplyAsync("Please enter a question");
                 return;
             }
-            List<Emoji> reactions = new List<Emoji>() { new Emoji("👍"), new Emoji("👎"), new Emoji("🤷") };
-            Poll poll = new Poll()
+            List<Emoji> reactions = new List<Emoji> { new Emoji("👍"), new Emoji("👎"), new Emoji("🤷") };
+            Poll poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -67,7 +66,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             question = question.Trim('\"');
-            if (string.IsNullOrEmpty(question))
+            if (question.IsEmpty())
             {
                 await ReplyAsync("Please enter a question");
                 return;
@@ -82,7 +81,7 @@ namespace MonkeyBot.Modules
                 questionBuilder.AppendLine($"{reactionLetter}: {answers[i].Trim()}");
                 reactions.Add(new Emoji(GetUnicodeRegionalLetter(i)));
             }
-            Poll poll = new Poll()
+            Poll poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -92,24 +91,27 @@ namespace MonkeyBot.Modules
             await pollService.AddPollAsync(poll);
         }
 
-        private string GetUnicodeRegionalLetter(int index)
+        private static string GetUnicodeRegionalLetter(int index)
         {
-            if (index == 0)
-                return "🇦";
-            else if (index == 1)
-                return "🇧";
-            else if (index == 2)
-                return "🇨";
-            else if (index == 3)
-                return "🇩";
-            else if (index == 4)
-                return "🇪";
-            else if (index == 5)
-                return "🇫";
-            else if (index == 6)
-                return "🇬";
-            else
-                return "";
+            switch (index)
+            {
+                case 0:
+                    return "🇦";
+                case 1:
+                    return "🇧";
+                case 2:
+                    return "🇨";
+                case 3:
+                    return "🇩";
+                case 4:
+                    return "🇪";
+                case 5:
+                    return "🇫";
+                case 6:
+                    return "🇬";
+                default:
+                    return "";
+            }
         }
     }
 }

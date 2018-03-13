@@ -16,27 +16,23 @@ namespace MonkeyBot
     /// <summary> Detect whether a message is a command, then execute it. </summary>
     public class CommandManager
     {
-        private IServiceProvider serviceProvider;
-        private DiscordSocketClient discordClient;
-        private CommandService commandService;
-        private DbService db;
+        private readonly IServiceProvider serviceProvider;
+        private readonly DiscordSocketClient discordClient;
+        private readonly DbService dbService;
 
-        public CommandService CommandService
-        {
-            get { return commandService; }
-        }
+        public CommandService CommandService { get; }
 
         public CommandManager(IServiceProvider provider)
         {
             serviceProvider = provider;
             discordClient = provider.GetService<DiscordSocketClient>();
-            commandService = provider.GetService<CommandService>();
-            db = provider.GetService<DbService>();
+            dbService = provider.GetService<DbService>();
+            CommandService = provider.GetService<CommandService>();
         }
 
         public async Task StartAsync()
         {
-            await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
+            await CommandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
 
             discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
         }
@@ -47,7 +43,7 @@ namespace MonkeyBot
         {
             if (guildId == null)
                 return Configuration.DefaultPrefix;
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value))?.CommandPrefix;
                 if (prefix != null)
@@ -72,7 +68,7 @@ namespace MonkeyBot
             if (msg.HasStringPrefix(prefix, ref argPos) ||
                 msg.HasMentionPrefix(discordClient.CurrentUser, ref argPos))
             {                                                         // Try and execute a command with the given context.
-                var result = await commandService.ExecuteAsync(context, argPos, serviceProvider);
+                var result = await CommandService.ExecuteAsync(context, argPos, serviceProvider);
 
                 if (!result.IsSuccess)                                // If execution failed, reply with the error message.
                 {
@@ -80,7 +76,7 @@ namespace MonkeyBot
                     {
                         List<string> possibleCommands = new List<string>();
                         string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
-                        foreach (var module in commandService.Modules)
+                        foreach (var module in CommandService.Modules)
                         {
                             foreach (var command in module.Commands)
                             {
@@ -106,7 +102,7 @@ namespace MonkeyBot
 
         public async Task BuildDocumentationAsync()
         {
-            string docu = DocumentationBuilder.BuildHtmlDocumentationAsync(commandService);
+            string docu = DocumentationBuilder.BuildHtmlDocumentation(CommandService);
             string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");
             await Helpers.WriteTextAsync(file, docu);
         }

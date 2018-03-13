@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using dokas.FluentStrings;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services.Common.Announcements;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace MonkeyBot.Database.Repositories
             List<Announcement> announcements = new List<Announcement>();
             foreach (var item in dbAnnouncements)
             {
-                if (item.Type == AnnouncementType.Recurring && !string.IsNullOrEmpty(item.CronExpression))
+                if (item.Type == AnnouncementType.Recurring && !item.CronExpression.IsEmpty())
                     announcements.Add(new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId));
                 if (item.Type == AnnouncementType.Single && item.ExecutionTime.HasValue)
                     announcements.Add(new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId));
@@ -35,7 +36,7 @@ namespace MonkeyBot.Database.Repositories
                 return null;
             if (dbAnnouncement.Type == AnnouncementType.Recurring)
             {
-                return new RecurringAnnouncement()
+                return new RecurringAnnouncement
                 {
                     Name = dbAnnouncement.Name,
                     GuildId = dbAnnouncement.GuildId,
@@ -46,7 +47,7 @@ namespace MonkeyBot.Database.Repositories
             }
             else if (dbAnnouncement.Type == AnnouncementType.Single)
             {
-                return new SingleAnnouncement()
+                return new SingleAnnouncement
                 {
                     Name = dbAnnouncement.Name,
                     GuildId = dbAnnouncement.GuildId,
@@ -64,7 +65,7 @@ namespace MonkeyBot.Database.Repositories
             var dbAnnouncement = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
             if (dbAnnouncement == null)
             {
-                dbSet.Add(dbAnnouncement = new AnnouncementEntity()
+                dbSet.Add(dbAnnouncement = new AnnouncementEntity
                 {
                     Name = announcement.Name,
                     GuildId = announcement.GuildId,

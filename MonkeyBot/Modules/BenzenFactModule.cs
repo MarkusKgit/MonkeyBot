@@ -1,28 +1,27 @@
 ﻿using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using MonkeyBot.Services;
-using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
     public class BenzenFactModule : ModuleBase
     {
-        private DbService db;
+        private readonly DbService dbService;
 
-        public BenzenFactModule(IServiceProvider provider)
+        public BenzenFactModule(DbService db)
         {
-            db = provider.GetService<DbService>();
+            dbService = db;
         }
 
         [Command("Benzen")]
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 var fact = await uow.BenzenFacts.GetRandomFactAsync();
-                if (!string.IsNullOrEmpty(fact))
+                if (!fact.IsEmpty())
                     await ReplyAsync(fact);
             }
         }
@@ -32,7 +31,7 @@ namespace MonkeyBot.Modules
         public async Task AddBenzenFactAsync([Remainder] string fact)
         {
             fact = fact.Trim('\"').Trim();
-            if (string.IsNullOrEmpty(fact))
+            if (fact.IsEmpty())
             {
                 await ReplyAsync("Please provide a fact!");
                 return;
@@ -42,7 +41,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("The fact must include Benzen!");
                 return;
             }
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.BenzenFacts.AddFactAsync(fact);
                 await uow.CompleteAsync();

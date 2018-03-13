@@ -1,6 +1,6 @@
-﻿using MonkeyBot.Common;
+﻿using Discord.WebSocket;
+using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Trivia;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,14 +12,16 @@ namespace MonkeyBot.Services
     /// </summary>
     public class OTDBTriviaService : ITriviaService
     {
-        private IServiceProvider serviceProvider;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
 
         // holds all trivia instances on a per guild and channel basis
-        private Dictionary<CombinedID, OTDBTriviaInstance> trivias;
+        private readonly Dictionary<CombinedID, OTDBTriviaInstance> trivias;
 
-        public OTDBTriviaService(IServiceProvider provider)
+        public OTDBTriviaService(DbService db, DiscordSocketClient client)
         {
-            this.serviceProvider = provider;
+            this.dbService = db;
+            this.discordClient = client;
             trivias = new Dictionary<CombinedID, OTDBTriviaInstance>();
         }
 
@@ -36,7 +38,10 @@ namespace MonkeyBot.Services
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
             CombinedID id = new CombinedID(guildID, channelID, null);
             if (!trivias.ContainsKey(id))
-                trivias.Add(id, new OTDBTriviaInstance(serviceProvider, guildID, channelID));
+            {
+                trivias.Add(id, new OTDBTriviaInstance(discordClient, dbService, guildID, channelID));
+            }
+
             return await trivias[id].StartTriviaAsync(questionsToPlay);
         }
 
@@ -50,10 +55,7 @@ namespace MonkeyBot.Services
         {
             // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
             CombinedID id = new CombinedID(guildID, channelID, null);
-            if (!trivias.ContainsKey(id))
-                return false;
-            else
-                return await trivias[id].SkipQuestionAsync();
+            return trivias.ContainsKey(id) ? await trivias[id].SkipQuestionAsync() : false;
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
@@ -14,13 +14,11 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
-        private CommandService commandService;
-        private CommandManager commandManager;
+        private readonly CommandManager commandManager;
 
-        public HelpModule(IServiceProvider provider) // Create a constructor for the commandservice dependency
+        public HelpModule(CommandManager commandManager)
         {
-            commandService = provider.GetService<CommandService>();
-            commandManager = provider.GetService<CommandManager>();
+            this.commandManager = commandManager;
         }
 
         [Command("help")]
@@ -28,15 +26,17 @@ namespace MonkeyBot.Modules
         public async Task HelpAsync()
         {
             string prefix = await commandManager.GetPrefixAsync(Context.Guild);
-            var builder = new EmbedBuilder()
+            var embedBuilder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),
                 Description = "These are the commands you can use with your permission level"
             };
 
-            foreach (var module in commandService.Modules)
+            foreach (var module in commandManager.CommandService.Modules)
             {
                 string description = null;
+                var builder = new System.Text.StringBuilder();
+                builder.Append(description);
                 foreach (var cmd in module.Commands)
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
@@ -45,13 +45,14 @@ namespace MonkeyBot.Modules
                         string parameters = string.Empty;
                         if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                             parameters = "*" + cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b)) + "*";
-                        description += $"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}";
+                        builder.Append($"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}");
                     }
                 }
+                description = builder.ToString();
 
-                if (!string.IsNullOrWhiteSpace(description))
+                if (!description.IsEmpty().OrWhiteSpace())
                 {
-                    builder.AddField(x =>
+                    embedBuilder.AddField(x =>
                     {
                         x.Name = module.Name;
                         x.Value = description;
@@ -59,14 +60,14 @@ namespace MonkeyBot.Modules
                     });
                 }
             }
-            await Context.User.SendMessageAsync("", false, builder.Build());
+            await Context.User.SendMessageAsync("", false, embedBuilder.Build());
         }
 
         [Command("help")]
         [Remarks("Gets help for the specified command")]
         public async Task HelpAsync([Summary("The command to get help for.")] [Remainder]string command)
         {
-            var result = commandService.Search(Context, command);
+            var result = commandManager.CommandService.Search(Context, command);
 
             if (!result.IsSuccess)
             {
@@ -75,7 +76,7 @@ namespace MonkeyBot.Modules
             }
 
             string prefix = await commandManager.GetPrefixAsync(Context.Guild);
-            var builder = new EmbedBuilder()
+            var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
                 Description = $"These are the commands like **{command}**:"

@@ -18,10 +18,6 @@ namespace MonkeyBot.Common
 
         public ulong FeedChannelId { get; set; }
 
-        public GuildConfig()
-        {
-        }
-
         public GuildConfig(ulong guildId)
         {
             GuildId = guildId;

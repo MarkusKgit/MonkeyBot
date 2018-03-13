@@ -19,7 +19,7 @@ namespace MonkeyBot.Database.Repositories
             var dbServerInfo = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port);
             if (dbServerInfo == null)
             {
-                dbSet.Add(dbServerInfo = new GameServerEntity()
+                dbSet.Add(dbServerInfo = new GameServerEntity
                 {
                     GuildId = (long)obj.GuildId,
                     ChannelId = (long)obj.ChannelId,

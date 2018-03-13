@@ -1,5 +1,5 @@
 ﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+using dokas.FluentStrings;
 using System;
 using System.Threading.Tasks;
 
@@ -7,37 +7,37 @@ namespace MonkeyBot.Services
 {
     public class EventHandlerService
     {
-        private DbService db;
-        private DiscordSocketClient client;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
 
-        public EventHandlerService(IServiceProvider provider)
+        public EventHandlerService(DbService db, DiscordSocketClient client)
         {
-            db = provider.GetService<DbService>();
-            client = provider.GetService<DiscordSocketClient>();
+            this.dbService = db;
+            this.discordClient = client;
         }
 
         public void Start()
         {
-            client.UserJoined += Client_UserJoined;
-            client.Connected += Client_Connected;
+            discordClient.UserJoined += Client_UserJoinedAsync;
+            discordClient.Connected += Client_ConnectedAsync;
         }
 
-        private async Task Client_Connected()
+        private async static Task Client_ConnectedAsync()
         {
             await Console.Out.WriteLineAsync("Connected");
         }
 
-        private async Task Client_UserJoined(SocketGuildUser arg)
+        private async Task Client_UserJoinedAsync(SocketGuildUser arg)
         {
             if (arg.Guild == null)
                 return;
             var channel = arg.Guild.DefaultChannel;
             string welcomeMessage = string.Empty;
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 welcomeMessage = (await uow.GuildConfigs.GetAsync(arg.Guild.Id))?.WelcomeMessageText;
             }
-            if (!string.IsNullOrEmpty(welcomeMessage))
+            if (!welcomeMessage.IsEmpty())
             {
                 welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name);
                 welcomeMessage = welcomeMessage.Replace("%user%", arg.Mention);

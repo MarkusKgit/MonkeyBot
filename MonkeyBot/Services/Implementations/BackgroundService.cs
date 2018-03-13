@@ -2,17 +2,14 @@
 using CodeHollow.FeedReader.Feeds;
 using Discord;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
-using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot.Common.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -21,14 +18,14 @@ namespace MonkeyBot.Services
     {
         private const int updateIntervallMinutes = 30;
 
-        private DbService db;
-        private DiscordSocketClient client;
-        private ConcurrentDictionary<string, DateTime> lastFeedUpdate;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
+        private readonly ConcurrentDictionary<string, DateTime> lastFeedUpdate;
 
-        public BackgroundService(IServiceProvider provider)
+        public BackgroundService(DbService db, DiscordSocketClient client)
         {
-            db = provider.GetService<DbService>();
-            client = provider.GetService<DiscordSocketClient>();
+            this.dbService = db;
+            this.discordClient = client;
             lastFeedUpdate = new ConcurrentDictionary<string, DateTime>();
         }
 
@@ -39,33 +36,33 @@ namespace MonkeyBot.Services
 
         public async Task RunOnceAllFeedsAsync(ulong guildId)
         {
-            var guild = client.GetGuild(guildId);
+            var guild = discordClient.GetGuild(guildId);
             if (guild != null)
-                await GetGuildFeedUpdates(guild);
+                await GetGuildFeedUpdatesAsync(guild);
         }
 
         public async Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url)
         {
-            var guild = client.GetGuild(guildId);
+            var guild = discordClient.GetGuild(guildId);
             var channel = guild?.GetTextChannel(channelId);
             if (guild != null && channel != null)
-                await GetFeedUpdate(channel, url);
+                await GetFeedUpdateAsync(channel, url);
         }
 
         private async Task GetAllFeedUpdatesAsync()
         {
-            foreach (var guild in client?.Guilds)
+            foreach (var guild in discordClient?.Guilds)
             {
-                await GetGuildFeedUpdates(guild);
+                await GetGuildFeedUpdatesAsync(guild);
             }
         }
 
-        private async Task GetGuildFeedUpdates(SocketGuild guild)
+        private async Task GetGuildFeedUpdatesAsync(SocketGuild guild)
         {
             List<string> feedUrls = null;
             SocketTextChannel channel = null;
 
-            using (var uow = db?.UnitOfWork)
+            using (var uow = dbService?.UnitOfWork)
             {
                 var cfg = await uow.GuildConfigs.GetAsync(guild.Id);
                 if (cfg == null || !cfg.ListenToFeeds || cfg.FeedUrls == null || cfg.FeedUrls.Count < 1)
@@ -78,13 +75,13 @@ namespace MonkeyBot.Services
 
             foreach (var feedUrl in feedUrls)
             {
-                await GetFeedUpdate(channel, feedUrl);
+                await GetFeedUpdateAsync(channel, feedUrl);
             }
         }
 
-        private async Task GetFeedUpdate(SocketTextChannel channel, string feedUrl)
+        private async Task GetFeedUpdateAsync(SocketTextChannel channel, string feedUrl)
         {
-            if (channel == null || string.IsNullOrEmpty(feedUrl))
+            if (channel == null || feedUrl.IsEmpty())
                 return;
             Feed feed;
             try
@@ -111,9 +108,9 @@ namespace MonkeyBot.Services
             {
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
-                if (!string.IsNullOrEmpty(feed.ImageUrl))
+                if (!feed.ImageUrl.IsEmpty())
                     builder.WithImageUrl(feed.ImageUrl);
-                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? feedUrl}".Truncate(255) + "\"";
+                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? feedUrl}".TruncateTo(255) + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdate = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
@@ -122,20 +119,20 @@ namespace MonkeyBot.Services
                         latestUpdate = feedItem.PublishingDate.Value;
                     string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : feedItem.PublishingDateString;
                     string author = feedItem.Author;
-                    if (string.IsNullOrEmpty(author))
+                    if (author.IsEmpty())
                     {
                         if (feed.Type == FeedType.Rss_1_0)
                             author = (feedItem.SpecificItem as Rss10FeedItem)?.DC?.Creator;
                         else if (feed.Type == FeedType.Rss_2_0)
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
                     }
-                    author = !string.IsNullOrEmpty(author) ? $"{author}: " : string.Empty;
+                    author = !author.IsEmpty() ? $"{author}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title)}]({feedItem.Link})";
                     string description = ParseHtml(feedItem.Description);
-                    description = description.TruncateAtWord(250, "[...]");
-                    if (string.IsNullOrEmpty(description))
+                    description = description.TruncateTo(250).WithEllipsis();
+                    if (description.IsEmpty())
                         description = "[...]";
-                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".Truncate(1023) + "*"; // Embed field value must be <= 1024 characters
+                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
                     builder.AddInlineField(fieldName, fieldContent);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
@@ -151,7 +148,7 @@ namespace MonkeyBot.Services
 
         private static string ParseHtml(string html)
         {
-            if (string.IsNullOrEmpty(html))
+            if (html.IsEmpty())
                 return html;
             html = System.Web.HttpUtility.HtmlDecode(html);
             var htmlDoc = new HtmlDocument();
@@ -165,7 +162,7 @@ namespace MonkeyBot.Services
             {
                 foreach (HtmlNode node in textNodes)
                 {
-                    if (!string.IsNullOrEmpty(node.InnerText))
+                    if (!node.InnerText.IsEmpty())
                         sb.Append(node.InnerText);
                 }
             }
@@ -177,7 +174,7 @@ namespace MonkeyBot.Services
                 }
             }
             var result = sb.ToString();
-            if (!string.IsNullOrEmpty(result))
+            if (!result.IsEmpty())
                 return result;
             return html;
         }

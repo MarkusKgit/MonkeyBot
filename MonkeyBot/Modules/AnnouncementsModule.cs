@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -17,7 +18,7 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class AnnouncementsModule : ModuleBase
     {
-        private IAnnouncementService announcementService; // The Announcementsservice will get injected in CommandHandler
+        private readonly IAnnouncementService announcementService; // The Announcementsservice will get injected in CommandHandler
 
         public AnnouncementsModule(IAnnouncementService announcementService) // Create a constructor for the announcementservice dependency
         {
@@ -36,7 +37,7 @@ namespace MonkeyBot.Modules
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.Where(x => x.Name.ToLower() == channelName.ToLower()).FirstOrDefault();
+            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
             else
@@ -46,17 +47,17 @@ namespace MonkeyBot.Modules
         private async Task AddRecurringAsync(string announcementId, string cronExpression, ulong channelID, string announcement)
         {
             //Do parameter checks
-            if (string.IsNullOrEmpty(announcementId))
+            if (announcementId.IsEmpty())
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
                 return;
             }
-            if (string.IsNullOrEmpty(cronExpression))
+            if (cronExpression.IsEmpty())
             {
                 await ReplyAsync("You need to specify a Cron expression that sets the interval for the Announcement!");
                 return;
             }
-            if (string.IsNullOrEmpty(announcement))
+            if (announcement.IsEmpty())
             {
                 await ReplyAsync("You need to specify a message to announce!");
                 return;
@@ -93,7 +94,7 @@ namespace MonkeyBot.Modules
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.Where(x => x.Name.ToLower() == channelName.ToLower()).FirstOrDefault();
+            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
             if (channel == null)
                 await ReplyAsync("The specified channel does not exist");
             else
@@ -103,25 +104,24 @@ namespace MonkeyBot.Modules
         private async Task AddSingleAsync(string announcementId, string time, ulong channelID, string announcement)
         {
             // Do parameter checks
-            if (string.IsNullOrEmpty(announcementId))
+            if (announcementId.IsEmpty())
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
                 return;
             }
-            DateTime parsedTime;
-            if (string.IsNullOrEmpty(time) || !DateTime.TryParse(time, out parsedTime) || parsedTime < DateTime.Now)
+            if (time.IsEmpty() || !DateTime.TryParse(time, out DateTime parsedTime) || parsedTime < DateTime.Now)
             {
                 await ReplyAsync("You need to specify a date and time for the Announcement that lies in the future!");
                 return;
             }
-            if (string.IsNullOrEmpty(announcement))
+            if (announcement.IsEmpty())
             {
                 await ReplyAsync("You need to specify a message to announce!");
                 return;
             }
             // ID must be unique per guild -> check if it already exists
             var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id);
-            if (announcements.Where(x => x.Name == announcementId).Count() > 0)
+            if (announcements.Count(x => x.Name == announcementId) > 0)
             {
                 await ReplyAsync("The ID is already in use");
                 return;
@@ -149,19 +149,22 @@ namespace MonkeyBot.Modules
                 message = "No upcoming announcements";
             else
                 message = "The following upcoming announcements exist:";
+            var builder = new System.Text.StringBuilder();
+            builder.Append(message);
             foreach (var announcement in announcements)
             {
                 var nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id);
                 var channel = await Context.Guild.GetChannelAsync(announcement.ChannelId);
                 if (announcement is RecurringAnnouncement)
                 {
-                    message += Environment.NewLine + $"Recurring announcement with ID: \"{announcement.Name}\" will run next on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
+                    builder.AppendLine($"Recurring announcement with ID: \"{announcement.Name}\" will run next on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
                 else if (announcement is SingleAnnouncement)
                 {
-                    message += Environment.NewLine + $"Single announcement with ID: \"{announcement.Name}\" will run on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"";
+                    builder.AppendLine($"Single announcement with ID: \"{announcement.Name}\" will run on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
             }
+            message = builder.ToString();
             await Context.User.SendMessageAsync(message);
         }
 
@@ -170,7 +173,7 @@ namespace MonkeyBot.Modules
         public async Task RemoveAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
             var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
-            if (string.IsNullOrEmpty(cleanID))
+            if (cleanID.IsEmpty())
             {
                 await ReplyAsync("You need to specify the ID of the Announcement you wish to remove!");
                 return;
@@ -191,7 +194,7 @@ namespace MonkeyBot.Modules
         public async Task NextRunAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
             var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
-            if (string.IsNullOrEmpty(cleanID))
+            if (cleanID.IsEmpty())
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!");
                 return;

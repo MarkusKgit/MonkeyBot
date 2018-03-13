@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Services.Common.GameSubscription;
 using System;
@@ -32,7 +33,7 @@ namespace MonkeyBot.Services.Implementations
                 joinedGame = after.Game.Value.Name;
             if (!before.Game.HasValue && after.Game.HasValue)
                 joinedGame = after.Game.Value.Name;
-            if (string.IsNullOrEmpty(joinedGame))
+            if (joinedGame.IsEmpty())
                 return;
             var gameSubscriptions = await GetGameSubscriptionsAsync();
             if (gameSubscriptions == null)

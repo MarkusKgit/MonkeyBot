@@ -19,7 +19,7 @@ namespace MonkeyBot.Database.Repositories
             var dbScore = await dbSet.FirstOrDefaultAsync(x => x.GuildID == tvs.GuildID && x.UserID == tvs.UserID);
             if (dbScore == null)
             {
-                await dbSet.AddAsync(dbScore = new TriviaScoreEntity()
+                await dbSet.AddAsync(dbScore = new TriviaScoreEntity
                 {
                     GuildID = tvs.GuildID,
                     UserID = tvs.UserID,

@@ -1,8 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Services.Common.Poll;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,19 +9,19 @@ namespace MonkeyBot.Services.Implementations
 {
     public class PollService : IPollService
     {
-        private DiscordSocketClient discordClient;
+        private readonly DiscordSocketClient discordClient;
 
         public List<Poll> ActivePolls { get; private set; }
 
-        public PollService(IServiceProvider provider)
+        public PollService(DiscordSocketClient client)
         {
-            discordClient = provider.GetService<DiscordSocketClient>();
-            discordClient.ReactionAdded += DiscordClient_ReactionAdded;
-            discordClient.ReactionRemoved += DiscordClient_ReactionRemoved;
+            discordClient = client;
+            discordClient.ReactionAdded += DiscordClient_ReactionAddedAsync;
+            discordClient.ReactionRemoved += DiscordClient_ReactionRemovedAsync;
             ActivePolls = new List<Poll>();
         }
 
-        private async Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        private async Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
             if (!arg1.HasValue || arg2 == null || !arg3.User.IsSpecified)
                 return;
@@ -51,7 +49,7 @@ namespace MonkeyBot.Services.Implementations
             }
         }
 
-        private Task DiscordClient_ReactionRemoved(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        private Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
             if (!arg1.HasValue || arg2 == null || !arg3.User.IsSpecified)
                 return Task.CompletedTask;

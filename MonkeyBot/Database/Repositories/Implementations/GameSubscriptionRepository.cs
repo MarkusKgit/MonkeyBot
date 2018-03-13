@@ -19,7 +19,7 @@ namespace MonkeyBot.Database.Repositories
             var gameSubscription = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.UserId == obj.UserId && x.GameName == obj.GameName);
             if (gameSubscription == null)
             {
-                dbSet.Add(gameSubscription = new GameSubscriptionEntity()
+                dbSet.Add(gameSubscription = new GameSubscriptionEntity
                 {
                     GuildId = (long)obj.GuildId,
                     UserId = (long)obj.UserId,

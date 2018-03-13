@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -12,7 +13,7 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class GameSubscriptionModule : ModuleBase
     {
-        private IGameSubscriptionService gameSubscriptionService;
+        private readonly IGameSubscriptionService gameSubscriptionService;
 
         public GameSubscriptionModule(IGameSubscriptionService gameSubscriptionService)
         {
@@ -23,7 +24,7 @@ namespace MonkeyBot.Modules
         [Remarks("Subscribes to the specified game to get a PM every time someone launches it")]
         public async Task SubscribeAsync([Summary("The name of the game to subscribe to.")] [Remainder] string gameName = null)
         {
-            if (string.IsNullOrEmpty(gameName))
+            if (gameName.IsEmpty())
             {
                 await ReplyAsync("You need to specify a game you wish to subscribe to!");
                 return;
@@ -45,7 +46,7 @@ namespace MonkeyBot.Modules
         [Remarks("Unsubscribes to the specified game")]
         public async Task UnsubscribeAsync([Summary("The name of the game to unsubscribe from.")] [Remainder] string gameName = null)
         {
-            if (string.IsNullOrEmpty(gameName))
+            if (gameName.IsEmpty())
             {
                 await ReplyAsync("You need to specify a game you wish to unsubscribe from!");
                 return;

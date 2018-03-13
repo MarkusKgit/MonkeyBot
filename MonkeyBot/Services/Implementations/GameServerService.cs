@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using FluentScheduler;
-using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using System;
 using System.Collections.Generic;
@@ -13,15 +13,13 @@ namespace MonkeyBot.Services
 {
     public class GameServerService : IGameServerService
     {
-        private DbService db;
-        private DiscordSocketClient client;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
 
-        //private List<DiscordGameServerInfo> servers = new List<DiscordGameServerInfo>();
-
-        public GameServerService(IServiceProvider provider)
+        public GameServerService(DbService db, DiscordSocketClient client)
         {
-            db = provider.GetService<DbService>();
-            client = provider.GetService<DiscordSocketClient>();
+            this.dbService = db;
+            this.discordClient = client;
         }
 
         public void Initialize()
@@ -32,8 +30,7 @@ namespace MonkeyBot.Services
         public async Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
             var server = new DiscordGameServerInfo(endpoint, guildID, channelID);
-            //servers.Add(server);
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.GameServers.AddOrUpdateAsync(server);
                 await uow.CompleteAsync();
@@ -50,8 +47,9 @@ namespace MonkeyBot.Services
                 {
                     await PostServerInfoAsync(server);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                 }
             }
         }
@@ -64,10 +62,10 @@ namespace MonkeyBot.Services
             {
                 var server = new SteamGameServer(discordGameServer.IP);
                 var serverInfo = await server?.GetServerInfoAsync();
-                var playerInfo = (await server?.GetPlayersAsync()).Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
+                var playerInfo = (await server?.GetPlayersAsync()).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
                     return;
-                var guild = client?.GetGuild(discordGameServer.GuildId);
+                var guild = discordClient?.GetGuild(discordGameServer.GuildId);
                 var channel = guild?.GetTextChannel(discordGameServer.ChannelId);
                 if (guild == null || channel == null)
                     return;
@@ -78,14 +76,14 @@ namespace MonkeyBot.Services
                 builder.AddField("Online Players", $"{playerInfo.Count}/{serverInfo.MaxPlayers}");
                 builder.AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null && playerInfo.Count > 0)
-                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x)).OrderBy(x => x)));
+                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)));
                 string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.IP.Address}:{serverInfo.Port}";
                 builder.AddField("Connect", $"[Click to connect]({connectLink})");
 
-                if (string.IsNullOrEmpty(discordGameServer.GameVersion))
+                if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.GameVersion;
-                    using (var uow = db.UnitOfWork)
+                    using (var uow = dbService.UnitOfWork)
                     {
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                         await uow.CompleteAsync();
@@ -97,7 +95,7 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.GameVersion;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        using (var uow = db.UnitOfWork)
+                        using (var uow = dbService.UnitOfWork)
                         {
                             await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                             await uow.CompleteAsync();
@@ -113,7 +111,7 @@ namespace MonkeyBot.Services
                 if (discordGameServer.MessageId == null)
                 {
                     discordGameServer.MessageId = (await channel?.SendMessageAsync("", false, builder.Build())).Id;
-                    using (var uow = db.UnitOfWork)
+                    using (var uow = dbService.UnitOfWork)
                     {
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                         await uow.CompleteAsync();
@@ -135,18 +133,18 @@ namespace MonkeyBot.Services
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
             var servers = await GetServersAsync();
-            var serverToRemove = servers.Where(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID).FirstOrDefault();
+            var serverToRemove = servers.FirstOrDefault(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID);
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
             if (serverToRemove.MessageId != null)
             {
-                var guild = client.GetGuild(serverToRemove.GuildId);
+                var guild = discordClient.GetGuild(serverToRemove.GuildId);
                 var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
                 var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
                 await msg?.DeleteAsync();
             }
 
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.GameServers.RemoveAsync(serverToRemove);
                 await uow.CompleteAsync();
@@ -155,7 +153,7 @@ namespace MonkeyBot.Services
 
         private async Task<List<DiscordGameServerInfo>> GetServersAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 return await uow.GameServers.GetAllAsync();
             }

@@ -116,7 +116,7 @@ namespace MonkeyBot.Services.Common.SteamServerQuery
                 client.Client.ReceiveTimeout = 2000;
                 cts.CancelAfter(2000);
 
-                var response = await client.ReceiveAsync().WithCancellation(cts.Token);
+                var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token);
                 byte[] result = new byte[response.Buffer.Length - 4];
                 response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
                 return result;

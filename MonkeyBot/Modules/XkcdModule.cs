@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             await EmbedComicAsync(comic, Context.Channel);
         }
 
-        private async Task EmbedComicAsync(xkcdResponse comic, IMessageChannel channel)
+        private async static Task EmbedComicAsync(xkcdResponse comic, IMessageChannel channel)
         {
             if (comic == null)
                 return;
@@ -70,7 +70,7 @@ namespace MonkeyBot.Modules
             await channel.SendMessageAsync("", false, builder.Build());
         }
 
-        private async Task<xkcdResponse> GetComicAsync(int? number)
+        private async static Task<xkcdResponse> GetComicAsync(int? number)
         {
             using (var http = new HttpClient())
             {
@@ -81,7 +81,7 @@ namespace MonkeyBot.Modules
             }
         }
 
-        private async Task<int> GetLatestNumberAsync()
+        private async static Task<int> GetLatestNumberAsync()
         {
             var comic = await GetComicAsync(null);
             if (comic != null)
