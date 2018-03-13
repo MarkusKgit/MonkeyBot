@@ -81,6 +81,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentException ex)
             {
+                await ReplyAsync(ex.Message);
                 logger.LogWarning(ex, "Wrong argument while adding a recurring announcement");
             }
         }
@@ -138,6 +139,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentException ex)
             {
+                await ReplyAsync(ex.Message);
                 logger.LogWarning(ex, "Wrong argument while adding a single announcement");
             }
         }

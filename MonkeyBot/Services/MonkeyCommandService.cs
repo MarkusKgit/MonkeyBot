@@ -26,31 +26,33 @@ namespace MonkeyBot.Services
         private Task MonkeyCommandService_LogAsync(LogMessage logMessage)
         {
             var msg = $"{logMessage.Source}: {logMessage.Message}";
-            if (logMessage.Exception != null)
-            {
-                logger.LogCritical(logMessage.Exception, msg);
-                return Task.CompletedTask;
-            }
+            var ex = logMessage.Exception;
             switch (logMessage.Severity)
             {
                 case LogSeverity.Critical:
-                    logger.LogCritical(msg);
+                    logger.LogCritical(ex, msg);
                     break;
+
                 case LogSeverity.Error:
-                    logger.LogError(msg);
+                    logger.LogError(ex, msg);
                     break;
+
                 case LogSeverity.Warning:
-                    logger.LogWarning(msg);
+                    logger.LogWarning(ex, msg);
                     break;
+
                 case LogSeverity.Info:
-                    logger.LogInformation(msg);
+                    logger.LogInformation(ex, msg);
                     break;
+
                 case LogSeverity.Verbose:
-                    logger.LogTrace(msg);
+                    logger.LogTrace(ex, msg);
                     break;
+
                 case LogSeverity.Debug:
-                    logger.LogDebug(msg);
+                    logger.LogDebug(ex, msg);
                     break;
+
                 default:
                     break;
             }

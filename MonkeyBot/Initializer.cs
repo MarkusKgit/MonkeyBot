@@ -65,7 +65,7 @@ namespace MonkeyBot
             var coloredConsoleTarget = new NLog.Targets.ColoredConsoleTarget
             {
                 Name = "logconsole",
-                Layout = @" ${date:format=HH\:mm\:ss} ${logger:shortName=True} | ${message}"
+                Layout = @"${date:format=HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
             };
             var infoLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, coloredConsoleTarget);
             logConfig.LoggingRules.Add(infoLoggingRule);

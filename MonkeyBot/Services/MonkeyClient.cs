@@ -53,38 +53,40 @@ namespace MonkeyBot.Services
         private async Task MonkeyClient_LogAsync(LogMessage logMessage)
         {
             var msg = $"{logMessage.Source}: {logMessage.Message}";
-            if (logMessage.Exception != null)
-            {
-                logger.LogCritical(logMessage.Exception, msg);
-                return;
-            }
-            switch (logMessage.Severity)
-            {
-                case LogSeverity.Critical:
-                    logger.LogCritical(msg);
-                    break;
-                case LogSeverity.Error:
-                    logger.LogError(msg);
-                    break;
-                case LogSeverity.Warning:
-                    logger.LogWarning(msg);
-                    break;
-                case LogSeverity.Info:
-                    logger.LogInformation(msg);
-                    break;
-                case LogSeverity.Verbose:
-                    logger.LogTrace(msg);
-                    break;
-                case LogSeverity.Debug:
-                    logger.LogDebug(msg);
-                    break;
-                default:
-                    break;
-            }
+            var ex = logMessage.Exception;
             if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected)
             {
                 var adminuser = GetUser(327885109560737793);
                 await adminuser?.SendMessageAsync(msg);
+            }
+            switch (logMessage.Severity)
+            {
+                case LogSeverity.Critical:
+                    logger.LogCritical(ex, msg);
+                    break;
+
+                case LogSeverity.Error:
+                    logger.LogError(ex, msg);
+                    break;
+
+                case LogSeverity.Warning:
+                    logger.LogWarning(ex, msg);
+                    break;
+
+                case LogSeverity.Info:
+                    logger.LogInformation(ex, msg);
+                    break;
+
+                case LogSeverity.Verbose:
+                    logger.LogTrace(ex, msg);
+                    break;
+
+                case LogSeverity.Debug:
+                    logger.LogDebug(ex, msg);
+                    break;
+
+                default:
+                    break;
             }
             return;
         }
