@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,12 +21,14 @@ namespace MonkeyBot.Services
 
         private readonly DbService dbService;
         private readonly DiscordSocketClient discordClient;
+        private readonly ILogger<BackgroundService> logger;
         private readonly ConcurrentDictionary<string, DateTime> lastFeedUpdate;
 
-        public BackgroundService(DbService db, DiscordSocketClient client)
+        public BackgroundService(DbService db, DiscordSocketClient client, ILogger<BackgroundService> logger)
         {
             this.dbService = db;
             this.discordClient = client;
+            this.logger = logger;
             lastFeedUpdate = new ConcurrentDictionary<string, DateTime>();
         }
 
@@ -90,7 +93,7 @@ namespace MonkeyBot.Services
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync("Error getting feeds" + Environment.NewLine + ex.Message);
+                logger.LogWarning(ex, "Error getting feeds");
                 return;
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)

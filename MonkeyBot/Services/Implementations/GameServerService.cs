@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using dokas.FluentStrings;
 using FluentScheduler;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,13 @@ namespace MonkeyBot.Services
     {
         private readonly DbService dbService;
         private readonly DiscordSocketClient discordClient;
+        private readonly ILogger<GameServerService> logger;
 
-        public GameServerService(DbService db, DiscordSocketClient client)
+        public GameServerService(DbService db, DiscordSocketClient client, ILogger<GameServerService> logger)
         {
             this.dbService = db;
             this.discordClient = client;
+            this.logger = logger;
         }
 
         public void Initialize()
@@ -49,7 +52,7 @@ namespace MonkeyBot.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    logger.LogWarning(ex, "Error posting server infos");
                 }
             }
         }
@@ -125,7 +128,7 @@ namespace MonkeyBot.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"{DateTime.Now} Error getting updates for server {discordGameServer.IP}" + Environment.NewLine + ex.Message);
+                logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.IP}");
                 throw;
             }
         }

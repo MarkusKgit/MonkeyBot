@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using dokas.FluentStrings;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -18,11 +19,13 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class AnnouncementsModule : ModuleBase
     {
-        private readonly IAnnouncementService announcementService; // The Announcementsservice will get injected in CommandHandler
+        private readonly IAnnouncementService announcementService;
+        private readonly ILogger<AnnouncementsModule> logger;
 
-        public AnnouncementsModule(IAnnouncementService announcementService) // Create a constructor for the announcementservice dependency
+        public AnnouncementsModule(IAnnouncementService announcementService, ILogger<AnnouncementsModule> logger) // Create a constructor for the announcementservice dependency
         {
             this.announcementService = announcementService;
+            this.logger = logger;
         }
 
         [Command("AddRecurring")]
@@ -78,7 +81,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentException ex)
             {
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Wrong argument while adding a recurring announcement");
             }
         }
 
@@ -135,7 +138,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentException ex)
             {
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Wrong argument while adding a single announcement");
             }
         }
 

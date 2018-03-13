@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -18,10 +19,12 @@ namespace MonkeyBot.Modules
     public class GameServerModule : ModuleBase
     {
         private readonly IGameServerService gameServerService;
+        private readonly ILogger<GameServerModule> logger;
 
-        public GameServerModule(IGameServerService gameServerService)
+        public GameServerModule(IGameServerService gameServerService, ILogger<GameServerModule> logger)
         {
             this.gameServerService = gameServerService;
+            this.logger = logger;
         }
 
         [Command("Add")]
@@ -58,7 +61,7 @@ namespace MonkeyBot.Modules
             catch (Exception ex)
             {
                 await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}");
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Error adding a gameserver");
             }
         }
 
@@ -84,7 +87,7 @@ namespace MonkeyBot.Modules
             catch (Exception ex)
             {
                 await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}");
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Error removing a gameserver");
             }
         }
 

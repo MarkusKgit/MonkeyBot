@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -14,10 +15,12 @@ namespace MonkeyBot.Modules
     public class GameSubscriptionModule : ModuleBase
     {
         private readonly IGameSubscriptionService gameSubscriptionService;
+        private readonly ILogger<GameSubscriptionModule> logger;
 
-        public GameSubscriptionModule(IGameSubscriptionService gameSubscriptionService)
+        public GameSubscriptionModule(IGameSubscriptionService gameSubscriptionService, ILogger<GameSubscriptionModule> logger)
         {
             this.gameSubscriptionService = gameSubscriptionService;
+            this.logger = logger;
         }
 
         [Command("Subscribe")]
@@ -37,7 +40,7 @@ namespace MonkeyBot.Modules
             catch (Exception ex)
             {
                 await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}");
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Error adding a game subscription");
             }
             await ReplyAsync($"You are now subscribed to {gameName}");
         }
@@ -59,7 +62,7 @@ namespace MonkeyBot.Modules
             catch (Exception ex)
             {
                 await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}");
-                await Console.Out.WriteLineAsync(ex.Message);
+                logger.LogWarning(ex, "Error removing a game subscription");
             }
             await ReplyAsync($"You are now unsubscribed from {gameName}");
         }

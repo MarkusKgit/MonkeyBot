@@ -5,6 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
@@ -12,6 +13,7 @@ using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
+using NLog.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -23,13 +25,21 @@ namespace MonkeyBot
         {
             InitializeMapper();
 
-            var services = await ConfigureServicesAsync();
+            var services = ConfigureServices();
+
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+            var nlogConfig = SetupNLogConfig();
+            loggerFactory.ConfigureNLog(nlogConfig);
+
+            var logger = services.GetService<ILogger<MonkeyClient>>();
+
+            var client = services.GetService<DiscordSocketClient>();
+            await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
+            await client.StartAsync();
 
             var manager = services.GetService<CommandManager>();
             await manager.StartAsync();
-
-            var eventHandler = services.GetService<EventHandlerService>();
-            eventHandler.Start();
 
             var registry = services.GetService<Registry>();
             JobManager.Initialize(registry);
@@ -49,6 +59,19 @@ namespace MonkeyBot
             await manager.BuildDocumentationAsync(); // Write the documentation
         }
 
+        private static NLog.Config.LoggingConfiguration SetupNLogConfig()
+        {
+            var logConfig = new NLog.Config.LoggingConfiguration();
+            var coloredConsoleTarget = new NLog.Targets.ColoredConsoleTarget
+            {
+                Name = "logconsole",
+                Layout = @" ${date:format=HH\:mm\:ss} ${logger:shortName=True} | ${message}"
+            };
+            var infoLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, coloredConsoleTarget);
+            logConfig.LoggingRules.Add(infoLoggingRule);
+            return logConfig;
+        }
+
         private static void InitializeMapper()
         {
             var cfg = new MapperConfigurationExpression();
@@ -59,57 +82,28 @@ namespace MonkeyBot
             Mapper.Initialize(cfg);
         }
 
-        private static async Task<IServiceProvider> ConfigureServicesAsync()
+        private static IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
+            services.AddSingleton<ILoggerFactory, LoggerFactory>();
+            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             services.AddSingleton(new DbService());
-            var discordClient = await StartDiscordClientAsync();
-            services.AddSingleton(discordClient);
-            var commandService = BuildCommandService();
-            services.AddSingleton(commandService);
+            services.AddSingleton<DiscordSocketClient, MonkeyClient>();
+            services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
-            services.AddSingleton(typeof(IAnnouncementService), typeof(AnnouncementService));
-            services.AddSingleton(typeof(ITriviaService), typeof(OTDBTriviaService));
-            services.AddSingleton(typeof(IPollService), typeof(PollService));
-            services.AddSingleton<EventHandlerService>();
-            services.AddSingleton(typeof(IBackgroundService), typeof(BackgroundService));
-            services.AddSingleton(typeof(IGameServerService), typeof(GameServerService));
-            services.AddSingleton(typeof(IGameSubscriptionService), typeof(GameSubscriptionService));
-            services.AddSingleton(typeof(IChuckService), typeof(ChuckService));
+            services.AddSingleton<IAnnouncementService, AnnouncementService>();
+            services.AddSingleton<IAnnouncementService, AnnouncementService>();
+            services.AddSingleton<ITriviaService, OTDBTriviaService>();
+            services.AddSingleton<IPollService, PollService>();
+            services.AddSingleton<IBackgroundService, BackgroundService>();
+            services.AddSingleton<IGameServerService, GameServerService>();
+            services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
+            services.AddSingleton<IChuckService, ChuckService>();
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
-        }
-
-        private static CommandService BuildCommandService()
-        {
-            CommandServiceConfig commandConfig = new CommandServiceConfig
-            {
-                CaseSensitiveCommands = false,
-                DefaultRunMode = RunMode.Async,
-                LogLevel = LogSeverity.Warning,
-                ThrowOnError = false
-            };
-            var commandService = new CommandService(commandConfig); // Create a new instance of the commandservice.
-            commandService.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
-            return commandService;
-        }
-
-        private static async Task<DiscordSocketClient> StartDiscordClientAsync()
-        {
-            DiscordSocketConfig discordConfig = new DiscordSocketConfig
-            {
-                LogLevel = LogSeverity.Warning,
-                MessageCacheSize = 1000
-            }; //Create a new config for the Discord Client
-            var discordClient = new DiscordSocketClient(discordConfig);    // Create a new instance of DiscordSocketClient with the specified config.
-
-            discordClient.Log += (l) => Console.Out.WriteLineAsync(l.ToString()); // Log to console for now
-
-            await discordClient.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
-            await discordClient.StartAsync();
-            return discordClient;
         }
     }
 }

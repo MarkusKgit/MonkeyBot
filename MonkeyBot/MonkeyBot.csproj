@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+	<LangVersion>latest</LangVersion>
     <ApplicationIcon />
     <OutputTypeEx>exe</OutputTypeEx>
     <StartupObject />
@@ -26,6 +27,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.1" />
     <PackageReference Include="ncrontab" Version="3.3.0" />
+    <PackageReference Include="NLog" Version="4.5.0-rc07" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.0.0-rtm-rc7" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />	
 	<DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
   </ItemGroup>
