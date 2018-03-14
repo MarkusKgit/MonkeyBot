@@ -86,12 +86,16 @@ namespace MonkeyBot.Modules
             foreach (var match in result.Commands)
             {
                 var cmd = match.Command;
-
+                string description =
+                    $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
+                    $"Remarks: {cmd.Remarks}";
+                var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
+                if (example != null && !example.ExampleText.IsEmpty())
+                    description += $"\nExample: {example.ExampleText}";
                 builder.AddField(x =>
                 {
                     x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
-                              $"Remarks: {cmd.Remarks}";
+                    x.Value = description;
                     x.IsInline = false;
                 });
             }
