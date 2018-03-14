@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
                     {
                         string parameters = string.Empty;
                         if (cmd.Parameters != null && cmd.Parameters.Count > 0)
-                            parameters = "*" + cmd.Parameters.Select(x => x.Name).Aggregate((a, b) => (a + " " + b)) + "*";
+                            parameters = $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*";
                         builder.Append($"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}");
                     }
                 }

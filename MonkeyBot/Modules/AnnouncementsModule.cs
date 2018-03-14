@@ -79,7 +79,7 @@ namespace MonkeyBot.Modules
                 // Add the announcement to the Service to activate it
                 await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, Context.Guild.Id, channelID);
                 var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id);
-                await ReplyAsync("The announcement has been added. The next run is on " + nextRun.ToString());
+                await ReplyAsync($"The announcement has been added. The next run is on {nextRun}");
             }
             catch (ArgumentException ex)
             {
@@ -139,7 +139,7 @@ namespace MonkeyBot.Modules
                 // Add the announcement to the Service to activate it
                 await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, Context.Guild.Id, channelID);
                 var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id);
-                await ReplyAsync("The announcement has been added. It will be broadcasted on " + nextRun.ToString());
+                await ReplyAsync($"The announcement has been added. It will be broadcasted on {nextRun}");
             }
             catch (ArgumentException ex)
             {
