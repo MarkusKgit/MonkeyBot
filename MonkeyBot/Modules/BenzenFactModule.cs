@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
+    [Name("Benzen Facts")]
     public class BenzenFactModule : ModuleBase
     {
         private readonly DbService dbService;

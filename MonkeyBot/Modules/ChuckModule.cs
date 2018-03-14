@@ -12,6 +12,7 @@ namespace MonkeyBot.Modules
 {
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
+    [Name("Chuck Norris jokes")]
     public class ChuckModule : ModuleBase
     {
         private readonly IChuckService chuckService;

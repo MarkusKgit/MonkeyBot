@@ -29,6 +29,7 @@ namespace MonkeyBot.Modules
 
         [Command("SetWelcomeMessage")]
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
+        [Example("!SetWelcomeMessage \"Hello %user%, welcome to %server$\"")]
         public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
             welcomeMsg = welcomeMsg.Trim('\"');
@@ -55,6 +56,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddRule")]
         [Remarks("Adds a rule to the server.")]
+        [Example("!AddRule \"You shall not pass!\"")]
         public async Task AddRuleAsync([Summary("The rule to add")][Remainder] string rule)
         {
             if (rule.IsEmpty())
@@ -74,7 +76,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("RemoveRules")]
-        [Remarks("Removes the rules from a server.")]
+        [Remarks("Removes all rules from a server.")]
         public async Task RemoveRulesAsync()
         {
             using (var uow = dbService.UnitOfWork)
@@ -173,6 +175,7 @@ namespace MonkeyBot.Modules
 
         [Command("EnableFeeds")]
         [Remarks("Enables the feed listener in the specified channel")]
+        [Example("!EnableFeeds general")]
         public async Task EnableFeedsAsync([Summary("The channel where the feed updates should be broadcasted")]string channelName = "")
         {
             IGuildChannel channel;

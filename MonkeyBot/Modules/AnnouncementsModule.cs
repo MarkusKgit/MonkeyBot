@@ -29,14 +29,16 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddRecurring")]
-        [Remarks("Adds the specified recurring announcement to the current channel of the current guild.")]
+        [Remarks("Adds the specified recurring announcement to the current channel")]
+        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \" \"It is Friday 19:00\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
         {
             await AddRecurringAsync(announcementId, cronExpression, Context.Channel.Id, announcement);
         }
 
         [Command("AddRecurring")]
-        [Remarks("Adds the specified recurring announcement to the specified channel of the current guild.")]
+        [Remarks("Adds the specified recurring announcement to the specified channel")]
+        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \" \"general\" \"It is Friday 19:00\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
@@ -87,14 +89,16 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddSingle")]
-        [Remarks("Adds the specified single announcement at the given time to the current channel of the current guild.")]
+        [Remarks("Adds the specified single announcement at the given time to the current channel")]
+        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\"")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement)
         {
             await AddSingleAsync(announcementId, time, Context.Channel.Id, announcement);
         }
 
         [Command("AddSingle")]
-        [Remarks("Adds the specified single announcement at the given time to the specified channel of the current guild.")]
+        [Remarks("Adds the specified single announcement at the given time to the specified channel")]
+        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"general\" \"It is 19:00\"")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
@@ -145,7 +149,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("List")]
-        [Remarks("Lists all upcoming announcements for the current guild")]
+        [Remarks("Lists all upcoming announcements")]
         public async Task ListAsync()
         {
             string message;
@@ -174,7 +178,8 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Remove")]
-        [Remarks("Removes the announcement with the specified ID from the current guild.")]
+        [Remarks("Removes the announcement with the specified ID")]
+        [Example("!announcements remove announcement1")]
         public async Task RemoveAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
             var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
@@ -196,6 +201,7 @@ namespace MonkeyBot.Modules
 
         [Command("NextRun")]
         [Remarks("Gets the next execution time of the announcement with the specified ID.")]
+        [Example("!announcements nextrun announcement1")]
         public async Task NextRunAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
             var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user

@@ -32,6 +32,7 @@ namespace MonkeyBot.Modules
 
         [Command("Start")]
         [Remarks("Starts a new trivia with the specified amount of questions.")]
+        [Example("!trivia start 5")]
         public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questionAmount = 10)
         {
             if (!await triviaService?.StartTriviaAsync(questionAmount, Context.Guild.Id, Context.Channel.Id))
@@ -56,6 +57,7 @@ namespace MonkeyBot.Modules
 
         [Command("Scores")]
         [Remarks("Gets the global scores")]
+        [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
             List<TriviaScore> userScoresAllTime;

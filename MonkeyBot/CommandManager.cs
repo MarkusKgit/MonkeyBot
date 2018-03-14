@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
+using MonkeyBot.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -102,9 +103,13 @@ namespace MonkeyBot
 
         public async Task BuildDocumentationAsync()
         {
-            string docu = DocumentationBuilder.BuildHtmlDocumentation(CommandService);
-            string file = Path.Combine(AppContext.BaseDirectory, "documentation.txt");
-            await Helpers.WriteTextAsync(file, docu);
+            string docuHTML = DocumentationBuilder.BuildDocumentation(CommandService, DocumentationBuilder.OutputTypes.HTML);
+            string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
+            await Helpers.WriteTextAsync(fileHTML, docuHTML);
+
+            string docuMD = DocumentationBuilder.BuildDocumentation(CommandService, DocumentationBuilder.OutputTypes.MarkDown);
+            string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
+            await Helpers.WriteTextAsync(fileMD, docuMD);
         }
     }
 }

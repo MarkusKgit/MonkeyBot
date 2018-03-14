@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
+    [Name("Xkcd")]
     public class XkcdModule : ModuleBase
     {
         private const string comicUrl = "https://xkcd.com/{0}/";
@@ -17,6 +18,7 @@ namespace MonkeyBot.Modules
         [Command("xkcd")]
         [Remarks("Gets a random xkcd comic or the latest xkcd comic by appending \"latest\" to the command")]
         [Priority(0)]
+        [Example("!xkcd latest")]
         public async Task GetXkcdAsync(string arg = null)
         {
             xkcdResponse comic = null;
@@ -41,6 +43,7 @@ namespace MonkeyBot.Modules
         [Command("xkcd")]
         [Remarks("Gets the xkcd comic with the specified number")]
         [Priority(1)]
+        [Example("!xkcd 101")]
         public async Task GetXkcdAsync(int number)
         {
             int maxNumer = await GetLatestNumberAsync();

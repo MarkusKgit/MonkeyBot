@@ -65,6 +65,7 @@ namespace MonkeyBot.Modules
 
         [Command("help")]
         [Remarks("Gets help for the specified command")]
+        [Example("!help Chuck")]
         public async Task HelpAsync([Summary("The command to get help for.")] [Remainder]string command)
         {
             var result = commandManager.CommandService.Search(Context, command);

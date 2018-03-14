@@ -24,7 +24,8 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Subscribe")]
-        [Remarks("Subscribes to the specified game to get a PM every time someone launches it")]
+        [Remarks("Subscribes to the specified game. You will get a private message every time someone launches it")]
+        [Example("!Subscribe \"Battlefield 1\"")]
         public async Task SubscribeAsync([Summary("The name of the game to subscribe to.")] [Remainder] string gameName = null)
         {
             if (gameName.IsEmpty())
@@ -47,6 +48,7 @@ namespace MonkeyBot.Modules
 
         [Command("Unsubscribe")]
         [Remarks("Unsubscribes to the specified game")]
+        [Example("!Unsubscribe \"Battlefield 1\"")]
         public async Task UnsubscribeAsync([Summary("The name of the game to unsubscribe from.")] [Remainder] string gameName = null)
         {
             if (gameName.IsEmpty())

@@ -19,6 +19,7 @@ namespace MonkeyBot.Modules
     {
         [Command("Add")]
         [Remarks("Adds the specified role to your own roles.")]
+        [Example("!roles add bf")]
         public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName = null)
         {
             if (roleName.IsEmpty())
@@ -53,6 +54,7 @@ namespace MonkeyBot.Modules
 
         [Command("Remove")]
         [Remarks("Removes the specified role from your roles.")]
+        [Example("!roles remove bf")]
         public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
             if (roleName.IsEmpty())
@@ -135,6 +137,7 @@ namespace MonkeyBot.Modules
 
         [Command("ListMembers")]
         [Remarks("Lists all the members of the specified role")]
+        [Example("!roles listmembers bf")]
         public async Task ListMembersAsync(string roleName)
         {
             var role = Context.Guild.Roles.SingleOrDefault(x => x.Name.ToLower() == roleName.ToLower());

@@ -13,7 +13,7 @@ public class Program
 
         await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
-        await Initializer.InitializeAsync();
+        await Initializer.InitializeAsync(args);
 
         await Task.Delay(-1); // Prevent the console window from closing.
     }

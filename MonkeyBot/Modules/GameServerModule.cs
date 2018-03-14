@@ -29,14 +29,16 @@ namespace MonkeyBot.Modules
 
         [Command("Add")]
         [Remarks("Adds the specified game server and posts it's info info in the current channel")]
-        public async Task AddGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip)
+        [Example("!gameserver add 127.0.0.1:1234")]
+        public async Task AddGameServerAsync([Remainder][Summary("The ip adress and query port of the server")] string ip)
         {
             await AddGameServerInternalAsync(ip, Context.Channel.Id);
         }
 
         [Command("Add")]
-        [Remarks("Adds the specified game server and sets the channel of the current guild where the info will be posted.")]
-        public async Task AddGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip, [Summary("The name of the channel where the server info should be posted")] string channelName)
+        [Remarks("Adds the specified game server and sets the channel where the info will be posted.")]
+        [Example("!gameserver add \"127.0.0.1:1234\" \"general\"")]
+        public async Task AddGameServerAsync([Summary("The ip adress and query port of the server")] string ip, [Summary("The name of the channel where the server info should be posted")] string channelName)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
             var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
@@ -67,7 +69,8 @@ namespace MonkeyBot.Modules
 
         [Command("Remove")]
         [Remarks("Removes the specified game server")]
-        public async Task RemoveGameServerAsync([Summary("The ip adress and query port of the server e.g. 127.0.0.1:1234")] string ip)
+        [Example("!gameserver remove 127.0.0.1:1234")]
+        public async Task RemoveGameServerAsync([Summary("The ip adress and query port of the server")] string ip)
         {
             await RemoveGameServerInternalAsync(ip);
         }
