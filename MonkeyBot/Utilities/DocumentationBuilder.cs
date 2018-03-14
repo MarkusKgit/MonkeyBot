@@ -45,8 +45,8 @@ namespace MonkeyBot.Utilities
                 if (modulePreconditions != null && modulePreconditions.Count > 0)
                 {
                     builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
-                    builder.AppendLine(f.NewLine(f.Strong("Commands:")));
                 }
+                builder.AppendLine(f.NewLine(""));
                 foreach (var cmd in module.Commands)
                 {
                     string parameters = string.Empty;
@@ -62,8 +62,8 @@ namespace MonkeyBot.Utilities
                         builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
                     if (!cmd.Remarks.IsEmpty())
                         builder.AppendLine(f.NewLine($"{f.Em("Remarks:")} {cmd.Remarks}"));
+                    builder.AppendLine(f.NewLine(""));
                 }
-                builder.AppendLine(f.NewLine(""));
             }
             return builder.ToString();
         }
