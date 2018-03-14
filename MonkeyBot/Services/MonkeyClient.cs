@@ -57,7 +57,7 @@ namespace MonkeyBot.Services
             if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected)
             {
                 var adminuser = GetUser(327885109560737793);
-                await adminuser?.SendMessageAsync(msg);
+                await adminuser?.SendMessageAsync($"{msg} {ex?.Message}");
             }
             switch (logMessage.Severity)
             {
