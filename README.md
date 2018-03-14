@@ -8,7 +8,7 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 
 <details>
 <summary>Click here for a full list of commands</summary>
-</br>
+
 ## Admin Commands
 **Preconditions:** Minimum permission: *ServerAdmin*  
 **Commands:**  
