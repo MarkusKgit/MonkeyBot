@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
@@ -77,23 +78,26 @@ namespace MonkeyBot
                     {
                         List<string> possibleCommands = new List<string>();
                         string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
-                        foreach (var module in CommandService.Modules)
+                        if (!commandText.IsEmpty())
                         {
-                            foreach (var command in module.Commands)
+                            foreach (var module in CommandService.Modules)
                             {
-                                foreach (var alias in command.Aliases)
+                                foreach (var command in module.Commands)
                                 {
-                                    if (alias.ToLowerInvariant().Contains(commandText))
-                                        possibleCommands.Add(alias);
+                                    foreach (var alias in command.Aliases)
+                                    {
+                                        if (alias.ToLowerInvariant().Contains(commandText))
+                                            possibleCommands.Add(alias);
+                                    }
                                 }
                             }
+                            string message = $"Command *{msg.Content.Substring(argPos)}* was not found. Type {prefix}help to get a list of commands";
+                            if (possibleCommands.Count == 1)
+                                message = $"Did you mean *{possibleCommands.First()}* ? Type {prefix}help to get a list of commands";
+                            else if (possibleCommands.Count > 1 && possibleCommands.Count < 5)
+                                message = $"Did you mean one of the following commands:{Environment.NewLine}{string.Join(Environment.NewLine, possibleCommands)}{Environment.NewLine}Type {prefix}help to get a list of commands";
+                            await context.Channel.SendMessageAsync(message);
                         }
-                        string message = $"Command *{msg.Content.Substring(argPos)}* was not found. Type {prefix}help to get a list of commands";
-                        if (possibleCommands.Count == 1)
-                            message = $"Did you mean *{possibleCommands.First()}* ? Type {prefix}help to get a list of commands";
-                        else if (possibleCommands.Count > 1)
-                            message = $"Did you mean one of the following commands:{Environment.NewLine}{string.Join(Environment.NewLine, possibleCommands)}{Environment.NewLine}Type {prefix}help to get a list of commands";
-                        await context.Channel.SendMessageAsync(message);
                     }
                     else
                         await context.Channel.SendMessageAsync(result.ToString());
