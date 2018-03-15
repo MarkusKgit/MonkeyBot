@@ -24,11 +24,11 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 **Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*  
   
 `!announcements addrecurring announcementId cronExpression announcement`  
-*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" " "It is Friday 19:00"`  
+*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" "It is Friday 19:00"`  
 *Remarks:* Adds the specified recurring announcement to the current channel  
 </br>
 `!announcements addrecurring announcementId cronExpression channelName announcement`  
-*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" " "general" "It is Friday 19:00"`  
+*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" "general" "It is Friday 19:00"`  
 *Remarks:* Adds the specified recurring announcement to the specified channel  
 </br>
 `!announcements addsingle announcementId time announcement`  

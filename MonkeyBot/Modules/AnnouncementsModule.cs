@@ -30,7 +30,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddRecurring")]
         [Remarks("Adds the specified recurring announcement to the current channel")]
-        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \" \"It is Friday 19:00\"")]
+        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
         {
             await AddRecurringAsync(announcementId, cronExpression, Context.Channel.Id, announcement);
@@ -38,7 +38,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddRecurring")]
         [Remarks("Adds the specified recurring announcement to the specified channel")]
-        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \" \"general\" \"It is Friday 19:00\"")]
+        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"general\" \"It is Friday 19:00\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
