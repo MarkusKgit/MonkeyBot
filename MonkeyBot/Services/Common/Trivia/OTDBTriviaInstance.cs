@@ -168,7 +168,7 @@ namespace MonkeyBot.Services.Common.Trivia
             {
                 var result = await CheckAnswerAsync(msg.Content, msg.Author);
                 if (result)
-                    GetNextQuestionAsync());
+                    GetNextQuestionAsync();
             }
         }
 
