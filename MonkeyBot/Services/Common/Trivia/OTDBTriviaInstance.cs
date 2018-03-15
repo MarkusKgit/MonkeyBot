@@ -165,10 +165,14 @@ namespace MonkeyBot.Services.Common.Trivia
             if (msg == null) // Check if the received message is from a user.
                 return;
             if (msg.Channel?.Id == channelID)
-                await CheckAnswerAsync(msg.Content, msg.Author);
+            {
+                var result = await CheckAnswerAsync(msg.Content, msg.Author);
+                if (result)
+                    GetNextQuestionAsync());
+            }
         }
 
-        private async Task CheckAnswerAsync(string answer, IUser user)
+        private async Task<bool> CheckAnswerAsync(string answer, IUser user)
         {
             if (status == TriviaStatus.Running && currentQuestion != null && !user.IsBot)
             {
@@ -181,9 +185,10 @@ namespace MonkeyBot.Services.Common.Trivia
                     if (currentIndex < questions.Count - 1)
                         msg += Environment.NewLine + GetCurrentHighScores();
                     await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg);
-                    await GetNextQuestionAsync();
+                    return true;
                 }
             }
+            return false;
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)
