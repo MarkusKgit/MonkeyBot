@@ -129,11 +129,10 @@ namespace MonkeyBot.Services
                         else if (feed.Type == FeedType.Rss_2_0)
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
                     }
-                    author = !author.IsEmpty() ? $"{author}: " : string.Empty;
-                    string maskedLink = $"[{author}{ParseHtml(feedItem.Title)}]({feedItem.Link})";
-                    string description = ParseHtml(feedItem.Description);
-                    description = description.TruncateTo(250).WithEllipsis();
-                    if (description.IsEmpty())
+                    author = !author.IsEmpty().OrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
+                    string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
+                    string description = ParseHtml(feedItem.Description).Trim().TruncateTo(250).WithEllipsis();
+                    if (description.IsEmpty().OrWhiteSpace())
                         description = "[...]";
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
                     builder.AddInlineField(fieldName, fieldContent);
@@ -165,8 +164,8 @@ namespace MonkeyBot.Services
             {
                 foreach (HtmlNode node in textNodes)
                 {
-                    if (!node.InnerText.IsEmpty())
-                        sb.Append(node.InnerText);
+                    if (!node.InnerText.IsEmpty().OrWhiteSpace())
+                        sb.Append(node.InnerText.Trim());
                 }
             }
             if (iframes != null)
