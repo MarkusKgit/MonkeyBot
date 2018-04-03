@@ -8,6 +8,6 @@ namespace MonkeyBot.Services
 
         Task RunOnceAllFeedsAsync(ulong guildId);
 
-        Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url);
+        Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url, bool getLatest = false);
     }
 }

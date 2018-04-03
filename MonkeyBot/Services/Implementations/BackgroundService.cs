@@ -44,12 +44,12 @@ namespace MonkeyBot.Services
                 await GetGuildFeedUpdatesAsync(guild);
         }
 
-        public async Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url)
+        public async Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url, bool getLatest = false)
         {
             var guild = discordClient.GetGuild(guildId);
             var channel = guild?.GetTextChannel(channelId);
             if (guild != null && channel != null)
-                await GetFeedUpdateAsync(channel, url);
+                await GetFeedUpdateAsync(channel, url, getLatest);
         }
 
         private async Task GetAllFeedUpdatesAsync()
@@ -82,7 +82,7 @@ namespace MonkeyBot.Services
             }
         }
 
-        private async Task GetFeedUpdateAsync(SocketTextChannel channel, string feedUrl)
+        private async Task GetFeedUpdateAsync(SocketTextChannel channel, string feedUrl, bool getLatest = false)
         {
             if (channel == null || feedUrl.IsEmpty())
                 return;
@@ -98,15 +98,17 @@ namespace MonkeyBot.Services
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
                 return;
-            List<FeedItem> updatedFeeds;
             var lastUpdate = DateTime.UtcNow;
-            if (!lastFeedUpdate.TryGetValue(feedUrl, out lastUpdate))
+            var guildFeedUrl = channel.Guild.Id + feedUrl;
+            if (!lastFeedUpdate.TryGetValue(guildFeedUrl, out lastUpdate))
             {
                 lastUpdate = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
-                lastFeedUpdate.TryAdd(feedUrl, lastUpdate);
+                lastFeedUpdate.TryAdd(guildFeedUrl, lastUpdate);
             }
-            updatedFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue && (x.PublishingDate.Value.ToUniversalTime() > lastUpdate)).OrderBy(x => x.PublishingDate).ToList();
-
+            var allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
+            var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdate).OrderBy(x => x.PublishingDate).ToList();
+            if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
+                updatedFeeds = allFeeds.Take(1).ToList();
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new EmbedBuilder();
@@ -131,8 +133,7 @@ namespace MonkeyBot.Services
                     }
                     author = !author.IsEmpty() ? $"{author}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title)}]({feedItem.Link})";
-                    string description = ParseHtml(feedItem.Description);
-                    description = description.TruncateTo(250).WithEllipsis();
+                    string description = ParseHtml(feedItem.Description).TruncateTo(300).WithEllipsis();
                     if (description.IsEmpty())
                         description = "[...]";
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
@@ -141,10 +142,10 @@ namespace MonkeyBot.Services
                 await channel?.SendMessageAsync("", false, builder.Build());
                 if (latestUpdate > DateTime.MinValue)
                 {
-                    if (lastFeedUpdate.TryGetValue(feedUrl, out var oldValue))
-                        lastFeedUpdate.TryUpdate(feedUrl, latestUpdate, oldValue);
+                    if (lastFeedUpdate.TryGetValue(guildFeedUrl, out var oldValue))
+                        lastFeedUpdate.TryUpdate(guildFeedUrl, latestUpdate, oldValue);
                     else
-                        lastFeedUpdate.TryAdd(feedUrl, latestUpdate);
+                        lastFeedUpdate.TryAdd(guildFeedUrl, latestUpdate);
                 }
             }
         }
@@ -165,8 +166,8 @@ namespace MonkeyBot.Services
             {
                 foreach (HtmlNode node in textNodes)
                 {
-                    if (!node.InnerText.IsEmpty())
-                        sb.Append(node.InnerText);
+                    if (!node.InnerText.Trim().IsEmpty())
+                        sb.Append(node.InnerText.Trim());
                 }
             }
             if (iframes != null)

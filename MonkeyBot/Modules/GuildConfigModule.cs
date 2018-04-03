@@ -128,8 +128,9 @@ namespace MonkeyBot.Modules
                 config.FeedUrls.Add(feedUrl);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
+                await ReplyAsync("Feed added");
             }
-            await backgroundService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, feedUrl);
+            await backgroundService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, feedUrl, true);
         }
 
         [Command("RemoveFeedUrl")]
@@ -154,6 +155,7 @@ namespace MonkeyBot.Modules
                 config.FeedUrls.Remove(url);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
+                await ReplyAsync("Feed removed");
             }
         }
 
