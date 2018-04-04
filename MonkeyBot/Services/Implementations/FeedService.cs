@@ -93,7 +93,7 @@ namespace MonkeyBot.Services
             using (var uow = dbService.UnitOfWork)
             {
                 //TODO: add filter in db query
-                allFeeds = (await uow.Feeds.GetAllAsync()).Where(x => x.GuildId == guildId);
+                allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId);
                 if (channelId.HasValue)
                     allFeeds = allFeeds.Where(x => x.ChannelId == channelId.Value);
             }

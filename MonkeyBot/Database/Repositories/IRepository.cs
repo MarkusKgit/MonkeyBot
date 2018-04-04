@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IRepository<TDb, TB> where TDb : BaseEntity where TB : class
+    public interface IRepository<TDb, TDTO> where TDb : BaseEntity where TDTO : class
     {
-        Task<List<TB>> GetAllAsync();
+        Task<List<TDTO>> GetAllAsync();
 
-        Task AddOrUpdateAsync(TB obj);
+        Task AddOrUpdateAsync(TDTO obj);
 
-        Task RemoveAsync(TB obj);
+        Task RemoveAsync(TDTO obj);
     }
 
     public interface IRepository<TDb> where TDb : BaseEntity

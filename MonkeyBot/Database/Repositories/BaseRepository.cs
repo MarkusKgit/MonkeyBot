@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public abstract class BaseRepository<TDb, TB> : IRepository<TDb, TB> where TDb : BaseEntity where TB : class
+    public abstract class BaseRepository<TDb, TDTO> : IRepository<TDb, TDTO> where TDb : BaseEntity where TDTO : class
     {
         protected DbContext context;
         protected DbSet<TDb> dbSet;
@@ -17,12 +17,12 @@ namespace MonkeyBot.Database.Repositories
             dbSet = context.Set<TDb>();
         }
 
-        public virtual Task<List<TB>> GetAllAsync() =>
-            dbSet.Select(x => AutoMapper.Mapper.Map<TB>(x)).ToListAsync();
+        public virtual Task<List<TDTO>> GetAllAsync() =>
+            dbSet.Select(x => AutoMapper.Mapper.Map<TDTO>(x)).ToListAsync();
 
-        public abstract Task AddOrUpdateAsync(TB obj);
+        public abstract Task AddOrUpdateAsync(TDTO obj);
 
-        public abstract Task RemoveAsync(TB obj);
+        public abstract Task RemoveAsync(TDTO obj);
     }
 
     public abstract class BaseRepository<TDb> : IRepository<TDb> where TDb : BaseEntity

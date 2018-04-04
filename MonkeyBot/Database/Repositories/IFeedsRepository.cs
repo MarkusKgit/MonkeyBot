@@ -3,7 +3,7 @@ using MonkeyBot.Services.Common.Feeds;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IFeedsRepository : IRepository<FeedEntity, FeedDTO>
+    public interface IFeedsRepository : IGuildRepository<FeedEntity, FeedDTO>
     {
     }
 }

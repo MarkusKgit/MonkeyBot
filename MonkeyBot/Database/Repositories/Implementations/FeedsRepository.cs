@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class FeedsRepository : BaseRepository<FeedEntity, FeedDTO>, IFeedsRepository
+    public class FeedsRepository : BaseGuildRepository<FeedEntity, FeedDTO>, IFeedsRepository
     {
         public FeedsRepository(DbContext context) : base(context)
         {
