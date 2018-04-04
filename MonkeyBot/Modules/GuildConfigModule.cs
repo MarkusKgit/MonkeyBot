@@ -17,9 +17,9 @@ namespace MonkeyBot.Modules
     public class GuildConfigModule : ModuleBase
     {
         private readonly DbService dbService;
-        private readonly IBackgroundService backgroundService;
+        private readonly IFeedService backgroundService;
 
-        public GuildConfigModule(DbService db, IBackgroundService backgroundService)
+        public GuildConfigModule(DbService db, IFeedService backgroundService)
         {
             this.dbService = db;
             this.backgroundService = backgroundService;

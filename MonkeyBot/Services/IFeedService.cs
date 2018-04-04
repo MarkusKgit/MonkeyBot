@@ -2,7 +2,7 @@
 
 namespace MonkeyBot.Services
 {
-    public interface IBackgroundService
+    public interface IFeedService
     {
         void Start();
 

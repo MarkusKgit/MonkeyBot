@@ -64,7 +64,7 @@ namespace MonkeyBot
             var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
 
-            var backgroundTasks = services.GetService<IBackgroundService>();
+            var backgroundTasks = services.GetService<IFeedService>();
             backgroundTasks.Start();
 
             if (parsedArgs != null && parsedArgs.BuildDocumentation)
@@ -111,7 +111,7 @@ namespace MonkeyBot
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<ITriviaService, OTDBTriviaService>();
             services.AddSingleton<IPollService, PollService>();
-            services.AddSingleton<IBackgroundService, BackgroundService>();
+            services.AddSingleton<IFeedService, FeedService>();
             services.AddSingleton<IGameServerService, GameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
             services.AddSingleton<IChuckService, ChuckService>();

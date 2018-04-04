@@ -15,16 +15,16 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class BackgroundService : IBackgroundService
+    public class FeedService : IFeedService
     {
         private const int updateIntervallMinutes = 30;
 
         private readonly DbService dbService;
         private readonly DiscordSocketClient discordClient;
-        private readonly ILogger<BackgroundService> logger;
+        private readonly ILogger<FeedService> logger;
         private readonly ConcurrentDictionary<string, DateTime> lastFeedUpdate;
 
-        public BackgroundService(DbService db, DiscordSocketClient client, ILogger<BackgroundService> logger)
+        public FeedService(DbService db, DiscordSocketClient client, ILogger<FeedService> logger)
         {
             this.dbService = db;
             this.discordClient = client;
