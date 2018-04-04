@@ -2,13 +2,11 @@
 using Discord;
 using Discord.Commands;
 using dokas.FluentStrings;
-using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -19,13 +17,11 @@ namespace MonkeyBot.Modules
     [RequireContext(ContextType.Guild)]
     public class FeedModule : ModuleBase
     {
-        private readonly DbService dbService;
         private readonly IFeedService feedService;
 
-        public FeedModule(DbService dbService, IFeedService backgroundService)
+        public FeedModule(IFeedService feedService)
         {
-            this.dbService = dbService;
-            this.feedService = backgroundService;
+            this.feedService = feedService;
         }
 
         [Command("Add")]
@@ -37,20 +33,11 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url!");
                 return;
             }
-            var allChannels = await Context.Guild.GetTextChannelsAsync();
-            ITextChannel channel;
-            if (!channelName.IsEmpty())
+            ITextChannel channel = await GetChannelAsync(channelName);
+            if (channel == null)
             {
-                channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-                if (channel == null)
-                {
-                    await ReplyAsync("The specified channel does not exist");
-                    return;
-                }
-            }
-            else
-            {
-                channel = Context.Channel as ITextChannel;
+                await ReplyAsync("The specified channel was not found");
+                return;
             }
             var urls = await FeedReader.GetFeedUrlsFromUrlAsync(url);
             string feedUrl;
@@ -63,64 +50,79 @@ namespace MonkeyBot.Modules
                 await ReplyAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
                 return;
             }
-            using (var uow = dbService.UnitOfWork)
+            var currentFeedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel.Id);
+            if (currentFeedUrls.Contains(feedUrl))
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
-                if (config == null)
-                    config = new GuildConfig(Context.Guild.Id);
-                if (config.FeedUrls.Contains(feedUrl))
-                {
-                    await ReplyAsync("The specified feed is already in the list!");
-                    return;
-                }
-                config.FeedUrls.Add(feedUrl);
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
-                await ReplyAsync("Feed added");
+                await ReplyAsync("The specified feed is already in the list!");
+                return;
             }
-            await feedService.RunOnceSingleFeedAsync(Context.Guild.Id, Context.Channel.Id, feedUrl, true);
+            await feedService.AddFeedAsync(feedUrl, Context.Guild.Id, channel.Id);
         }
 
         [Command("Remove")]
         [Remarks("Removes the specified feed from the list of feeds.")]
-        public async Task RemoveFeedUrlAsync([Summary("The url of the feed")][Remainder] string url)
+        public async Task RemoveFeedUrlAsync([Summary("The url of the feed")] string url, [Summary("Optional: The name of the channel where the Feed url should be removed. Defaults to current channel")] string channelName = "")
         {
             if (url.IsEmpty())
             {
                 await ReplyAsync("Please enter a feed url");
                 return;
             }
-            using (var uow = dbService.UnitOfWork)
+            ITextChannel channel = await GetChannelAsync(channelName);
+            if (channel == null)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
-                if (config == null)
-                    config = new GuildConfig(Context.Guild.Id);
-                if (!config.FeedUrls.Contains(url))
-                {
-                    await ReplyAsync("The specified feed is not in the list!");
-                    return;
-                }
-                config.FeedUrls.Remove(url);
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
-                await ReplyAsync("Feed removed");
+                await ReplyAsync("The specified channel was not found");
+                return;
+            }
+            var currentFeedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel?.Id);
+            if (!currentFeedUrls.Contains(url))
+            {
+                await ReplyAsync("The specified feed is not in the list!");
+                return;
+            }
+
+            await feedService.RemoveFeedAsync(url, Context.Guild.Id, channel.Id);
+        }
+
+        [Command("List")]
+        [Remarks("List all current feed urls")]
+        public async Task ListFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
+        {
+            ITextChannel channel = await GetChannelAsync(channelName);
+            var feedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel?.Id);
+            if (feedUrls == null || feedUrls.Count < 1)
+            {
+                await ReplyAsync("No feeds have been added yet.");
+            }
+            else
+            {
+                string where = channel == null ? "in all channels" : "in this channel";
+                await ReplyAsync($"The following feeds are listed {where}:{Environment.NewLine}{string.Join(Environment.NewLine, feedUrls)})");
             }
         }
 
         [Command("RemoveAll")]
         [Remarks("Removes all feed urls")]
-        public async Task RemoveFeedUrlsAsync()
+        public async Task RemoveFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
         {
-            using (var uow = dbService.UnitOfWork)
+            ITextChannel channel = await GetChannelAsync(channelName);
+            await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id);
+        }
+
+        private async Task<ITextChannel> GetChannelAsync(string channelName)
+        {
+            var allChannels = await Context.Guild.GetTextChannelsAsync();
+            ITextChannel channel = null;
+            if (!channelName.IsEmpty())
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
-                if (config != null)
-                {
-                    config.FeedUrls.Clear();
-                    await uow.GuildConfigs.AddOrUpdateAsync(config);
-                    await uow.CompleteAsync();
-                }
+                channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
             }
+            else
+            {
+                channel = Context.Channel as ITextChannel;
+            }
+
+            return channel;
         }
     }
 }

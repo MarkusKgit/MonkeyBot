@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -6,8 +7,12 @@ namespace MonkeyBot.Services
     {
         void Start();
 
-        Task RunOnceAllFeedsAsync(ulong guildId);
+        Task AddFeedAsync(string url, ulong guildId, ulong channelId);
 
-        Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url, bool getLatest = false);
+        Task RemoveFeedAsync(string url, ulong guildId, ulong channelId);
+
+        Task RemoveAllFeedsAsync(ulong guildId, ulong? channelId);
+
+        Task<List<string>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null);
     }
 }
