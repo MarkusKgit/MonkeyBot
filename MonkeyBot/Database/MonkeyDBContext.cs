@@ -11,6 +11,7 @@ namespace MonkeyBot.Database
         public DbSet<GuildConfigEntity> GuildConfigs { get; set; }
         public DbSet<TriviaScoreEntity> TriviaScores { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
+        public DbSet<FeedEntity> Feeds { get; set; }
         public DbSet<BenzenFactEntity> BenzenFacts { get; set; }
         public DbSet<GameServerEntity> GameServers { get; set; }
         public DbSet<GameSubscriptionEntity> GameSubscriptions { get; set; }
