@@ -31,10 +31,7 @@ namespace MonkeyBot.Database.Repositories
                     GuildId = (long)obj.GuildId,
                     Rules = obj.Rules,
                     CommandPrefix = obj.CommandPrefix,
-                    WelcomeMessageText = obj.WelcomeMessageText,
-                    ListenToFeeds = obj.ListenToFeeds,
-                    FeedUrls = obj.FeedUrls,
-                    FeedChannelId = (long)obj.FeedChannelId
+                    WelcomeMessageText = obj.WelcomeMessageText
                 });
             }
             else
@@ -43,9 +40,6 @@ namespace MonkeyBot.Database.Repositories
                 dbCfg.Rules = new List<string>(obj.Rules);
                 dbCfg.CommandPrefix = obj.CommandPrefix;
                 dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
-                dbCfg.ListenToFeeds = obj.ListenToFeeds;
-                dbCfg.FeedUrls = obj.FeedUrls;
-                dbCfg.FeedChannelId = (long)obj.FeedChannelId;
                 dbSet.Update(dbCfg);
             }
         }

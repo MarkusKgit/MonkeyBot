@@ -17,9 +17,6 @@ namespace MonkeyBot.Database.Entities
 
         public string WelcomeMessageText { get; set; }
 
-        [Required]
-        public bool ListenToFeeds { get; set; }
-
         [Column("Rules")]
         public string RulesAsString { get; set; }
 
@@ -32,20 +29,5 @@ namespace MonkeyBot.Database.Entities
                 RulesAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);
             }
         }
-
-        [Column("FeedUrls")]
-        public string FeedUrlsAsString { get; set; }
-
-        [NotMapped]
-        public List<string> FeedUrls
-        {
-            get { return FeedUrlsAsString.IsEmpty() ? null : FeedUrlsAsString.Split(';').ToList(); }
-            set
-            {
-                FeedUrlsAsString = (value == null || value.Count < 1) ? "" : string.Join(";", value);
-            }
-        }
-
-        public long FeedChannelId { get; set; }
     }
 }
