@@ -51,7 +51,7 @@ namespace MonkeyBot.Utilities
                 {
                     string parameters = string.Empty;
                     if (cmd.Parameters != null && cmd.Parameters.Count > 0)
-                        parameters = $"{string.Join(" ", cmd.Parameters.Select(x => x.Name))}";
+                        parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
                     //builder.AppendLine(f.NewLine($"{f.Strong($"{prefix}{cmd.Aliases.First()}")} {parameters}"));
                     builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases.First()} {parameters}")));
                     var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
