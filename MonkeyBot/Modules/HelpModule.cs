@@ -5,6 +5,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -26,7 +27,7 @@ namespace MonkeyBot.Modules
         public async Task HelpAsync()
         {
             string prefix = await commandManager.GetPrefixAsync(Context.Guild);
-            var embedBuilder = new EmbedBuilder()
+            var embedBuilder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
                 Description = "These are the commands you can use with your permission level"
@@ -34,9 +35,7 @@ namespace MonkeyBot.Modules
 
             foreach (var module in commandManager.CommandService.Modules)
             {
-                string description = null;
-                var builder = new System.Text.StringBuilder();
-                builder.Append(description);
+                var builder = new StringBuilder();
                 foreach (var cmd in module.Commands)
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
@@ -45,10 +44,10 @@ namespace MonkeyBot.Modules
                         string parameters = string.Empty;
                         if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                             parameters = $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*";
-                        builder.Append($"{prefix}{cmd.Aliases.First()}  {parameters}{Environment.NewLine}");
+                        builder.AppendLine($"{prefix}{cmd.Aliases.First()}  {parameters}");
                     }
                 }
-                description = builder.ToString();
+                var description = builder.ToString();
 
                 if (!description.IsEmpty().OrWhiteSpace())
                 {
@@ -80,14 +79,25 @@ namespace MonkeyBot.Modules
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
-                Description = $"These are the commands like **{command}**:"
+                Description = $"These are commands like **{command}**:"
             };
 
             foreach (var match in result.Commands)
             {
                 var cmd = match.Command;
+                const string separator = ", ";
+                var paramBuilder = new StringBuilder();
+                foreach (var param in cmd.Parameters)
+                {
+                    paramBuilder.Append(param.Name);
+                    if (!param.Summary.IsEmpty().OrWhiteSpace())
+                        paramBuilder.Append($" **({param.Summary})**");
+                    paramBuilder.Append(separator);
+                }
+
+                var cmdParameters = paramBuilder.ToString().TrimEnd(separator.ToArray());
                 string description =
-                    $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
+                    $"Parameters: {cmdParameters}\n" +
                     $"Remarks: {cmd.Remarks}";
                 var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                 if (example != null && !example.ExampleText.IsEmpty())
