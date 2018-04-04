@@ -135,13 +135,13 @@ namespace MonkeyBot.Services
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
                 return;
-            var lastUpdate = DateTime.UtcNow;
+            var lastUpdateUTC = DateTime.UtcNow;
             if (guildFeed.LastUpdate.HasValue)
-                lastUpdate = guildFeed.LastUpdate.Value;
+                lastUpdateUTC = guildFeed.LastUpdate.Value;
             else
-                lastUpdate = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
+                lastUpdateUTC = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
             var allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
-            var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdate).OrderBy(x => x.PublishingDate).ToList();
+            var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC).OrderBy(x => x.PublishingDate).ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
                 updatedFeeds = allFeeds.Take(1).ToList();
             if (updatedFeeds != null && updatedFeeds.Count > 0)
@@ -152,12 +152,12 @@ namespace MonkeyBot.Services
                     builder.WithImageUrl(feed.ImageUrl);
                 string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? guildFeed.URL}".TruncateTo(255) + "\"";
                 builder.WithTitle(title);
-                DateTime latestUpdate = DateTime.MinValue;
+                DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
                 {
-                    if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value > latestUpdate)
-                        latestUpdate = feedItem.PublishingDate.Value;
-                    string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : feedItem.PublishingDateString;
+                    if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value.ToUniversalTime() > latestUpdateUTC)
+                        latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
+                    string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : DateTime.Now.ToString();
                     string author = feedItem.Author;
                     if (author.IsEmpty())
                     {
@@ -175,9 +175,9 @@ namespace MonkeyBot.Services
                     builder.AddInlineField(fieldName, fieldContent);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
-                if (latestUpdate > DateTime.MinValue)
+                if (latestUpdateUTC > DateTime.MinValue)
                 {
-                    guildFeed.LastUpdate = latestUpdate;
+                    guildFeed.LastUpdate = latestUpdateUTC;
                     using (var uow = dbService.UnitOfWork)
                     {
                         await uow.Feeds.AddOrUpdateAsync(guildFeed);
