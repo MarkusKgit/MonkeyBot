@@ -57,6 +57,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             await feedService.AddFeedAsync(feedUrl, Context.Guild.Id, channel.Id);
+            await ReplyAsync("Feed added");
         }
 
         [Command("Remove")]
@@ -82,13 +83,14 @@ namespace MonkeyBot.Modules
             }
 
             await feedService.RemoveFeedAsync(url, Context.Guild.Id, channel.Id);
+            await ReplyAsync("Feed removed");
         }
 
         [Command("List")]
         [Remarks("List all current feed urls")]
         public async Task ListFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetChannelAsync(channelName);
+            ITextChannel channel = await GetChannelAsync(channelName, false);
             var feedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel?.Id);
             if (feedUrls == null || feedUrls.Count < 1)
             {
@@ -109,7 +111,7 @@ namespace MonkeyBot.Modules
             await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id);
         }
 
-        private async Task<ITextChannel> GetChannelAsync(string channelName)
+        private async Task<ITextChannel> GetChannelAsync(string channelName, bool defaultToCurrent = true)
         {
             var allChannels = await Context.Guild.GetTextChannelsAsync();
             ITextChannel channel = null;
@@ -117,7 +119,7 @@ namespace MonkeyBot.Modules
             {
                 channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
             }
-            else
+            else if (defaultToCurrent)
             {
                 channel = Context.Channel as ITextChannel;
             }
