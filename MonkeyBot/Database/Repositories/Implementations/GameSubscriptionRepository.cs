@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class GameSubscriptionRepository : BaseRepository<GameSubscriptionEntity, GameSubscription>, IGameSubscriptionRepository
+    public class GameSubscriptionRepository : BaseGuildRepository<GameSubscriptionEntity, GameSubscription>, IGameSubscriptionRepository
     {
         public GameSubscriptionRepository(DbContext context) : base(context)
         {
@@ -21,15 +21,15 @@ namespace MonkeyBot.Database.Repositories
             {
                 dbSet.Add(gameSubscription = new GameSubscriptionEntity
                 {
-                    GuildId = (long)obj.GuildId,
-                    UserId = (long)obj.UserId,
+                    GuildId = obj.GuildId,
+                    UserId = obj.UserId,
                     GameName = obj.GameName
                 });
             }
             else
             {
-                gameSubscription.GuildId = (long)obj.GuildId;
-                gameSubscription.UserId = (long)obj.UserId;
+                gameSubscription.GuildId = obj.GuildId;
+                gameSubscription.UserId = obj.UserId;
                 gameSubscription.GameName = obj.GameName;
             }
         }

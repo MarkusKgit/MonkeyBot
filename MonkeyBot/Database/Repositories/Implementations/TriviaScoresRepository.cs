@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class TriviaScoresRepository : BaseRepository<TriviaScoreEntity, TriviaScore>, ITriviaScoresRepository
+    public class TriviaScoresRepository : BaseGuildRepository<TriviaScoreEntity, TriviaScore>, ITriviaScoresRepository
     {
         public TriviaScoresRepository(DbContext context) : base(context)
         {
@@ -16,38 +16,33 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(TriviaScore tvs)
         {
-            var dbScore = await dbSet.FirstOrDefaultAsync(x => x.GuildID == tvs.GuildID && x.UserID == tvs.UserID);
+            var dbScore = await dbSet.FirstOrDefaultAsync(x => x.GuildId == tvs.GuildID && x.UserId == tvs.UserID);
             if (dbScore == null)
             {
                 await dbSet.AddAsync(dbScore = new TriviaScoreEntity
                 {
-                    GuildID = tvs.GuildID,
-                    UserID = tvs.UserID,
+                    GuildId = tvs.GuildID,
+                    UserId = tvs.UserID,
                     Score = tvs.Score
                 });
             }
             else
             {
-                dbScore.GuildID = tvs.GuildID;
-                dbScore.UserID = tvs.UserID;
+                dbScore.GuildId = tvs.GuildID;
+                dbScore.UserId = tvs.UserID;
                 dbScore.Score = tvs.Score;
                 dbSet.Update(dbScore);
             }
         }
 
-        public Task<List<TriviaScore>> GetGuildScoresAsync(ulong guildID)
-        {
-            return dbSet.Where(x => x.GuildID == guildID).Select(x => Mapper.Map<TriviaScore>(x)).ToListAsync();
-        }
-
         public Task<TriviaScore> GetGuildUserScoreAsync(ulong guildID, ulong userID)
         {
-            return dbSet.Where(x => x.GuildID == guildID && x.UserID == userID).Select(x => Mapper.Map<TriviaScore>(x)).FirstOrDefaultAsync();
+            return dbSet.Where(x => x.GuildId == guildID && x.UserId == userID).Select(x => Mapper.Map<TriviaScore>(x)).FirstOrDefaultAsync();
         }
 
         public async Task IncreaseScoreAsync(ulong guildID, ulong userID, int points)
         {
-            var score = await dbSet.FirstOrDefaultAsync(x => x.GuildID == guildID && x.UserID == userID);
+            var score = await dbSet.FirstOrDefaultAsync(x => x.GuildId == guildID && x.UserId == userID);
             if (score != null)
             {
                 score.Score += points;
@@ -61,7 +56,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildID == obj.GuildID && x.UserID == obj.UserID);
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildID && x.UserId == obj.UserID);
             if (entity != null)
                 dbSet.Remove(entity);
         }

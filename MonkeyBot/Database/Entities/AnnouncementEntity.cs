@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MonkeyBot.Database.Entities
 {
-    public class AnnouncementEntity : BaseEntity
+    public class AnnouncementEntity : BaseGuildEntity
     {
-        [Required]
-        public ulong GuildId { get; set; }
-
         [Required]
         public ulong ChannelId { get; set; }
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class GuildConfigRepository : BaseRepository<GuildConfigEntity, GuildConfig>, IGuildConfigRepository
+    public class GuildConfigRepository : BaseGuildRepository<GuildConfigEntity, GuildConfig>, IGuildConfigRepository
     {
         public GuildConfigRepository(DbContext context) : base(context)
         {
@@ -15,7 +15,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async Task<GuildConfig> GetAsync(ulong guildId)
         {
-            var dbConfig = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == guildId);
+            var dbConfig = await dbSet.SingleOrDefaultAsync(x => (ulong)x.GuildId == guildId);
             if (dbConfig == null)
                 return null;
             return Mapper.Map<GuildConfig>(dbConfig);
@@ -28,7 +28,7 @@ namespace MonkeyBot.Database.Repositories
             {
                 dbSet.Add(dbCfg = new GuildConfigEntity
                 {
-                    GuildId = (long)obj.GuildId,
+                    GuildId = obj.GuildId,
                     Rules = obj.Rules,
                     CommandPrefix = obj.CommandPrefix,
                     WelcomeMessageText = obj.WelcomeMessageText
@@ -36,7 +36,7 @@ namespace MonkeyBot.Database.Repositories
             }
             else
             {
-                dbCfg.GuildId = (long)obj.GuildId;
+                dbCfg.GuildId = obj.GuildId;
                 dbCfg.Rules = new List<string>(obj.Rules);
                 dbCfg.CommandPrefix = obj.CommandPrefix;
                 dbCfg.WelcomeMessageText = obj.WelcomeMessageText;

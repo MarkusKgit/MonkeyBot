@@ -63,7 +63,7 @@ namespace MonkeyBot.Modules
             List<TriviaScore> userScoresAllTime;
             using (var uow = dbService.UnitOfWork)
             {
-                userScoresAllTime = (await uow.TriviaScores.GetGuildScoresAsync(Context.Guild.Id));
+                userScoresAllTime = (await uow.TriviaScores.GetAllForGuildAsync(Context.Guild.Id));
             }
             int correctedCount = Math.Min(amount, userScoresAllTime.Count());
             if (userScoresAllTime == null || correctedCount < 1)

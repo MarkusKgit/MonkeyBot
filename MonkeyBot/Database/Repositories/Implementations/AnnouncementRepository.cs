@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class AnnouncementRepository : BaseRepository<AnnouncementEntity, Announcement>, IAnnouncementRepository
+    public class AnnouncementRepository : BaseGuildRepository<AnnouncementEntity, Announcement>, IAnnouncementRepository
     {
         public AnnouncementRepository(DbContext context) : base(context)
         {
@@ -27,37 +27,6 @@ namespace MonkeyBot.Database.Repositories
                     announcements.Add(new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId));
             }
             return announcements;
-        }
-
-        public async Task<Announcement> GetAsync(ulong guildId, ulong channelId, string announcementName)
-        {
-            var dbAnnouncement = await GetDbAnnouncementAsync(guildId, channelId, announcementName);
-            if (dbAnnouncement == null)
-                return null;
-            if (dbAnnouncement.Type == AnnouncementType.Recurring)
-            {
-                return new RecurringAnnouncement
-                {
-                    Name = dbAnnouncement.Name,
-                    GuildId = dbAnnouncement.GuildId,
-                    ChannelId = dbAnnouncement.ChannelId,
-                    CronExpression = dbAnnouncement.CronExpression,
-                    Message = dbAnnouncement.Message
-                };
-            }
-            else if (dbAnnouncement.Type == AnnouncementType.Single)
-            {
-                return new SingleAnnouncement
-                {
-                    Name = dbAnnouncement.Name,
-                    GuildId = dbAnnouncement.GuildId,
-                    ChannelId = dbAnnouncement.ChannelId,
-                    ExcecutionTime = dbAnnouncement.ExecutionTime.Value,
-                    Message = dbAnnouncement.Message
-                };
-            }
-            else
-                return null;
         }
 
         public override async Task AddOrUpdateAsync(Announcement announcement)

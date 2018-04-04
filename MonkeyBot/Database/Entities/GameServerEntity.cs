@@ -6,7 +6,7 @@ using System.Net;
 
 namespace MonkeyBot.Database.Entities
 {
-    public class GameServerEntity : BaseEntity
+    public class GameServerEntity : BaseGuildEntity
     {
         [Column("IP")]
         [Required]
@@ -36,12 +36,9 @@ namespace MonkeyBot.Database.Entities
         }
 
         [Required]
-        public long GuildId { get; set; }
+        public ulong ChannelId { get; set; }
 
-        [Required]
-        public long ChannelId { get; set; }
-
-        public long? MessageId { get; set; }
+        public ulong? MessageId { get; set; }
 
         public string GameVersion { get; set; }
 

@@ -2,13 +2,10 @@
 
 namespace MonkeyBot.Database.Entities
 {
-    public class TriviaScoreEntity : BaseEntity
+    public class TriviaScoreEntity : BaseGuildEntity
     {
         [Required]
-        public ulong GuildID { get; set; }
-
-        [Required]
-        public ulong UserID { get; set; }
+        public ulong UserId { get; set; }
 
         [Required]
         public int Score { get; set; }
@@ -17,10 +14,10 @@ namespace MonkeyBot.Database.Entities
         {
         }
 
-        public TriviaScoreEntity(ulong guildID, ulong userID, int score)
+        public TriviaScoreEntity(ulong guildId, ulong userId, int score)
         {
-            GuildID = guildID;
-            UserID = userID;
+            GuildId = guildId;
+            UserId = userId;
             Score = score;
         }
     }

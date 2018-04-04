@@ -4,8 +4,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IAnnouncementRepository : IRepository<AnnouncementEntity, Announcement>
+    public interface IAnnouncementRepository : IGuildRepository<AnnouncementEntity, Announcement>
     {
-        Task<Announcement> GetAsync(ulong guildId, ulong channelId, string announcementName);
     }
 }

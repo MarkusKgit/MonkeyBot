@@ -6,12 +6,8 @@ using System.Linq;
 
 namespace MonkeyBot.Database.Entities
 {
-    public class GuildConfigEntity : BaseEntity
+    public class GuildConfigEntity : BaseGuildEntity
     {
-        [Required]
-        [Column]
-        public long GuildId { get; set; }
-
         [Required]
         public string CommandPrefix { get; set; }
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IGuildConfigRepository : IRepository<GuildConfigEntity, GuildConfig>
+    public interface IGuildConfigRepository : IGuildRepository<GuildConfigEntity, GuildConfig>
     {
         Task<GuildConfig> GetAsync(ulong guildId);
     }

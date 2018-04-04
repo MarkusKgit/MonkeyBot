@@ -2,13 +2,10 @@
 
 namespace MonkeyBot.Database.Entities
 {
-    public class GameSubscriptionEntity : BaseEntity
+    public class GameSubscriptionEntity : BaseGuildEntity
     {
         [Required]
-        public long GuildId { get; set; }
-
-        [Required]
-        public long UserId { get; set; }
+        public ulong UserId { get; set; }
 
         [Required]
         public string GameName { get; set; }

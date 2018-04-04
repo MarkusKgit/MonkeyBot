@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public class GameServersRepository : BaseRepository<GameServerEntity, DiscordGameServerInfo>, IGameServersRepository
+    public class GameServersRepository : BaseGuildRepository<GameServerEntity, DiscordGameServerInfo>, IGameServersRepository
     {
         public GameServersRepository(DbContext context) : base(context)
         {
@@ -21,31 +21,23 @@ namespace MonkeyBot.Database.Repositories
             {
                 dbSet.Add(dbServerInfo = new GameServerEntity
                 {
-                    GuildId = (long)obj.GuildId,
-                    ChannelId = (long)obj.ChannelId,
+                    GuildId = obj.GuildId,
+                    ChannelId = obj.ChannelId,
                     IP = obj.IP,
-                    MessageId = (long?)obj.MessageId,
+                    MessageId = obj.MessageId,
                     GameVersion = obj.GameVersion,
                     LastVersionUpdate = obj.LastVersionUpdate
                 });
             }
             else
             {
-                dbServerInfo.GuildId = (long)obj.GuildId;
-                dbServerInfo.ChannelId = (long)obj.ChannelId;
+                dbServerInfo.GuildId = obj.GuildId;
+                dbServerInfo.ChannelId = obj.ChannelId;
                 dbServerInfo.IP = obj.IP;
-                dbServerInfo.MessageId = (long?)obj.MessageId;
+                dbServerInfo.MessageId = obj.MessageId;
                 dbServerInfo.GameVersion = obj.GameVersion;
                 dbServerInfo.LastVersionUpdate = obj.LastVersionUpdate;
             }
-        }
-
-        public async Task<List<DiscordGameServerInfo>> GetAllForGuildAsync(ulong guildId)
-        {
-            var serverInfo = await dbSet.Where(x => (ulong)x.GuildId == guildId).ToListAsync();
-            if (serverInfo == null)
-                return null;
-            return Mapper.Map<List<DiscordGameServerInfo>>(serverInfo);
         }
 
         public override async Task RemoveAsync(DiscordGameServerInfo obj)
