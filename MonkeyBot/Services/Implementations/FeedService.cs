@@ -6,8 +6,8 @@ using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Services.Common.Feeds;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,14 +22,12 @@ namespace MonkeyBot.Services
         private readonly DbService dbService;
         private readonly DiscordSocketClient discordClient;
         private readonly ILogger<FeedService> logger;
-        private readonly ConcurrentDictionary<string, DateTime> lastFeedUpdate;
 
-        public FeedService(DbService db, DiscordSocketClient client, ILogger<FeedService> logger)
+        public FeedService(DbService dbService, DiscordSocketClient client, ILogger<FeedService> logger)
         {
-            this.dbService = db;
+            this.dbService = dbService;
             this.discordClient = client;
             this.logger = logger;
-            lastFeedUpdate = new ConcurrentDictionary<string, DateTime>();
         }
 
         public void Start()
@@ -37,19 +35,69 @@ namespace MonkeyBot.Services
             JobManager.AddJob(async () => await GetAllFeedUpdatesAsync(), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
         }
 
-        public async Task RunOnceAllFeedsAsync(ulong guildId)
+        public async Task AddFeedAsync(string url, ulong guildId, ulong channelId)
         {
-            var guild = discordClient.GetGuild(guildId);
-            if (guild != null)
-                await GetGuildFeedUpdatesAsync(guild);
+            var feed = new FeedDTO
+            {
+                URL = url,
+                GuildId = guildId,
+                ChannelId = channelId
+            };
+            using (var uow = dbService.UnitOfWork)
+            {
+                await uow.Feeds.AddOrUpdateAsync(feed);
+                await uow.CompleteAsync();
+            }
+            await GetFeedUpdateAsync(feed, true);
         }
 
-        public async Task RunOnceSingleFeedAsync(ulong guildId, ulong channelId, string url, bool getLatest = false)
+        public async Task RemoveFeedAsync(string url, ulong guildId, ulong channelId)
         {
-            var guild = discordClient.GetGuild(guildId);
-            var channel = guild?.GetTextChannel(channelId);
-            if (guild != null && channel != null)
-                await GetFeedUpdateAsync(channel, url, getLatest);
+            var feed = new FeedDTO
+            {
+                URL = url,
+                GuildId = guildId,
+                ChannelId = channelId
+            };
+            using (var uow = dbService.UnitOfWork)
+            {
+                await uow.Feeds.RemoveAsync(feed);
+                await uow.CompleteAsync();
+            }
+        }
+
+        public async Task RemoveAllFeedsAsync(ulong guildId, ulong? channelId)
+        {
+            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
+            if (allFeeds == null)
+                return;
+            using (var uow = dbService.UnitOfWork)
+            {
+                foreach (var feed in allFeeds)
+                {
+                    await uow.Feeds.RemoveAsync(feed);
+                }
+                await uow.CompleteAsync();
+            }
+        }
+
+        public async Task<List<string>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null)
+        {
+            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
+            return allFeeds?.Select(x => x.URL).ToList();
+        }
+
+        private async Task<List<FeedDTO>> GetAllFeedsInternalAsync(ulong guildId, ulong? channelId = null)
+        {
+            IEnumerable<FeedDTO> allFeeds = null;
+            using (var uow = dbService.UnitOfWork)
+            {
+                //TODO: add filter in db query
+                allFeeds = (await uow.Feeds.GetAllAsync()).Where(x => x.GuildId == guildId);
+                if (channelId.HasValue)
+                    allFeeds = allFeeds.Where(x => x.ChannelId == channelId.Value);
+            }
+            return allFeeds.ToList();
         }
 
         private async Task GetAllFeedUpdatesAsync()
@@ -62,34 +110,23 @@ namespace MonkeyBot.Services
 
         private async Task GetGuildFeedUpdatesAsync(SocketGuild guild)
         {
-            List<string> feedUrls = null;
-            SocketTextChannel channel = null;
-
-            using (var uow = dbService?.UnitOfWork)
+            var feeds = await GetAllFeedsInternalAsync(guild.Id);
+            foreach (var feed in feeds)
             {
-                var cfg = await uow.GuildConfigs.GetAsync(guild.Id);
-                if (cfg == null || !cfg.ListenToFeeds || cfg.FeedUrls == null || cfg.FeedUrls.Count < 1)
-                    return;
-                channel = guild.GetTextChannel(cfg.FeedChannelId);
-                feedUrls = cfg.FeedUrls;
-                if (channel == null)
-                    return;
-            }
-
-            foreach (var feedUrl in feedUrls)
-            {
-                await GetFeedUpdateAsync(channel, feedUrl);
+                await GetFeedUpdateAsync(feed);
             }
         }
 
-        private async Task GetFeedUpdateAsync(SocketTextChannel channel, string feedUrl, bool getLatest = false)
+        private async Task GetFeedUpdateAsync(FeedDTO guildFeed, bool getLatest = false)
         {
-            if (channel == null || feedUrl.IsEmpty())
+            var guild = discordClient.GetGuild(guildFeed.GuildId);
+            var channel = guild?.GetTextChannel(guildFeed.ChannelId);
+            if (guild == null || channel == null || guildFeed.URL.IsEmpty())
                 return;
             Feed feed;
             try
             {
-                feed = await FeedReader.ReadAsync(feedUrl);
+                feed = await FeedReader.ReadAsync(guildFeed.URL);
             }
             catch (Exception ex)
             {
@@ -99,12 +136,10 @@ namespace MonkeyBot.Services
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
                 return;
             var lastUpdate = DateTime.UtcNow;
-            var guildFeedUrl = channel.Guild.Id + feedUrl;
-            if (!lastFeedUpdate.TryGetValue(guildFeedUrl, out lastUpdate))
-            {
+            if (guildFeed.LastUpdate.HasValue)
+                lastUpdate = guildFeed.LastUpdate.Value;
+            else
                 lastUpdate = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
-                lastFeedUpdate.TryAdd(guildFeedUrl, lastUpdate);
-            }
             var allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
             var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdate).OrderBy(x => x.PublishingDate).ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
@@ -115,7 +150,7 @@ namespace MonkeyBot.Services
                 builder.WithColor(new Color(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                     builder.WithImageUrl(feed.ImageUrl);
-                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? feedUrl}".TruncateTo(255) + "\"";
+                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? guildFeed.URL}".TruncateTo(255) + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdate = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
@@ -142,10 +177,12 @@ namespace MonkeyBot.Services
                 await channel?.SendMessageAsync("", false, builder.Build());
                 if (latestUpdate > DateTime.MinValue)
                 {
-                    if (lastFeedUpdate.TryGetValue(guildFeedUrl, out var oldValue))
-                        lastFeedUpdate.TryUpdate(guildFeedUrl, latestUpdate, oldValue);
-                    else
-                        lastFeedUpdate.TryAdd(guildFeedUrl, latestUpdate);
+                    guildFeed.LastUpdate = latestUpdate;
+                    using (var uow = dbService.UnitOfWork)
+                    {
+                        await uow.Feeds.AddOrUpdateAsync(guildFeed);
+                        await uow.CompleteAsync();
+                    }
                 }
             }
         }

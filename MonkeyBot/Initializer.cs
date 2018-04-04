@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Feeds;
 using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
@@ -64,8 +65,8 @@ namespace MonkeyBot
             var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
 
-            var backgroundTasks = services.GetService<IFeedService>();
-            backgroundTasks.Start();
+            var feedService = services.GetService<IFeedService>();
+            feedService.Start();
 
             if (parsedArgs != null && parsedArgs.BuildDocumentation)
             {
@@ -91,6 +92,7 @@ namespace MonkeyBot
         {
             var cfg = new MapperConfigurationExpression();
             cfg.CreateMap<GuildConfigEntity, GuildConfig>();
+            cfg.CreateMap<FeedEntity, FeedDTO>();
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
@@ -107,7 +109,6 @@ namespace MonkeyBot
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
-            services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<ITriviaService, OTDBTriviaService>();
             services.AddSingleton<IPollService, PollService>();

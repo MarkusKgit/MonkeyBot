@@ -6,13 +6,16 @@ namespace MonkeyBot.Database
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private MonkeyDBContext context { get; }
+        private readonly MonkeyDBContext context;
 
         private IGuildConfigRepository guildConfigs;
         public IGuildConfigRepository GuildConfigs => guildConfigs ?? (guildConfigs = new GuildConfigRepository(context));
 
         private IAnnouncementRepository announcements;
         public IAnnouncementRepository Announcements => announcements ?? (announcements = new AnnouncementRepository(context));
+
+        private IFeedsRepository feeds;
+        public IFeedsRepository Feeds => feeds ?? (feeds = new FeedsRepository(context));
 
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
