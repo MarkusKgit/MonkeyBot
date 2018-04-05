@@ -21,20 +21,19 @@ namespace MonkeyBot
         private readonly IServiceProvider serviceProvider;
         private readonly DiscordSocketClient discordClient;
         private readonly DbService dbService;
-
-        public CommandService CommandService { get; }
+        private readonly CommandService commandService;
 
         public CommandManager(IServiceProvider provider)
         {
             serviceProvider = provider;
             discordClient = provider.GetService<DiscordSocketClient>();
             dbService = provider.GetService<DbService>();
-            CommandService = provider.GetService<CommandService>();
+            commandService = provider.GetService<CommandService>();
         }
 
         public async Task StartAsync()
         {
-            await CommandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly());    // Load all modules from the assembly.
 
             discordClient.MessageReceived += HandleCommandAsync;               // Register the messagereceived event to handle commands.
         }
@@ -70,7 +69,7 @@ namespace MonkeyBot
             if (msg.HasStringPrefix(prefix, ref argPos) ||
                 msg.HasMentionPrefix(discordClient.CurrentUser, ref argPos))
             {                                                         // Try and execute a command with the given context.
-                var result = await CommandService.ExecuteAsync(context, argPos, serviceProvider);
+                var result = await commandService.ExecuteAsync(context, argPos, serviceProvider);
 
                 if (!result.IsSuccess)                                // If execution failed, reply with the error message.
                 {
@@ -80,7 +79,7 @@ namespace MonkeyBot
                         string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
                         if (!commandText.IsEmpty())
                         {
-                            foreach (var module in CommandService.Modules)
+                            foreach (var module in commandService.Modules)
                             {
                                 foreach (var command in module.Commands)
                                 {
@@ -107,11 +106,11 @@ namespace MonkeyBot
 
         public async Task BuildDocumentationAsync()
         {
-            string docuHTML = DocumentationBuilder.BuildDocumentation(CommandService, DocumentationBuilder.OutputTypes.HTML);
+            string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationBuilder.OutputTypes.HTML);
             string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
             await Helpers.WriteTextAsync(fileHTML, docuHTML);
 
-            string docuMD = DocumentationBuilder.BuildDocumentation(CommandService, DocumentationBuilder.OutputTypes.MarkDown);
+            string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationBuilder.OutputTypes.MarkDown);
             string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
             await Helpers.WriteTextAsync(fileMD, docuMD);
         }

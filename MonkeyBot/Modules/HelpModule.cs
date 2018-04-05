@@ -16,10 +16,12 @@ namespace MonkeyBot.Modules
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly CommandManager commandManager;
+        private readonly CommandService commandService;
 
-        public HelpModule(CommandManager commandManager)
+        public HelpModule(CommandManager commandManager, CommandService commandService)
         {
             this.commandManager = commandManager;
+            this.commandService = commandService;
         }
 
         [Command("help")]
@@ -33,7 +35,7 @@ namespace MonkeyBot.Modules
                 Description = "These are the commands you can use with your permission level"
             };
 
-            foreach (var module in commandManager.CommandService.Modules)
+            foreach (var module in commandService.Modules)
             {
                 var builder = new StringBuilder();
                 foreach (var cmd in module.Commands)
@@ -69,7 +71,7 @@ namespace MonkeyBot.Modules
         [Example("!help Chuck")]
         public async Task HelpAsync([Summary("The command to get help for.")] [Remainder]string command)
         {
-            var result = commandManager.CommandService.Search(Context, command);
+            var result = commandService.Search(Context, command);
 
             if (!result.IsSuccess)
             {
