@@ -89,15 +89,15 @@ namespace MonkeyBot.Services
 
         private async Task<List<FeedDTO>> GetAllFeedsInternalAsync(ulong guildId, ulong? channelId = null)
         {
-            IEnumerable<FeedDTO> allFeeds = null;
+            List<FeedDTO> allFeeds = null;
             using (var uow = dbService.UnitOfWork)
             {
-                //TODO: add filter in db query
-                allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId);
                 if (channelId.HasValue)
-                    allFeeds = allFeeds.Where(x => x.ChannelId == channelId.Value);
+                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId, x => x.ChannelId == channelId);
+                else
+                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId);
             }
-            return allFeeds.ToList();
+            return allFeeds;
         }
 
         private async Task GetAllFeedUpdatesAsync()

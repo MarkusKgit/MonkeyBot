@@ -13,7 +13,7 @@ namespace MonkeyBot.Database.Repositories
         {
         }
 
-        public override async Task<List<Announcement>> GetAllAsync()
+        public override async Task<List<Announcement>> GetAllAsync(System.Linq.Expressions.Expression<System.Func<AnnouncementEntity, bool>> predicate = null)
         {
             var dbAnnouncements = await dbSet.ToListAsync();
             if (dbAnnouncements == null)

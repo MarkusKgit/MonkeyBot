@@ -6,6 +6,6 @@ namespace MonkeyBot.Database.Repositories
 {
     public interface IGuildRepository<TDb, TDTO> : IRepository<TDb, TDTO> where TDb : BaseGuildEntity where TDTO : class
     {
-        Task<List<TDTO>> GetAllForGuildAsync(ulong guildId);
+        Task<List<TDTO>> GetAllForGuildAsync(ulong guildId, System.Linq.Expressions.Expression<System.Func<TDb, bool>> predicate = null);
     }
 }

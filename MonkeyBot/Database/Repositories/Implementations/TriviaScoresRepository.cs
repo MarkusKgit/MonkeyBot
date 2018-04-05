@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services.Common.Trivia;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 

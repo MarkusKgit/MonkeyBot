@@ -6,7 +6,7 @@ namespace MonkeyBot.Database.Repositories
 {
     public interface IRepository<TDb, TDTO> where TDb : BaseEntity where TDTO : class
     {
-        Task<List<TDTO>> GetAllAsync();
+        Task<List<TDTO>> GetAllAsync(System.Linq.Expressions.Expression<System.Func<TDb, bool>> predicate = null);
 
         Task AddOrUpdateAsync(TDTO obj);
 

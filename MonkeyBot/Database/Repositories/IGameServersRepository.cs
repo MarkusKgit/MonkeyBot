@@ -3,7 +3,7 @@ using MonkeyBot.Services.Common.SteamServerQuery;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IGameServersRepository : IGuildRepository<GuildConfigEntity, DiscordGameServerInfo>
+    public interface IGameServersRepository : IGuildRepository<GameServerEntity, DiscordGameServerInfo>
     {
     }
 }

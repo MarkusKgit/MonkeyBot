@@ -12,7 +12,7 @@ namespace MonkeyBot.Database.Repositories
         {
         }
 
-        public Task<List<TDTO>> GetAllForGuildAsync(ulong guildId) =>
-            dbSet.Where(x => x.GuildId == guildId).Select(x => AutoMapper.Mapper.Map<TDTO>(x)).ToListAsync();
+        public Task<List<TDTO>> GetAllForGuildAsync(ulong guildId, System.Linq.Expressions.Expression<System.Func<TDb, bool>> predicate = null) =>
+            dbSet.Where(x => x.GuildId == guildId).Where(predicate ?? (x => true)).Select(x => AutoMapper.Mapper.Map<TDTO>(x)).ToListAsync();
     }
 }

@@ -17,8 +17,8 @@ namespace MonkeyBot.Database.Repositories
             dbSet = context.Set<TDb>();
         }
 
-        public virtual Task<List<TDTO>> GetAllAsync() =>
-            dbSet.Select(x => AutoMapper.Mapper.Map<TDTO>(x)).ToListAsync();
+        public virtual Task<List<TDTO>> GetAllAsync(System.Linq.Expressions.Expression<System.Func<TDb, bool>> predicate = null) =>
+            dbSet.Where(predicate ?? (x => true)).Select(x => AutoMapper.Mapper.Map<TDTO>(x)).ToListAsync();
 
         public abstract Task AddOrUpdateAsync(TDTO obj);
 
