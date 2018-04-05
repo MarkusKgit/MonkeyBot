@@ -12,6 +12,7 @@ using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
 using MonkeyBot.Services.Common.Feeds;
 using MonkeyBot.Services.Common.GameSubscription;
+using MonkeyBot.Services.Common.RoleButtons;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
@@ -96,6 +97,7 @@ namespace MonkeyBot
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
+            cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
             Mapper.Initialize(cfg);
         }
 
@@ -115,6 +117,7 @@ namespace MonkeyBot
             services.AddSingleton<IFeedService, FeedService>();
             services.AddSingleton<IGameServerService, GameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
+            services.AddSingleton<IRoleButtonService, RoleButtonService>();
             services.AddSingleton<IChuckService, ChuckService>();
             services.AddSingleton(new Registry());
 
