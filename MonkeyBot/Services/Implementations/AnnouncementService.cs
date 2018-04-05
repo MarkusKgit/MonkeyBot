@@ -206,6 +206,14 @@ namespace MonkeyBot.Services
             }
         }
 
+        public async Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
+        {
+            using (var uow = dbService.UnitOfWork)
+            {
+                return await uow.Announcements.GetAllForGuildAsync(guildID);
+            }
+        }
+
         private async Task<Announcement> GetSpecificAnnouncementAsync(ulong guildId, string announcementName)
         {
             using (var uow = dbService.UnitOfWork)
