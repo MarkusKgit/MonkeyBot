@@ -15,6 +15,7 @@ namespace MonkeyBot.Database
         public DbSet<BenzenFactEntity> BenzenFacts { get; set; }
         public DbSet<GameServerEntity> GameServers { get; set; }
         public DbSet<GameSubscriptionEntity> GameSubscriptions { get; set; }
+        public DbSet<RoleButtonLinkEntity> RoleButtonLinks { get; set; }
 
         public MonkeyDBContext() : base()
         {

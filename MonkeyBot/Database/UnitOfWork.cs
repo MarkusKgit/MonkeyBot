@@ -29,6 +29,9 @@ namespace MonkeyBot.Database
         private IGameSubscriptionRepository gameSubscriptions;
         public IGameSubscriptionRepository GameSubscriptions => gameSubscriptions ?? (gameSubscriptions = new GameSubscriptionRepository(context));
 
+        private IRoleButtonLinksRepository roleButtonLinks;
+        public IRoleButtonLinksRepository RoleButtonLinks => roleButtonLinks ?? (roleButtonLinks = new RoleButtonLinksRepository(context));
+
         public UnitOfWork(MonkeyDBContext context)
         {
             this.context = context;

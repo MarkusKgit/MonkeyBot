@@ -20,6 +20,8 @@ namespace MonkeyBot.Database
 
         IGameSubscriptionRepository GameSubscriptions { get; }
 
+        IRoleButtonLinksRepository RoleButtonLinks { get; }
+
         Task<int> CompleteAsync();
     }
 }
