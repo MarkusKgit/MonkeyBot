@@ -60,6 +60,8 @@ namespace MonkeyBot.Modules
                 }
             }
             await Context.User.SendMessageAsync("", false, embedBuilder.Build());
+            if (!Context.IsPrivate)
+                await ReplyAsync("I have sent you a private message");
         }
 
         [Command("help")]
@@ -110,6 +112,8 @@ namespace MonkeyBot.Modules
                 });
             }
             await Context.User.SendMessageAsync("", false, builder.Build());
+            if (!Context.IsPrivate)
+                await ReplyAsync("I have sent you a private message");
         }
     }
 }

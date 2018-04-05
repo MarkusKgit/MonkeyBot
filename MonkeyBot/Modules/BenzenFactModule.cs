@@ -47,6 +47,7 @@ namespace MonkeyBot.Modules
                 await uow.BenzenFacts.AddFactAsync(fact);
                 await uow.CompleteAsync();
             }
+            await ReplyAsync("Fact added");
         }
     }
 }

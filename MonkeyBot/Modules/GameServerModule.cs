@@ -65,6 +65,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}");
                 logger.LogWarning(ex, "Error adding a gameserver");
             }
+            await ReplyAsync("GameServer added");
         }
 
         [Command("Remove")]
@@ -92,6 +93,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}");
                 logger.LogWarning(ex, "Error removing a gameserver");
             }
+            await ReplyAsync("GameServer removed");
         }
 
         private async Task<IPEndPoint> ParseIPAsync(string ip)

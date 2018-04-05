@@ -97,9 +97,9 @@ namespace MonkeyBot.Modules
             }
             string msg;
             if (allRoles.Count > 0)
-                msg = "The following mentionable roles exist:" + Environment.NewLine + string.Join(", ", allRoles);
+                msg = "The following assignable roles exist:" + Environment.NewLine + string.Join(", ", allRoles);
             else
-                msg = "Now assignable roles exist!";
+                msg = "No assignable roles exist!";
             await ReplyAsync(msg);
         }
 
@@ -133,6 +133,7 @@ namespace MonkeyBot.Modules
                 }
             }
             await Context.User.SendMessageAsync("", false, builder.Build());
+            await ReplyAsync("I have sent you a private message");
         }
 
         [Command("ListMembers")]
@@ -162,6 +163,7 @@ namespace MonkeyBot.Modules
                     x.IsInline = false;
                 });
             await Context.User.SendMessageAsync("", false, builder.Build());
+            await ReplyAsync("I have sent you a private message");
         }
     }
 }

@@ -25,16 +25,17 @@ namespace MonkeyBot.Modules
             {
                 var rules = (await uow.GuildConfigs.GetAsync(Context.Guild.Id))?.Rules;
                 if (rules == null || rules.Count < 1)
-                    await ReplyAsync("No rules set!");
-                else
                 {
-                    var builder = new EmbedBuilder
-                    {
-                        Color = new Color(255, 0, 0)
-                    };
-                    builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
-                    await Context.User.SendMessageAsync("", false, builder.Build());
+                    await ReplyAsync("No rules set!");
+                    return;
                 }
+                var builder = new EmbedBuilder
+                {
+                    Color = new Color(255, 0, 0)
+                };
+                builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
+                await Context.User.SendMessageAsync("", false, builder.Build());
+                await ReplyAsync("I have sent you a private message");
             }
         }
     }

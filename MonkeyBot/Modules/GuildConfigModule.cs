@@ -43,6 +43,7 @@ namespace MonkeyBot.Modules
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
+            await ReplyAsync("Message set");
         }
 
         #endregion WelcomeMessage
@@ -68,6 +69,7 @@ namespace MonkeyBot.Modules
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
+            await ReplyAsync("Rule added");
         }
 
         [Command("RemoveRules")]
@@ -84,6 +86,7 @@ namespace MonkeyBot.Modules
                     await uow.CompleteAsync();
                 }
             }
+            await ReplyAsync("Rules removed");
         }
 
         #endregion Rules

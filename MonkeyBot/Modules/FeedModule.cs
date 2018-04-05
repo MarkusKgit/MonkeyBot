@@ -107,7 +107,7 @@ namespace MonkeyBot.Modules
         [Remarks("Removes all feed urls")]
         public async Task RemoveFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetChannelAsync(channelName);
+            ITextChannel channel = await GetChannelAsync(channelName, false);
             await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id);
         }
 
