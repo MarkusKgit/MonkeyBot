@@ -12,8 +12,4 @@ namespace MonkeyBot.Database.Repositories
 
         Task RemoveAsync(TDTO obj);
     }
-
-    public interface IRepository<TDb> where TDb : BaseEntity
-    {
-    }
 }

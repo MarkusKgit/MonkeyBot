@@ -24,16 +24,4 @@ namespace MonkeyBot.Database.Repositories
 
         public abstract Task RemoveAsync(TDTO obj);
     }
-
-    public abstract class BaseRepository<TDb> : IRepository<TDb> where TDb : BaseEntity
-    {
-        protected DbContext context;
-        protected DbSet<TDb> dbSet;
-
-        protected BaseRepository(DbContext context)
-        {
-            this.context = context;
-            dbSet = context.Set<TDb>();
-        }
-    }
 }

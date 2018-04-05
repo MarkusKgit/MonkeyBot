@@ -3,10 +3,8 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
 {
-    public interface IBenzenFactsRespository : IRepository<BenzenFactEntity>
+    public interface IBenzenFactsRespository : IRepository<BenzenFactEntity, string>
     {
         Task<string> GetRandomFactAsync();
-
-        Task AddFactAsync(string fact);
     }
 }

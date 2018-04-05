@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
             }
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.BenzenFacts.AddFactAsync(fact);
+                await uow.BenzenFacts.AddOrUpdateAsync(fact);
                 await uow.CompleteAsync();
             }
             await ReplyAsync("Fact added");
