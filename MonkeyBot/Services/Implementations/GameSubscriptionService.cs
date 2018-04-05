@@ -12,21 +12,21 @@ namespace MonkeyBot.Services.Implementations
 {
     public class GameSubscriptionService : IGameSubscriptionService
     {
-        private DbService db;
-        private DiscordSocketClient client;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient client;
 
-        public GameSubscriptionService(IServiceProvider provider)
+        public GameSubscriptionService(DbService dbService, DiscordSocketClient client)
         {
-            db = provider.GetService<DbService>();
-            client = provider.GetService<DiscordSocketClient>();
+            this.dbService = dbService;
+            this.client = client;
         }
 
         public void Initialize()
         {
-            client.GuildMemberUpdated += Client_GuildMemberUpdated;
+            client.GuildMemberUpdated += Client_GuildMemberUpdatedAsync;
         }
 
-        private async Task Client_GuildMemberUpdated(SocketUser before, SocketUser after)
+        private async Task Client_GuildMemberUpdatedAsync(SocketUser before, SocketUser after)
         {
             string joinedGame = null;
             if (before.Game.HasValue && after.Game.HasValue && after.Game.Value.Name != before.Game.Value.Name)
@@ -59,7 +59,7 @@ namespace MonkeyBot.Services.Implementations
         public async Task AddSubscriptionAsync(string gameName, ulong guildId, ulong userId)
         {
             var gameSubscription = new GameSubscription(guildId, userId, gameName);
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.GameSubscriptions.AddOrUpdateAsync(gameSubscription);
                 await uow.CompleteAsync();
@@ -72,7 +72,7 @@ namespace MonkeyBot.Services.Implementations
             var subscriptionToRemove = subscriptions.FirstOrDefault(x => x.GameName.ToLower().Contains(gameName.ToLower()) && x.GuildId == guildId && x.UserId == userId);
             if (subscriptionToRemove == null)
                 throw new ArgumentException("The specified subscription does not exist");
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 await uow.GameSubscriptions.RemoveAsync(subscriptionToRemove);
                 await uow.CompleteAsync();
@@ -81,7 +81,7 @@ namespace MonkeyBot.Services.Implementations
 
         private async Task<List<GameSubscription>> GetGameSubscriptionsAsync()
         {
-            using (var uow = db.UnitOfWork)
+            using (var uow = dbService.UnitOfWork)
             {
                 return await uow.GameSubscriptions.GetAllAsync();
             }
