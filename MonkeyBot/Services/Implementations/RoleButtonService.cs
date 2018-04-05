@@ -13,9 +13,12 @@ namespace MonkeyBot.Services
     {
         private readonly DiscordSocketClient discordClient;
 
-        public RoleButtonService(DiscordSocketClient discordClient)
+        private readonly DbService dbService;
+
+        public RoleButtonService(DiscordSocketClient discordClient, DbService dbService)
         {
             this.discordClient = discordClient;
+            this.dbService = dbService;
             discordClient.ReactionAdded += DiscordClient_ReactionAddedAsync;
             discordClient.ReactionRemoved += DiscordClient_ReactionRemovedAsync;
         }
@@ -27,7 +30,11 @@ namespace MonkeyBot.Services
                 await msg.AddReactionAsync(new Emoji(emoji));
 
             var link = new RoleButtonLink(guildId, messageId, roleId, emoji);
-            //TODO: persist
+            using (var uow = dbService.UnitOfWork)
+            {
+                await uow.RoleButtonLinks.AddOrUpdateAsync(link);
+                await uow.CompleteAsync();
+            }
         }
 
         public async Task RemoveRoleButtonLinkAsync(ulong guildId, ulong messageId, ulong roleId)
@@ -42,16 +49,16 @@ namespace MonkeyBot.Services
             {
                 await msg.RemoveReactionAsync(reaction.Key, null); // How to get the user here?
             }
-            while (msg.Reactions.Count(x => x.Key.Name == link.Emote) > 0)
+            using (var uow = dbService.UnitOfWork)
             {
+                await uow.RoleButtonLinks.RemoveAsync(link);
+                await uow.CompleteAsync();
             }
-
-            //TODO: remove
         }
 
         public async Task RemoveAllRoleButtonLinksAsync(ulong guildId)
         {
-            //TODO: remove
+            //TODO: remove all
         }
 
         public async Task<string> ListAllAsync(ulong guildId)
@@ -131,10 +138,14 @@ namespace MonkeyBot.Services
             return new Task<List<RoleButtonLink>>(() => new List<RoleButtonLink>());
         }
 
-        private Task<List<RoleButtonLink>> GetRoleButtonLinksForGuildAsync(ulong guildId)
+        private async Task<List<RoleButtonLink>> GetRoleButtonLinksForGuildAsync(ulong guildId)
         {
-            //TODO: Implement DB query
-            return new Task<List<RoleButtonLink>>(() => new List<RoleButtonLink>());
+            List<RoleButtonLink> links;
+            using (var uow = dbService.UnitOfWork)
+            {
+                links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId);
+            }
+            return links;
         }
 
         private enum AddOrRemove
