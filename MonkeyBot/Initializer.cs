@@ -66,6 +66,9 @@ namespace MonkeyBot
             var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
 
+            var roleButtonsService = services.GetService<IRoleButtonService>();
+            roleButtonsService.Initialize();
+
             var feedService = services.GetService<IFeedService>();
             feedService.Start();
 

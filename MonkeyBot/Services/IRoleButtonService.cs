@@ -4,6 +4,8 @@ namespace MonkeyBot.Services
 {
     public interface IRoleButtonService
     {
+        void Initialize();
+
         Task AddRoleButtonLinkAsync(ulong guildId, ulong messageId, ulong roleId, string emoji);
 
         Task RemoveRoleButtonLinkAsync(ulong guildId, ulong messageId, ulong roleId);

@@ -19,6 +19,10 @@ namespace MonkeyBot.Services
         {
             this.discordClient = discordClient;
             this.dbService = dbService;
+        }
+
+        public void Initialize()
+        {
             discordClient.ReactionAdded += DiscordClient_ReactionAddedAsync;
             discordClient.ReactionRemoved += DiscordClient_ReactionRemovedAsync;
         }
@@ -26,8 +30,14 @@ namespace MonkeyBot.Services
         public async Task AddRoleButtonLinkAsync(ulong guildId, ulong messageId, ulong roleId, string emoji)
         {
             var msg = await GetMessageAsync(guildId, messageId);
-            if (msg.Reactions.Count(x => x.Key.Name == emoji) < 1)
-                await msg.AddReactionAsync(new Emoji(emoji));
+            var guild = discordClient.GetGuild(guildId);
+            IEmote emote = guild.Emotes.FirstOrDefault(x => emoji.Contains(x.Name));
+
+            if (emote == null)
+                emote = new Emoji(emoji) as IEmote;
+
+            if (msg.Reactions.Count(x => x.Key == emote) < 1)
+                await msg.AddReactionAsync(emote);
 
             var link = new RoleButtonLink(guildId, messageId, roleId, emoji);
             using (var uow = dbService.UnitOfWork)
@@ -86,9 +96,10 @@ namespace MonkeyBot.Services
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-            if (!arg1.HasValue || arg2 == null || !arg3.User.IsSpecified)
+            if (arg2 == null || !arg3.User.IsSpecified)
                 return;
-            var msg = arg1.Value;
+            var msg = arg1.HasValue ? arg1.Value : await arg1.GetOrDownloadAsync();
+
             if (!(msg.Channel is ITextChannel textChannel))
                 return;
             var guild = textChannel.Guild;
@@ -116,6 +127,10 @@ namespace MonkeyBot.Services
                     await gUser.SendMessageAsync($"Role {role.Name} removed");
                 }
             }
+            else if (buttonLinks.Count(x => x.MessageId == msg.Id) > 0) // Remove all new reactions that were not added by Bot
+            {
+                await msg.RemoveReactionAsync(emote, user);
+            }
         }
 
         private async Task<IUserMessage> GetMessageAsync(ulong guildId, ulong messageId)
@@ -132,10 +147,14 @@ namespace MonkeyBot.Services
             return null;
         }
 
-        private Task<List<RoleButtonLink>> GetRoleButtonLinksAsync()
+        private async Task<List<RoleButtonLink>> GetRoleButtonLinksAsync()
         {
-            //TODO: Implement DB query
-            return new Task<List<RoleButtonLink>>(() => new List<RoleButtonLink>());
+            List<RoleButtonLink> links;
+            using (var uow = dbService.UnitOfWork)
+            {
+                links = await uow.RoleButtonLinks.GetAllAsync();
+            }
+            return links;
         }
 
         private async Task<List<RoleButtonLink>> GetRoleButtonLinksForGuildAsync(ulong guildId)

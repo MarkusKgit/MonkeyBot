@@ -10,6 +10,10 @@
 
         public string Emote { get; set; }
 
+        public RoleButtonLink()
+        {
+        }
+
         public RoleButtonLink(ulong guildId, ulong messageId, ulong roleId, string emoji)
         {
             GuildId = guildId;
