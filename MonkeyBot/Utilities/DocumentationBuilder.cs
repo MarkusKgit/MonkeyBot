@@ -201,12 +201,12 @@ namespace MonkeyBot.Utilities
             {
                 case ChannelPermission.CreateInstantInvite:
                     return "Create Instant Invite";
-                case ChannelPermission.ManageChannel:
+                case ChannelPermission.ManageChannels:
                     return "Manage Channel";
                 case ChannelPermission.AddReactions:
                     return "Add Reactions";
-                case ChannelPermission.ReadMessages:
-                    return "Read Messages";
+                case ChannelPermission.ViewChannel:
+                    return "View Channel";
                 case ChannelPermission.SendMessages:
                     return "Send Messages";
                 case ChannelPermission.SendTTSMessages:
@@ -235,7 +235,7 @@ namespace MonkeyBot.Utilities
                     return "Move Members";
                 case ChannelPermission.UseVAD:
                     return "Use VAD";
-                case ChannelPermission.ManagePermissions:
+                case ChannelPermission.ManageRoles:
                     return "Manage Permissions";
                 case ChannelPermission.ManageWebhooks:
                     return "Manage Webhooks";

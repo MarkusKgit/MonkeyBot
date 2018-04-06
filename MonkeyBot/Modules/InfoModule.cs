@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             const int searchDepth = 100;
-            var messages = await Context.Channel.GetMessagesAsync(searchDepth).Flatten();
+            var messages = await Context.Channel.GetMessagesAsync(searchDepth).FlattenAsync();
             var matches = messages.Where(x => x.Content.ToLowerInvariant().StartsWith(messageContent.ToLowerInvariant().Trim()));
             if (matches == null || matches.Count() < 1)
             {

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Fclp.Internals.Extensions;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System.Linq;
@@ -29,8 +30,11 @@ namespace MonkeyBot.Modules
             }
             if (count > 1000)
                 count = 1000;
-            var msgs = await Context.Channel.GetMessagesAsync(count).Flatten();
-            await Context.Channel.DeleteMessagesAsync(msgs);
+            if (Context.Channel is ITextChannel channel)
+            {
+                var msgs = await channel.GetMessagesAsync(count).FlattenAsync();
+                await channel.DeleteMessagesAsync(msgs);
+            }
         }
 
         [Command("Prune")]
@@ -52,8 +56,11 @@ namespace MonkeyBot.Modules
             }
             if (count > 1000)
                 count = 1000;
-            var msgs = (await Context.Channel.GetMessagesAsync(count).Flatten()).Where(x => x.Author.Id == user.Id);
-            await Context.Channel.DeleteMessagesAsync(msgs);
+            if (Context.Channel is ITextChannel channel)
+            {
+                var msgs = (await channel.GetMessagesAsync(count).FlattenAsync()).Where(x => x.Author.Id == user.Id);
+                await channel.DeleteMessagesAsync(msgs);
+            }
         }
     }
 }

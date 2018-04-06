@@ -71,7 +71,7 @@ namespace MonkeyBot.Services
             IEmote emote = guild.Emotes.FirstOrDefault(x => link.EmoteString.Contains(x.Name)) ?? new Emoji(link.EmoteString) as IEmote;
             if (emote == null)
                 return;
-            var reactedUsers = await msg.GetReactionUsersAsync(emote.Name);
+            var reactedUsers = await msg.GetReactionUsersAsync(emote);
             foreach (var user in reactedUsers)
             {
                 await msg.RemoveReactionAsync(emote, user);

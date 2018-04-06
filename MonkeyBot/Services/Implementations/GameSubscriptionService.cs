@@ -29,10 +29,10 @@ namespace MonkeyBot.Services.Implementations
         private async Task Client_GuildMemberUpdatedAsync(SocketUser before, SocketUser after)
         {
             string joinedGame = null;
-            if (before.Game.HasValue && after.Game.HasValue && after.Game.Value.Name != before.Game.Value.Name)
-                joinedGame = after.Game.Value.Name;
-            if (!before.Game.HasValue && after.Game.HasValue)
-                joinedGame = after.Game.Value.Name;
+            if (before.Activity != null && after.Activity != null && after.Activity.Name != before.Activity.Name)
+                joinedGame = after.Activity.Name;
+            if (before.Activity == null && after.Activity != null)
+                joinedGame = after.Activity.Name;
             if (joinedGame.IsEmpty())
                 return;
             var gameSubscriptions = await GetGameSubscriptionsAsync();

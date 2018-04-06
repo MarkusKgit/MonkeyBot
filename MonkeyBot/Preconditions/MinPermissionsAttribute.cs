@@ -20,7 +20,7 @@ namespace MonkeyBot.Preconditions
 
         public AccessLevel AccessLevel { get; }
 
-        public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+        public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var access = await GetPermissionAsync(context); // Get the acccesslevel for this context
 

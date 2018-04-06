@@ -172,7 +172,7 @@ namespace MonkeyBot.Services
                     if (description.IsEmpty().OrWhiteSpace())
                         description = "[...]";
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
-                    builder.AddInlineField(fieldName, fieldContent);
+                    builder.AddField(fieldName, fieldContent, true);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
                 if (latestUpdateUTC > DateTime.MinValue)
