@@ -150,7 +150,7 @@ namespace MonkeyBot.Services
             if (user.IsBot)
                 return;
             List<RoleButtonLink> buttonLinks = await GetRoleButtonLinksAsync();
-            var match = buttonLinks.SingleOrDefault(x => x.GuildId == guild.Id && x.MessageId == msg.Id && x.EmoteString == emote.Name);
+            var match = buttonLinks.SingleOrDefault(x => x.GuildId == guild.Id && x.MessageId == msg.Id && x.EmoteString == emote.ToString());
             if (match != null)
             {
                 var role = guild.GetRole(match.RoleId);
