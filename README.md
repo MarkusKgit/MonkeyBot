@@ -68,12 +68,14 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 *Remarks:* Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.  
   
 ## Feeds
-**Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*  
+**Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
   
 `!feeds add _url _channelName`  
+*Example:* `!Feeds add https://blogs.msdn.microsoft.com/dotnet/feed/`  
 *Remarks:* Adds an atom or RSS feed to the list of listened feeds.  
   
 `!feeds remove _url _channelName`  
+*Example:* `!Feeds remove https://blogs.msdn.microsoft.com/dotnet/feed/`  
 *Remarks:* Removes the specified feed from the list of feeds.  
   
 `!feeds list _channelName`  
@@ -83,7 +85,7 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 *Remarks:* Removes all feed urls  
   
 ## GameServer
-**Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*  
+**Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
   
 `!gameserver add _ip`  
 *Example:* `!gameserver add 127.0.0.1:1234`  
@@ -146,26 +148,30 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 **Preconditions:** Minimum permission: *ServerMod*, Can only be used in a *channel*  
   
 `!prune _count`  
-*Preconditions:* Discord.Commands.RequireUserPermissionAttribute, Discord.Commands.RequireBotPermissionAttribute  
-*Remarks:* Adds the specified user to the list of bot owners  
+*Example:* `!Prune 10`  
+*Preconditions:* User requires channel permission: *Manage Messages*, Bot requires channel permission: *Manage Messages*  
+*Remarks:* Deletes the specified amount of messages  
   
 `!prune _user _count`  
-*Preconditions:* Discord.Commands.RequireUserPermissionAttribute, Discord.Commands.RequireBotPermissionAttribute  
-*Remarks:* Adds the specified user to the list of bot owners  
+*Example:* `!Prune JohnDoe 10`  
+*Preconditions:* User requires channel permission: *Manage Messages*, Bot requires channel permission: *Manage Messages*  
+*Remarks:* Deletes the specified amount of messages for the specified user  
   
 ## Simple poll
 **Preconditions:** Can only be used in a *channel*, Minimum permission: *User*  
   
 `!poll _question`  
 *Example:* `!poll "Is MonkeyBot awesome?"`  
+*Preconditions:* Bot requires channel permissions: *Add Reactions, Manage Messages*  
 *Remarks:* Starts a new poll with the specified question and automatically adds reactions  
   
 `!poll _question _answers`  
 *Example:* `!poll "How cool is MonkeyBot?" "supercool" "over 9000" "bruh..."`  
+*Preconditions:* Bot requires channel permissions: *Add Reactions, Manage Messages*  
 *Remarks:* Starts a new poll with the specified question and the list answers and automatically adds reactions  
   
 ## Role Buttons
-**Preconditions:** Minimum permission: *ServerAdmin*  
+**Preconditions:** Minimum permission: *ServerAdmin*, Bot requires guild permissions: *Add Reactions, Manage Messages, Manage Roles*  
   
 `!rolebuttons addlink _messageId _roleName _emoteString`  
 *Remarks:* Adds a reaction to the specified message with a link to the specified role  
@@ -180,7 +186,7 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 *Remarks:* Lists all Role Button Links  
   
 ## Roles
-**Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
+**Preconditions:** Minimum permission: *User*, Can only be used in a *channel*, Bot requires guild permission: *Manage Roles*  
   
 `!roles add _roleName`  
 *Example:* `!roles add bf`  
@@ -221,9 +227,11 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
   
 `!xkcd _arg`  
 *Example:* `!xkcd latest`  
+*Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets a random xkcd comic or the latest xkcd comic by appending "latest" to the command  
   
 `!xkcd _number`  
 *Example:* `!xkcd 101`  
+*Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets the xkcd comic with the specified number  
 </details>
