@@ -138,6 +138,21 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 *Preconditions:* Can only be used in a *channel*  
 *Remarks:* The bot replies with the server rules in a private message  
   
+`!findmessageid _messageContent`  
+*Preconditions:* Can only be used in a *channel*  
+*Remarks:* Gets the message id of a message in the current channel with the provided message text  
+  
+## Moderator Commands
+**Preconditions:** Minimum permission: *ServerMod*, Can only be used in a *channel*  
+  
+`!prune _count`  
+*Preconditions:* Discord.Commands.RequireUserPermissionAttribute, Discord.Commands.RequireBotPermissionAttribute  
+*Remarks:* Adds the specified user to the list of bot owners  
+  
+`!prune _user _count`  
+*Preconditions:* Discord.Commands.RequireUserPermissionAttribute, Discord.Commands.RequireBotPermissionAttribute  
+*Remarks:* Adds the specified user to the list of bot owners  
+  
 ## Simple poll
 **Preconditions:** Can only be used in a *channel*, Minimum permission: *User*  
   
@@ -148,6 +163,21 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 `!poll _question _answers`  
 *Example:* `!poll "How cool is MonkeyBot?" "supercool" "over 9000" "bruh..."`  
 *Remarks:* Starts a new poll with the specified question and the list answers and automatically adds reactions  
+  
+## Role Buttons
+**Preconditions:** Minimum permission: *ServerAdmin*  
+  
+`!rolebuttons addlink _messageId _roleName _emoteString`  
+*Remarks:* Adds a reaction to the specified message with a link to the specified role  
+  
+`!rolebuttons removelink _messageId _roleName`  
+*Remarks:* Removes a reaction from the specified message with a link to the specified role  
+  
+`!rolebuttons removeall `  
+*Remarks:* Removes all Role Button Links  
+  
+`!rolebuttons list `  
+*Remarks:* Lists all Role Button Links  
   
 ## Roles
 **Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
