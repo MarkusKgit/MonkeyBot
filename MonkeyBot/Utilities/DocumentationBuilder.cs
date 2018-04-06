@@ -4,6 +4,7 @@ using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Modules;
 using MonkeyBot.Preconditions;
+using System;
 using System.Linq;
 using System.Text;
 
@@ -82,25 +83,30 @@ namespace MonkeyBot.Utilities
             else if (precondition is RequireBotPermissionAttribute || precondition is RequireUserPermissionAttribute)
             {
                 string permission = "";
+                string prefix = "";
                 GuildPermission? guildPermission;
                 ChannelPermission? channelPermission;
                 if (precondition is RequireBotPermissionAttribute)
                 {
                     guildPermission = (precondition as RequireBotPermissionAttribute).GuildPermission;
                     channelPermission = (precondition as RequireBotPermissionAttribute).ChannelPermission;
+                    prefix = "Bot";
                 }
                 else
                 {
                     guildPermission = (precondition as RequireUserPermissionAttribute).GuildPermission;
                     channelPermission = (precondition as RequireUserPermissionAttribute).ChannelPermission;
+                    prefix = "User";
                 }
                 if (guildPermission != null && guildPermission.HasValue)
                 {
-                    permission += $"Requires guild permission: {f.Em(TranslateGuildPermission(guildPermission.Value))} ";
+                    var guildPermissions = guildPermission.Value.ToString().Split(',').Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag)).ToList();
+                    permission += $"{prefix} requires guild permission{(guildPermissions.Count() > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(x => TranslateGuildPermission(x))))} ";
                 }
                 if (channelPermission != null && channelPermission.HasValue)
                 {
-                    permission += $"Requires channel permission: {f.Em(TranslateChannelPermission(channelPermission.Value))}";
+                    var channelPermissions = channelPermission.Value.ToString().Split(',').Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag)).ToList();
+                    permission += $"{prefix} requires channel permission{(channelPermissions.Count() > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(x => TranslateChannelPermission(x))))} ";
                 }
                 return permission.Trim();
             }

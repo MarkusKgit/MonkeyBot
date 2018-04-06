@@ -15,6 +15,7 @@ namespace MonkeyBot.Modules
     [Name("Roles")]
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
+    [RequireBotPermission(GuildPermission.ManageRoles)]
     public class SelfAssignRolesModule : ModuleBase
     {
         [Command("Add")]

@@ -16,9 +16,10 @@ namespace MonkeyBot.Modules
     public class ModeratorModule : ModuleBase
     {
         [Command("Prune")]
-        [Remarks("Adds the specified user to the list of bot owners")]
+        [Remarks("Deletes the specified amount of messages")]
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
+        [Example("!Prune 10")]
         public async Task PruneAsync(int count = 100)
         {
             if (count < 1)
@@ -33,9 +34,10 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Prune")]
-        [Remarks("Adds the specified user to the list of bot owners")]
+        [Remarks("Deletes the specified amount of messages for the specified user")]
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
+        [Example("!Prune JohnDoe 10")]
         public async Task PruneAsync(IGuildUser user, int count = 100)
         {
             if (user == null)

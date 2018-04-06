@@ -19,6 +19,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random xkcd comic or the latest xkcd comic by appending \"latest\" to the command")]
         [Priority(0)]
         [Example("!xkcd latest")]
+        [RequireBotPermission(ChannelPermission.EmbedLinks)]
         public async Task GetXkcdAsync(string arg = null)
         {
             xkcdResponse comic = null;
@@ -44,6 +45,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets the xkcd comic with the specified number")]
         [Priority(1)]
         [Example("!xkcd 101")]
+        [RequireBotPermission(ChannelPermission.EmbedLinks)]
         public async Task GetXkcdAsync(int number)
         {
             int maxNumer = await GetLatestNumberAsync();

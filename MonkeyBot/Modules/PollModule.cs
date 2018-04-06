@@ -31,6 +31,7 @@ namespace MonkeyBot.Modules
         [Priority(1)]
         [Remarks("Starts a new poll with the specified question and automatically adds reactions")]
         [Example("!poll \"Is MonkeyBot awesome?\"")]
+        [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
         public async Task StartPollAsync([Summary("The question")][Remainder] string question)
         {
             question = question.Trim('\"');
@@ -55,6 +56,7 @@ namespace MonkeyBot.Modules
         [Priority(2)]
         [Remarks("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
         [Example("!poll \"How cool is MonkeyBot?\" \"supercool\" \"over 9000\" \"bruh...\"")]
+        [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
         public async Task StartPollAsync([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
         {
             if (answers == null || answers.Length <= 0)

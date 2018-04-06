@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -16,6 +17,7 @@ namespace MonkeyBot.Modules
     [Name("GameServer")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireContext(ContextType.Guild)]
+    [RequireBotPermission(GuildPermission.EmbedLinks)]
     public class GameServerModule : ModuleBase
     {
         private readonly IGameServerService gameServerService;

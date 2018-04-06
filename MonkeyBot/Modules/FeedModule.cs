@@ -15,6 +15,7 @@ namespace MonkeyBot.Modules
     [Name("Feeds")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireContext(ContextType.Guild)]
+    [RequireBotPermission(GuildPermission.EmbedLinks)]
     public class FeedModule : ModuleBase
     {
         private readonly IFeedService feedService;
@@ -26,6 +27,7 @@ namespace MonkeyBot.Modules
 
         [Command("Add")]
         [Remarks("Adds an atom or RSS feed to the list of listened feeds.")]
+        [Example("!Feeds add https://blogs.msdn.microsoft.com/dotnet/feed/")]
         public async Task AddFeedUrlAsync([Summary("The url to the feed (Atom/RSS)")] string url, [Summary("Optional: The name of the channel where the Feed updates should be posted. Defaults to current channel")] string channelName = "")
         {
             if (url.IsEmpty())
@@ -62,6 +64,7 @@ namespace MonkeyBot.Modules
 
         [Command("Remove")]
         [Remarks("Removes the specified feed from the list of feeds.")]
+        [Example("!Feeds remove https://blogs.msdn.microsoft.com/dotnet/feed/")]
         public async Task RemoveFeedUrlAsync([Summary("The url of the feed")] string url, [Summary("Optional: The name of the channel where the Feed url should be removed. Defaults to current channel")] string channelName = "")
         {
             if (url.IsEmpty())

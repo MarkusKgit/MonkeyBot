@@ -12,9 +12,10 @@ namespace MonkeyBot.Modules
     /// <summary>
     /// Commands to modify Role-Button-Links
     /// </summary>
-    [MinPermissions(AccessLevel.ServerAdmin)]
     [Name("Role Buttons")]
     [Group("RoleButtons")]
+    [MinPermissions(AccessLevel.ServerAdmin)]
+    [RequireBotPermission(GuildPermission.AddReactions | GuildPermission.ManageRoles | GuildPermission.ManageMessages)]
     public class RoleButtonsModule : ModuleBase
     {
         private readonly IRoleButtonService roleButtonService;
