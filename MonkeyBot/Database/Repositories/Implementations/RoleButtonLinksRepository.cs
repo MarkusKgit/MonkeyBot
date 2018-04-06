@@ -13,7 +13,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async override Task AddOrUpdateAsync(RoleButtonLink obj)
         {
-            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.Emote == obj.Emote);
+            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString);
             if (link == null)
             {
                 dbSet.Add(link = new RoleButtonLinkEntity
@@ -21,7 +21,7 @@ namespace MonkeyBot.Database.Repositories
                     GuildId = obj.GuildId,
                     MessageId = obj.MessageId,
                     RoleId = obj.RoleId,
-                    Emote = obj.Emote
+                    EmoteString = obj.EmoteString
                 });
             }
             else
@@ -29,7 +29,7 @@ namespace MonkeyBot.Database.Repositories
                 link.GuildId = obj.GuildId;
                 link.MessageId = obj.MessageId;
                 link.RoleId = obj.RoleId;
-                link.Emote = obj.Emote;
+                link.EmoteString = obj.EmoteString;
             }
         }
 
@@ -37,7 +37,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.Emote == obj.Emote);
+            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString);
             if (link != null)
                 dbSet.Remove(link);
         }

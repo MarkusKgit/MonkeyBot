@@ -14,7 +14,7 @@ namespace MonkeyBot.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Emote = table.Column<string>(nullable: false),
+                    EmoteString = table.Column<string>(nullable: false),
                     GuildId = table.Column<ulong>(nullable: false),
                     MessageId = table.Column<ulong>(nullable: false),
                     RoleId = table.Column<ulong>(nullable: false)

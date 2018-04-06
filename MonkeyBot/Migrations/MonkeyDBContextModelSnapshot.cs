@@ -143,7 +143,7 @@ namespace MonkeyBot.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Emote")
+                    b.Property<string>("EmoteString")
                         .IsRequired();
 
                     b.Property<ulong>("GuildId");

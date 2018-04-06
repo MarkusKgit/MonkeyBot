@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
@@ -25,7 +26,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddLink")]
         [Remarks("Adds a reaction to the specified message with a link to the specified role")]
-        public async Task AddLinkAsync(ulong messageId, string roleName, string emoji)
+        public async Task AddLinkAsync([Summary("Id of the message to set up the link for")] ulong messageId, [Summary("Name of the role to link")] string roleName, [Summary("Emote to link")] string emoteString)
         {
             var msg = await Context.Channel.GetMessageAsync(messageId);
             if (msg == null)
@@ -39,12 +40,23 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Role not found. Make sure the Rolename is correct");
                 return;
             }
-            await roleButtonService.AddRoleButtonLinkAsync(Context.Guild.Id, messageId, role.Id, emoji);
+            IEmote emote = Context.Guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name)) ?? new Emoji(emoteString) as IEmote;
+            if (emote == null)
+            {
+                await ReplyAsync("Emote not found.");
+                return;
+            }
+            if (await roleButtonService.ExistsAsync(Context.Guild.Id, messageId, role.Id))
+            {
+                await ReplyAsync("The specified link already exists");
+                return;
+            }
+            await roleButtonService.AddRoleButtonLinkAsync(Context.Guild.Id, messageId, role.Id, emoteString);
         }
 
         [Command("RemoveLink")]
         [Remarks("Removes a reaction from the specified message with a link to the specified role")]
-        public async Task RemoveLinkAsync(ulong messageId, string roleName)
+        public async Task RemoveLinkAsync([Summary("Id of the message to remove the link from")] ulong messageId, [Summary("Name of the role to remove the link from")] string roleName)
         {
             var msg = await Context.Channel.GetMessageAsync(messageId);
             if (msg == null)
@@ -56,6 +68,11 @@ namespace MonkeyBot.Modules
             if (role == null)
             {
                 await ReplyAsync("Role not found. Make sure the Rolename is correct");
+                return;
+            }
+            if (!(await roleButtonService.ExistsAsync(Context.Guild.Id, messageId, role.Id)))
+            {
+                await ReplyAsync("The specified link does not exist");
                 return;
             }
             await roleButtonService.RemoveRoleButtonLinkAsync(Context.Guild.Id, messageId, role.Id);
@@ -66,6 +83,7 @@ namespace MonkeyBot.Modules
         public async Task RemoveAllAsync()
         {
             await roleButtonService.RemoveAllRoleButtonLinksAsync(Context.Guild.Id);
+            await ReplyAsync("Role Button Links removed");
         }
 
         [Command("List")]

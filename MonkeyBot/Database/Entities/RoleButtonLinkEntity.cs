@@ -11,6 +11,6 @@ namespace MonkeyBot.Database.Entities
         public ulong RoleId { get; set; }
 
         [Required]
-        public string Emote { get; set; }
+        public string EmoteString { get; set; }
     }
 }

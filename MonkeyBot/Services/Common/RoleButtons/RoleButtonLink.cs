@@ -8,18 +8,18 @@
 
         public ulong RoleId { get; private set; }
 
-        public string Emote { get; set; }
+        public string EmoteString { get; set; }
 
         public RoleButtonLink()
         {
         }
 
-        public RoleButtonLink(ulong guildId, ulong messageId, ulong roleId, string emoji)
+        public RoleButtonLink(ulong guildId, ulong messageId, ulong roleId, string emoteString)
         {
             GuildId = guildId;
             MessageId = messageId;
             RoleId = roleId;
-            Emote = emoji;
+            EmoteString = emoteString;
         }
     }
 }
