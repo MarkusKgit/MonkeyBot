@@ -175,6 +175,7 @@ namespace MonkeyBot.Modules
             }
             message = builder.ToString();
             await Context.User.SendMessageAsync(message);
+            await ReplyAsync("I have sent you a private message");
         }
 
         [Command("Remove")]

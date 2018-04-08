@@ -3,6 +3,7 @@ using AutoMapper.Configuration;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using Fclp;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Announcements;
 using MonkeyBot.Services.Common.Feeds;
 using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.RoleButtons;
@@ -101,7 +103,18 @@ namespace MonkeyBot
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
+            cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(GetAnnouncement);
+                
             Mapper.Initialize(cfg);
+        }
+
+        private static Announcement GetAnnouncement(AnnouncementEntity item)
+        {
+            if(item.Type == AnnouncementType.Recurring && !item.CronExpression.IsEmpty())
+                    return new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId);
+            if (item.Type == AnnouncementType.Single && item.ExecutionTime.HasValue)
+                return new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId);
+            return null;
         }
 
         private static IServiceProvider ConfigureServices()
