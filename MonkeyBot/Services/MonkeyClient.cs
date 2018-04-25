@@ -54,7 +54,7 @@ namespace MonkeyBot.Services
         {
             var msg = $"{logMessage.Source}: {logMessage.Message}";
             var ex = logMessage.Exception;
-            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected)
+            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed"))
             {
                 var adminuser = GetUser(327885109560737793);
                 await adminuser?.SendMessageAsync($"{msg} {ex?.Message}");
