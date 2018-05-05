@@ -46,6 +46,35 @@ namespace MonkeyBot.Modules
             await ReplyAsync("Message set");
         }
 
+        [Command("SetWelcomeChannel")]
+        [Remarks("Sets the channel where the welcome message will be posted")]
+        [Example("!SetWelcomeChannel general")]
+        public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][Remainder] string channelName)
+        {
+            channelName = channelName.Trim('\"');
+            if (channelName.IsEmpty())
+            {
+                await ReplyAsync("Please provide a channel");
+                return;
+            }
+            var channel = (await Context.Guild.GetTextChannelsAsync()).SingleOrDefault(x => x.Name.ToLower() == channelName.ToLower());
+            if (channel == null)
+            {
+                await ReplyAsync("Channel not found. Please check the spelling.");
+                return;
+            }
+            using (var uow = dbService.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                config.WelcomeMessageChannelId = channel.Id;
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+            await ReplyAsync("Channel set");
+        }
+
         #endregion WelcomeMessage
 
         #region Rules

@@ -31,7 +31,8 @@ namespace MonkeyBot.Database.Repositories
                     GuildId = obj.GuildId,
                     Rules = obj.Rules,
                     CommandPrefix = obj.CommandPrefix,
-                    WelcomeMessageText = obj.WelcomeMessageText
+                    WelcomeMessageText = obj.WelcomeMessageText,
+                    WelcomeMessageChannelId = obj.WelcomeMessageChannelId
                 });
             }
             else
@@ -40,6 +41,7 @@ namespace MonkeyBot.Database.Repositories
                 dbCfg.Rules = new List<string>(obj.Rules);
                 dbCfg.CommandPrefix = obj.CommandPrefix;
                 dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
+                dbCfg.WelcomeMessageChannelId = obj.WelcomeMessageChannelId;
                 dbSet.Update(dbCfg);
             }
         }

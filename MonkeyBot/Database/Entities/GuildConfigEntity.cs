@@ -13,6 +13,8 @@ namespace MonkeyBot.Database.Entities
 
         public string WelcomeMessageText { get; set; }
 
+        public ulong WelcomeMessageChannelId { get; set; }
+
         [Column("Rules")]
         public string RulesAsString { get; set; }
 

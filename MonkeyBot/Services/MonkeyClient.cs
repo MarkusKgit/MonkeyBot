@@ -36,11 +36,14 @@ namespace MonkeyBot.Services
         {
             if (arg.Guild == null)
                 return;
-            var channel = arg.Guild.DefaultChannel;
+            ITextChannel channel = arg.Guild.DefaultChannel;
             string welcomeMessage = string.Empty;
             using (var uow = dbService?.UnitOfWork)
             {
-                welcomeMessage = (await uow.GuildConfigs.GetAsync(arg.Guild.Id))?.WelcomeMessageText;
+                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id);
+                welcomeMessage = guildConfig?.WelcomeMessageText;
+                if (guildConfig?.WelcomeMessageChannelId != null)
+                    channel = arg.Guild.GetTextChannel(guildConfig.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;
             }
             if (!welcomeMessage.IsEmpty())
             {

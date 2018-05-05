@@ -10,6 +10,8 @@ namespace MonkeyBot.Common
 
         public string WelcomeMessageText { get; set; } = "Welcome to the %server% server, %user%!";
 
+        public ulong WelcomeMessageChannelId { get; set; }
+
         public List<string> Rules { get; set; } = new List<string>();
 
         public GuildConfig(ulong guildId)
