@@ -7,6 +7,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Services;
 using MonkeyBot.Utilities;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -106,7 +107,8 @@ namespace MonkeyBot
                         commandService
                             .Modules
                             .SelectMany(module => module.Commands)
-                            .SelectMany(command => command.Aliases)
+                            .SelectMany(command => command.Aliases.Select(a => $"{prefix}{a}"))
+                            .Distinct()
                             .Where(alias => alias.ToLowerInvariant().Contains(commandText))
                             .ToList();
 
@@ -131,18 +133,25 @@ namespace MonkeyBot
                     }
                 case CommandError.ParseFailed:
                     return "Command could not be parsed, I'm sorry :(";
+
                 case CommandError.BadArgCount:
                     return $"Command did not have the right amount of parameters. Type {prefix}help {commandText} for more info";
+
                 case CommandError.ObjectNotFound:
                     return "Object was not found";
+
                 case CommandError.MultipleMatches:
                     return $"Multiple commands were found like {commandText}. Please be more specific";
+
                 case CommandError.UnmetPrecondition:
                     return $"A precondition for the command was not met. Type {prefix}help {commandText} for more info";
+
                 case CommandError.Exception:
                     return "An exception has occured during the command execution. My developer was notified of this";
+
                 case CommandError.Unsuccessful:
                     return "The command excecution was unsuccessfull, I'm sorry :(";
+
                 default:
                     break;
             }
