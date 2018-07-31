@@ -1,5 +1,8 @@
 ﻿namespace MonkeyBot.Utilities
 {
+    /// <summary>
+    /// Interface for a class that can return formatted strings in a specific markdown language
+    /// </summary>
     public interface IDocumentFormatter
     {
         string Strong(string input);

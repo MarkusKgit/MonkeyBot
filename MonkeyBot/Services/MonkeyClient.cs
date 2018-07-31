@@ -59,8 +59,8 @@ namespace MonkeyBot.Services
             var ex = logMessage.Exception;
             if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed"))
             {
-                var adminuser = GetUser(327885109560737793);
-                await adminuser?.SendMessageAsync($"{msg} {ex?.Message}");
+                var adminMessage = $"{msg} {ex?.Message}";
+                await NotifyAdminAsync(adminMessage);
             }
             switch (logMessage.Severity)
             {
@@ -92,6 +92,12 @@ namespace MonkeyBot.Services
                     break;
             }
             return;
+        }
+
+        public async Task NotifyAdminAsync(string adminMessage)
+        {
+            var adminuser = GetUser(327885109560737793);
+            await adminuser?.SendMessageAsync(adminMessage);
         }
     }
 }

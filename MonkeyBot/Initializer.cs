@@ -28,15 +28,17 @@ namespace MonkeyBot
     {
         public static async Task InitializeAsync(string[] args)
         {
-            var p = new FluentCommandLineParser<ApplicationArguments>();
-            p.Setup(arg => arg.BuildDocumentation)
+            var parser = new FluentCommandLineParser<ApplicationArguments>();
+            parser
+                .Setup(arg => arg.BuildDocumentation)
                 .As('d', "docu")
                 .SetDefault(false)
                 .WithDescription("Build the documentation files in the app folder");
-            p.SetupHelp("?", "help")
+            parser
+                .SetupHelp("?", "help")
                 .Callback(text => Console.WriteLine(text));
-            var parseResult = p.Parse(args);
-            var parsedArgs = !parseResult.HasErrors ? p.Object : null;
+            var parseResult = parser.Parse(args);
+            var parsedArgs = !parseResult.HasErrors ? parser.Object : null;
 
             InitializeMapper();
 
@@ -44,8 +46,7 @@ namespace MonkeyBot
 
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
-            var nlogConfig = SetupNLogConfig();
-            loggerFactory.ConfigureNLog(nlogConfig);
+            NLog.LogManager.Configuration = SetupNLogConfig();
 
             var logger = services.GetService<ILogger<MonkeyClient>>();
 
@@ -87,7 +88,7 @@ namespace MonkeyBot
             var coloredConsoleTarget = new NLog.Targets.ColoredConsoleTarget
             {
                 Name = "logconsole",
-                Layout = @"${date:format=HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
             };
             var infoLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, coloredConsoleTarget);
             logConfig.LoggingRules.Add(infoLoggingRule);
@@ -104,14 +105,14 @@ namespace MonkeyBot
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
             cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(GetAnnouncement);
-                
+
             Mapper.Initialize(cfg);
         }
 
         private static Announcement GetAnnouncement(AnnouncementEntity item)
         {
-            if(item.Type == AnnouncementType.Recurring && !item.CronExpression.IsEmpty())
-                    return new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId);
+            if (item.Type == AnnouncementType.Recurring && !item.CronExpression.IsEmpty())
+                return new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId);
             if (item.Type == AnnouncementType.Single && item.ExecutionTime.HasValue)
                 return new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId);
             return null;

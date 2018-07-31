@@ -7,3 +7,5 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0105:You should use 'var' whenever possible.", Justification = "<Pending>")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0013:Use ternary operator", Justification = "<Pending>")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0014:Use ternary operator", Justification = "<Pending>")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CC0097:You have missing/unexistent parameters in Xml Docs", Justification = "<Pending>")]
+
