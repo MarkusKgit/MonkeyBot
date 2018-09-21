@@ -114,7 +114,7 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 **Preconditions:** Minimum permission: *ServerAdmin*, Can only be used in a *channel*  
   
 `!setwelcomemessage _welcomeMsg`  
-*Example:* `!SetWelcomeMessage "Hello %user%, welcome to %server$"`  
+*Example:* `!SetWelcomeMessage "Hello %user%, welcome to %server%"`  
 *Remarks:* Sets the welcome message for new users. Can make use of %user% and %server%  
   
 `!addrule _rule`  
