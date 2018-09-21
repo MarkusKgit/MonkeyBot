@@ -187,14 +187,24 @@ namespace MonkeyBot.Services
             }
         }
 
-        private static string ParseHtml(string html)
+        private string ParseHtml(string html)
         {
-            if (html.IsEmpty())
-                return html;
-            html = System.Web.HttpUtility.HtmlDecode(html);
+            if (html.IsEmpty().OrWhiteSpace())
+                return string.Empty;
+            
             var htmlDoc = new HtmlDocument();
 
-            htmlDoc.LoadHtml(html);
+            try
+            {
+                html = System.Web.HttpUtility.HtmlDecode(html);
+                htmlDoc.LoadHtml(html);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error parsing html");
+                return html;
+            }
+
             var sb = new StringBuilder();
 
             var textNodes = htmlDoc?.DocumentNode?.SelectNodes("//text()");
@@ -211,7 +221,12 @@ namespace MonkeyBot.Services
             {
                 foreach (HtmlNode node in iframes)
                 {
-                    sb.Append(node.Attributes["src"].Value);
+                    if (node.HasAttributes &&
+                        node.Attributes.Contains("src") &&
+                        !node.Attributes["src"].Value.IsEmpty().OrWhiteSpace())
+                    {
+                        sb.Append(node.Attributes["src"].Value);
+                    }
                 }
             }
             var result = sb.ToString();
