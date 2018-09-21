@@ -17,22 +17,24 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.1" />
-    <PackageReference Include="CodeHollow.FeedReader" Version="1.1.2" />
+    <PackageReference Include="CodeHollow.FeedReader" Version="1.1.5" />
     <PackageReference Include="Discord.Net" Version="2.0.0-beta" />
     <PackageReference Include="FluentCommandLineParser-netstandard" Version="1.4.3.13" />
     <PackageReference Include="FluentScheduler" Version="5.3.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.8.5" />
-    <PackageReference Include="Humanizer.Core" Version="2.4.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.7" />
+    <PackageReference Include="Humanizer.Core" Version="2.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="ncrontab" Version="3.3.0" />
-    <PackageReference Include="NLog" Version="4.5.7" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.2.0" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />	
-	<DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
+    <PackageReference Include="NLog" Version="4.5.10" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.2.1" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />		
   </ItemGroup>
 
   <ItemGroup>
