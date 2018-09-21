@@ -144,6 +144,12 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 *Preconditions:* Can only be used in a *channel*  
 *Remarks:* Gets the message id of a message in the current channel with the provided message text  
   
+## Misc
+  
+`!lmgtfy _searchText`  
+*Example:* `!lmgtfy Monkey Gamers`  
+*Remarks:* Generate a 'let me google that for you' link  
+  
 ## Moderator Commands
 **Preconditions:** Minimum permission: *ServerMod*, Can only be used in a *channel*  
   
