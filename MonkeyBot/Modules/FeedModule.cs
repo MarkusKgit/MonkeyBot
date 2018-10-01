@@ -115,7 +115,7 @@ namespace MonkeyBot.Modules
                 else
                 {
                     var allUrls = string.Join(Environment.NewLine, feedUrls.Select(x => x.feedUrl));
-                    await ReplyAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, feedUrls)}");
+                    await ReplyAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, feedUrls.Select(x => x.feedUrl))}");
                 }
             }
         }
