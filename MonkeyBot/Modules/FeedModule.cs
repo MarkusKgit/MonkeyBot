@@ -7,6 +7,7 @@ using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -53,7 +54,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             var currentFeedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel.Id);
-            if (currentFeedUrls.Contains(feedUrl))
+            if (currentFeedUrls.Select(x => x.feedUrl).Contains(feedUrl))
             {
                 await ReplyAsync("The specified feed is already in the list!");
                 return;
@@ -79,7 +80,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             var currentFeedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel?.Id);
-            if (!currentFeedUrls.Contains(url))
+            if (!currentFeedUrls.Select(x => x.feedUrl).Contains(url))
             {
                 await ReplyAsync("The specified feed is not in the list!");
                 return;
@@ -101,8 +102,21 @@ namespace MonkeyBot.Modules
             }
             else
             {
-                string where = channel == null ? "in all channels" : "in this channel";
-                await ReplyAsync($"The following feeds are listed {where}:{Environment.NewLine}{string.Join(Environment.NewLine, feedUrls)})");
+                if (channel == null)
+                {
+                    var sb = new StringBuilder();
+                    foreach (var (feedChannelId, feedUrl) in feedUrls)
+                    {
+                        var feedChannel = await Context.Guild.GetTextChannelAsync(feedChannelId);
+                        sb.AppendLine($"{feedChannel.Mention}: {feedUrl}");
+                    }
+                    await ReplyAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb.ToString()}");
+                }
+                else
+                {
+                    var allUrls = string.Join(Environment.NewLine, feedUrls.Select(x => x.feedUrl));
+                    await ReplyAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, feedUrls)}");
+                }
             }
         }
 

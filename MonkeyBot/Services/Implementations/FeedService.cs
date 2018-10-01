@@ -81,10 +81,10 @@ namespace MonkeyBot.Services
             }
         }
 
-        public async Task<List<string>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null)
+        public async Task<List<(ulong feedChannelId, string feedUrl)>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null)
         {
             List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
-            return allFeeds?.Select(x => x.URL).ToList();
+            return allFeeds?.Select(x => (x.ChannelId, x.URL)).ToList();
         }
 
         private async Task<List<FeedDTO>> GetAllFeedsInternalAsync(ulong guildId, ulong? channelId = null)
@@ -191,7 +191,7 @@ namespace MonkeyBot.Services
         {
             if (html.IsEmpty().OrWhiteSpace())
                 return string.Empty;
-            
+
             var htmlDoc = new HtmlDocument();
 
             try

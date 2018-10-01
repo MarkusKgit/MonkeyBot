@@ -42,6 +42,6 @@ namespace MonkeyBot.Services
         /// <param name="guildId"></param>
         /// <param name="channelId"></param>
         /// <returns></returns>
-        Task<List<string>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null);
+        Task<List<(ulong feedChannelId, string feedUrl)>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null);
     }
 }
