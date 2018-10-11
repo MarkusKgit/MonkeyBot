@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using Discord.Commands;
+using MonkeyBot.Common;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -11,26 +13,20 @@ namespace MonkeyBot.Services
         /// Start a new trivia with the specified amount of questions in the specified Discord Channel
         /// Returns boolean success
         /// </summary>
-        /// <param name="questionsToPlay">Amount of questions to play</param>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="questionsToPlay">Amount of questions to play</param>        
         /// <returns>success</returns>
-        Task<bool> StartTriviaAsync(int questionsToPlay, ulong guildID, ulong channelID);
+        Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context);
 
         /// <summary>
         /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        Task<bool> SkipQuestionAsync(ulong guildID, ulong channelID);
+        Task<bool> SkipQuestionAsync(DiscordId id);
 
         /// <summary>
         /// Stops the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        Task<bool> StopTriviaAsync(ulong guildID, ulong channelID);
+        Task<bool> StopTriviaAsync(DiscordId id);
     }
 }

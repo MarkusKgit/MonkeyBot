@@ -1,7 +1,8 @@
-﻿using Discord.WebSocket;
+﻿using Discord.Commands;
+using Discord.WebSocket;
 using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Trivia;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -16,13 +17,13 @@ namespace MonkeyBot.Services
         private readonly DiscordSocketClient discordClient;
 
         // holds all trivia instances on a per guild and channel basis
-        private readonly Dictionary<CombinedID, OTDBTriviaInstance> trivias;
+        private readonly ConcurrentDictionary<DiscordId, OTDBTriviaInstance> trivias;
 
         public OTDBTriviaService(DbService db, DiscordSocketClient client)
         {
             this.dbService = db;
             this.discordClient = client;
-            trivias = new Dictionary<CombinedID, OTDBTriviaInstance>();
+            trivias = new ConcurrentDictionary<DiscordId, OTDBTriviaInstance>();
         }
 
         /// <summary>
@@ -33,16 +34,16 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        public async Task<bool> StartTriviaAsync(int questionsToPlay, ulong guildID, ulong channelID)
+        public async Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context)
         {
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
-            CombinedID id = new CombinedID(guildID, channelID, null);
+            DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-                trivias.Add(id, new OTDBTriviaInstance(discordClient, dbService, guildID, channelID));
+                trivias.TryAdd(id, new OTDBTriviaInstance(discordClient, dbService, context));
             }
 
-            return await trivias[id].StartTriviaAsync(questionsToPlay);
+            return await trivias[id].StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -51,10 +52,8 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        public async Task<bool> SkipQuestionAsync(ulong guildID, ulong channelID)
+        public async Task<bool> SkipQuestionAsync(DiscordId id)
         {
-            // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
-            CombinedID id = new CombinedID(guildID, channelID, null);
             return trivias.ContainsKey(id) ? await trivias[id].SkipQuestionAsync() : false;
         }
 
@@ -64,16 +63,18 @@ namespace MonkeyBot.Services
         /// <param name="guildID">Id of the Discord Guild</param>
         /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
         /// <returns>success</returns>
-        public async Task<bool> StopTriviaAsync(ulong guildID, ulong channelID)
+        public async Task<bool> StopTriviaAsync(DiscordId id)
         {
-            // Create a combination of guildID and channelID to form a unique identifier to retrieve the trivia instance
-            CombinedID id = new CombinedID(guildID, channelID, null);
             if (!trivias.ContainsKey(id))
                 return false;
             else
             {
                 var result = await trivias[id].StopTriviaAsync();
-                trivias.Remove(id);
+                if (trivias.TryRemove(id, out var instance))
+                {
+                    instance.Dispose();
+                }
+
                 return result;
             }
         }

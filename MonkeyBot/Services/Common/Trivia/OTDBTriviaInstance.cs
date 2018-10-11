@@ -1,4 +1,6 @@
 ﻿using Discord;
+using Discord.Addons.Interactive;
+using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
 using MonkeyBot.Common;
@@ -15,7 +17,7 @@ namespace MonkeyBot.Services.Common.Trivia
     /// <summary>
     /// Manages a single instance of a trivia game in a Discord channel. Uses Open trivia database https://opentdb.com
     /// </summary>
-    public class OTDBTriviaInstance
+    public class OTDBTriviaInstance : IDisposable
     {
         // The api token enables us to use a session with opentdb so that we don't get the same question twice during a session
         private string apiToken = string.Empty;
@@ -25,6 +27,7 @@ namespace MonkeyBot.Services.Common.Trivia
 
         private readonly DiscordSocketClient discordClient;
         private readonly DbService dbService;
+        private readonly InteractiveService interactiveService;
 
         private readonly List<OTDBQuestion> questions;
 
@@ -38,22 +41,25 @@ namespace MonkeyBot.Services.Common.Trivia
         // <userID, score>
         private Dictionary<ulong, int> userScoresCurrent;
 
-        private ulong channelID;
-        private ulong guildID;
+        private readonly ulong channelID;
+        private readonly ulong guildID;
+        private readonly SocketCommandContext context;
+
+        private readonly TimeSpan timeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Create a new instance of a trivia game in the specified guild's channel. Requires an established connection
         /// </summary>
         /// <param name="client">Running Client instance</param>
-        /// <param name="guildID">Id of the Discord guild</param>
-        /// <param name="channelID">Id of the Discord channel</param>
-        public OTDBTriviaInstance(DiscordSocketClient client, DbService db, ulong guildID, ulong channelID)
+        public OTDBTriviaInstance(DiscordSocketClient client, DbService db, SocketCommandContext context)
         {
-            this.discordClient = client;
-            this.dbService = db;
+            discordClient = client;
+            dbService = db;
+            interactiveService = new InteractiveService(discordClient);
             questions = new List<OTDBQuestion>();
-            this.guildID = guildID;
-            this.channelID = channelID;
+            guildID = context.Guild.Id;
+            channelID = context.Channel.Id;
+            this.context = context;
         }
 
         /// <summary>
@@ -70,6 +76,7 @@ namespace MonkeyBot.Services.Common.Trivia
             }
             this.questionsToPlay = questionsToPlay;
             questions?.Clear();
+            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, $"Starting trivia with {questionsToPlay} question{(questionsToPlay == 1 ? "" : "s")}. Downloading fresh questions from the interwebs...");
             await LoadQuestionsAsync(questionsToPlay);
             if (questions == null || questions.Count == 0)
             {
@@ -79,9 +86,7 @@ namespace MonkeyBot.Services.Common.Trivia
             userScoresCurrent = new Dictionary<ulong, int>();
             status = TriviaStatus.Running;
             currentIndex = 0;
-            discordClient.MessageReceived += Client_MessageReceivedAsync; // Handle the message received for this channel to check for answers
-            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, $"Starting trivia with {questionsToPlay} questions");
-            await GetNextQuestionAsync();
+            await GetNextQuestionAsync().ConfigureAwait(false);
             return true;
         }
 
@@ -93,8 +98,8 @@ namespace MonkeyBot.Services.Common.Trivia
         {
             if (!(status == TriviaStatus.Running))
                 return false;
-            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, $"Noone has answered the question :( The answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**");
-            await GetNextQuestionAsync();
+            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, $"Noone has answered the question :( The answer was: **{currentQuestion.CorrectAnswer}**");
+            await GetNextQuestionAsync().ConfigureAwait(false);
             return true;
         }
 
@@ -106,10 +111,8 @@ namespace MonkeyBot.Services.Common.Trivia
         {
             if (!(status == TriviaStatus.Running))
                 return false;
-            discordClient.MessageReceived -= Client_MessageReceivedAsync; // Remove the message received handler
-            string msg = "The quiz has ended." + Environment.NewLine
-                + GetCurrentHighScores() + Environment.NewLine;
-            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg);
+            string msg = "The quiz has ended.";
+            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg, embed: GetCurrentHighScores());
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
             return true;
@@ -127,13 +130,23 @@ namespace MonkeyBot.Services.Common.Trivia
                 var builder = new EmbedBuilder
                 {
                     Color = new Color(26, 137, 185),
-                    Title = $"Question **{currentIndex + 1}**"
+                    Title = $"Question {currentIndex + 1}"
                 };
                 int points = QuestionToPoints(currentQuestion);
-                builder.Description = $"{CleanHtmlString(currentQuestion.Category)} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
+                builder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
-                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", "True or false?");
+                    builder.AddField($"{currentQuestion.Question}", "True or false?");
+                    var trueEmoji = new Emoji("👍");
+                    var falseEmoji = new Emoji("👎");
+                    var correctAnswerEmoji = currentQuestion.CorrectAnswer.ToLowerInvariant() == "true" ? trueEmoji : falseEmoji;
+
+                    await interactiveService.SendMessageWithReactionCallbacksAsync(context,
+                        new ReactionCallbackData("", builder.Build(), timeout: timeout)
+                            .WithCallback(trueEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
+                            .WithCallback(falseEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false)),
+                        false
+                    );
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
                 {
@@ -141,54 +154,70 @@ namespace MonkeyBot.Services.Common.Trivia
                     var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
                     Random rand = new Random();
                     // randomize the order of the answers
-                    var randomizedAnswers = from item in answers orderby rand.Next() select CleanHtmlString(item);
-                    builder.AddField($"{CleanHtmlString(currentQuestion.Question)}", string.Join(Environment.NewLine, randomizedAnswers));
+                    var randomizedAnswers = answers.OrderBy(_ => rand.Next()).ToList();
+                    var correctAnswerEmoji = new Emoji(GetAnswerUnicodeEmoji(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
+                    builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{GetAnswerUnicodeEmoji(i)} {s}")));
+
+                    await interactiveService.SendMessageWithReactionCallbacksAsync(context,
+                        new ReactionCallbackData("", builder.Build(), timeout: timeout)
+                            .WithCallback(new Emoji(GetAnswerUnicodeEmoji(0)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
+                            .WithCallback(new Emoji(GetAnswerUnicodeEmoji(1)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
+                            .WithCallback(new Emoji(GetAnswerUnicodeEmoji(2)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
+                            .WithCallback(new Emoji(GetAnswerUnicodeEmoji(3)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
+                            , false);
                 }
-                await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", false, builder.Build());
                 currentIndex++;
                 await CheckQuestionTimeOutAsync(currentQuestion);
             }
             else
+            {
                 await StopTriviaAsync();
+            }
+        }
+
+        private static string GetAnswerUnicodeEmoji(int i)
+        {
+            if (i == 0)
+                return "🇦";
+            else if (i == 1)
+                return "🇧";
+            else if (i == 2)
+                return "🇨";
+            else if (i == 3)
+                return "🇩";
+            else
+                throw new NotImplementedException();
+        }
+
+        private async Task<Task> CheckAnswerAsync(SocketReaction r, Emoji correctAnswer)
+        {
+            if (status == TriviaStatus.Running && currentQuestion != null && r.User.IsSpecified)
+            {
+                int points = QuestionToPoints(currentQuestion);
+                if (r.Emote.Name == correctAnswer.Name)
+                {
+                    // Answer is correct.
+                    await AddPointsToUserAsync(r.User.Value, points);
+                    string msg = $"*{r.User.Value.Username}* is right! Here, have {points} point{(points == 1 ? "" : "s")}. The correct answer was: **{currentQuestion.CorrectAnswer}**";
+                    await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg, embed: GetCurrentHighScores());
+                    return GetNextQuestionAsync();
+                }
+                else
+                {
+                    // Answer is incorrect - deduct points from user.
+                    await AddPointsToUserAsync(r.User.Value, -1 * points);
+                    string msg = $"*{r.User.Value.Username}* you are wrong! You just lost {points} point{(points == 1 ? "" : "s")}!";
+                    await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg);
+                }
+            }
+            return Task.CompletedTask;
         }
 
         private async Task CheckQuestionTimeOutAsync(OTDBQuestion question)
         {
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            await Task.Delay(timeout);
             if (question == currentQuestion)
                 await SkipQuestionAsync();
-        }
-
-        private async Task Client_MessageReceivedAsync(SocketMessage socketMsg)
-        {
-            var msg = socketMsg as SocketUserMessage;
-            if (msg == null) // Check if the received message is from a user.
-                return;
-            if (msg.Channel?.Id == channelID)
-            {
-                var result = await CheckAnswerAsync(msg.Content, msg.Author);
-                if (result)
-                    GetNextQuestionAsync();
-            }
-        }
-
-        private async Task<bool> CheckAnswerAsync(string answer, IUser user)
-        {
-            if (status == TriviaStatus.Running && currentQuestion != null && !user.IsBot)
-            {
-                // answer must be identical to correct answer atm. TODO: Consider allowing partial answers
-                if (CleanHtmlString(currentQuestion.CorrectAnswer).ToLower().Trim() == answer.ToLower().Trim())
-                {
-                    // Answer is correct.
-                    await AddPointsToUserAsync(user, QuestionToPoints(currentQuestion));
-                    string msg = $"*{user.Username}* is right! The correct answer was: **{CleanHtmlString(currentQuestion.CorrectAnswer)}**";
-                    if (currentIndex < questions.Count - 1)
-                        msg += Environment.NewLine + GetCurrentHighScores();
-                    await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg);
-                    return true;
-                }
-            }
-            return false;
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)
@@ -221,6 +250,10 @@ namespace MonkeyBot.Services.Common.Trivia
             AddPointsCurrent(user, userScoresCurrent, pointsToAdd);
             using (var uow = dbService.UnitOfWork)
             {
+                var currentScore = await uow.TriviaScores.GetGuildUserScoreAsync(guildID, user.Id);
+                //pointsToAdd can be negative -> prevent less than zero points
+                if (currentScore.Score + pointsToAdd < 0)
+                    pointsToAdd = -1 * currentScore.Score;
                 await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id, pointsToAdd);
                 await uow.CompleteAsync();
             }
@@ -234,21 +267,28 @@ namespace MonkeyBot.Services.Common.Trivia
                 pointsDict.Add(user.Id, pointsToAdd);
             else
                 pointsDict[user.Id] += pointsToAdd;
+            //pointsToAdd can be negative -> prevent less than zero points
+            if (pointsDict[user.Id] < 0)
+                pointsDict[user.Id] = 0;
         }
 
-        private string GetCurrentHighScores()
+        private Embed GetCurrentHighScores(int amount = int.MaxValue)
         {
             if (status == TriviaStatus.Stopped || userScoresCurrent.Count < 1)
-                return string.Empty;
+                return null;
 
-            var sortedScores = userScoresCurrent.OrderByDescending(x => x.Value);
+            var sortedScores = userScoresCurrent.OrderByDescending(x => x.Value).Take(Math.Min(amount, userScoresCurrent.Count));
             List<string> scoresList = new List<string>();
             foreach (var score in sortedScores)
             {
                 scoresList.Add($"{discordClient.GetUser(score.Key).Username}: {score.Value} point{(score.Value == 1 ? "" : "s")}");
             }
-            string scores = $"**Scores**: {string.Join(", ", scoresList.ToList())}";
-            return scores;
+            var builder = new EmbedBuilder
+            {
+                Color = new Color(26, 137, 185),
+                Title = $"High Scores"
+            }.WithDescription(string.Join(", ", scoresList.ToList()));
+            return builder.Build();
         }
 
         // Loads the questions using the otdb API
@@ -269,7 +309,7 @@ namespace MonkeyBot.Services.Common.Trivia
                 {
                     var otdbResponse = await Task.Run(() => JsonConvert.DeserializeObject<OTDBResponse>(json));
                     if (otdbResponse.Response == TriviaApiResponse.Success)
-                        questions.AddRange(otdbResponse.Questions);
+                        questions.AddRange(otdbResponse.Questions.Select(CleanQuestion));
                     else if ((otdbResponse.Response == TriviaApiResponse.TokenEmpty || otdbResponse.Response == TriviaApiResponse.TokenNotFound) && (loadingRetries <= 2))
                     {
                         await GetTokenAsync();
@@ -278,6 +318,19 @@ namespace MonkeyBot.Services.Common.Trivia
                     loadingRetries++;
                 }
             }
+        }
+
+        private static OTDBQuestion CleanQuestion(OTDBQuestion x)
+        {
+            return new OTDBQuestion
+            {
+                Category = CleanHtmlString(x.Category),
+                Question = CleanHtmlString(x.Question),
+                CorrectAnswer = CleanHtmlString(x.CorrectAnswer),
+                IncorrectAnswers = x.IncorrectAnswers.Select(CleanHtmlString).ToList(),
+                Type = x.Type,
+                Difficulty = x.Difficulty
+            };
         }
 
         // Requests a token from the api. With the token a session is managed. During a session it is ensured that no question is received twice
@@ -298,6 +351,12 @@ namespace MonkeyBot.Services.Common.Trivia
         private static string CleanHtmlString(string html)
         {
             return System.Net.WebUtility.HtmlDecode(html);
+        }
+
+        public void Dispose()
+        {
+            interactiveService.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
