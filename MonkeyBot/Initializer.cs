@@ -4,7 +4,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
-using Fclp;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,20 +25,8 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task InitializeAsync(string[] args)
+        public static async Task<IServiceProvider> InitializeAsync(ApplicationArguments args)
         {
-            var parser = new FluentCommandLineParser<ApplicationArguments>();
-            parser
-                .Setup(arg => arg.BuildDocumentation)
-                .As('d', "docu")
-                .SetDefault(false)
-                .WithDescription("Build the documentation files in the app folder");
-            parser
-                .SetupHelp("?", "help")
-                .Callback(text => Console.WriteLine(text));
-            var parseResult = parser.Parse(args);
-            var parsedArgs = !parseResult.HasErrors ? parser.Object : null;
-
             InitializeMapper();
 
             var services = ConfigureServices();
@@ -75,11 +62,13 @@ namespace MonkeyBot
             var feedService = services.GetService<IFeedService>();
             feedService.Start();
 
-            if (parsedArgs != null && parsedArgs.BuildDocumentation)
+            if (args != null && args.BuildDocumentation)
             {
                 await manager.BuildDocumentationAsync(); // Write the documentation
                 logger.LogInformation("Documentation built");
             }
+
+            return services;
         }
 
         private static NLog.Config.LoggingConfiguration SetupNLogConfig()
@@ -141,10 +130,5 @@ namespace MonkeyBot
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
         }
-    }
-
-    public class ApplicationArguments
-    {
-        public bool BuildDocumentation { get; set; }
     }
 }
