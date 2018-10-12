@@ -179,7 +179,7 @@ namespace MonkeyBot.Services.Common.Trivia
                         new ReactionCallbackData("", builder.Build(), timeout: timeout)
                             .WithCallback(trueEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
                             .WithCallback(falseEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false)),
-                        false
+                        true
                     );
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
@@ -198,7 +198,7 @@ namespace MonkeyBot.Services.Common.Trivia
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(1)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(2)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(3)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            , false);
+                            , true);
                 }
                 currentIndex++;
                 await CheckQuestionTimeOutAsync(currentQuestion);
