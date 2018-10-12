@@ -118,8 +118,7 @@ namespace MonkeyBot
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
-            services.AddSingleton<ITriviaService, OTDBTriviaService>();
-            services.AddSingleton<IPollService, PollService>();
+            services.AddSingleton<ITriviaService, OTDBTriviaService>();            
             services.AddSingleton<IFeedService, FeedService>();
             services.AddSingleton<IGameServerService, GameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();

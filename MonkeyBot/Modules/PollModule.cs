@@ -1,10 +1,12 @@
 ﻿using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using MonkeyBot.Services.Common.Poll;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,14 +19,8 @@ namespace MonkeyBot.Modules
     [Name("Simple poll")]
     [RequireContext(ContextType.Guild)]
     [MinPermissions(AccessLevel.User)]
-    public class PollModule : ModuleBase
-    {
-        private readonly IPollService pollService;
-
-        public PollModule(IPollService pollService)
-        {
-            this.pollService = pollService;
-        }
+    public class PollModule : InteractiveBase
+    {        
 
         [Command("Poll")]
         [Alias("Vote")]
@@ -48,7 +44,11 @@ namespace MonkeyBot.Modules
                 Question = question,
                 Answers = new List<Emoji>(reactions)
             };
-            await pollService.AddPollAsync(poll);
+            //await pollService.AddPollAsync(poll);
+
+            //await InlineReactionReplyAsync(new ReactionCallbackData(question, null, false, true, TimeSpan.FromMinutes(15))
+            //    .WithCallback(new Emoji("👍"), 
+            //    );
         }
 
         [Command("Poll")]
@@ -92,7 +92,7 @@ namespace MonkeyBot.Modules
                 Question = questionBuilder.ToString(),
                 Answers = new List<Emoji>(reactions)
             };
-            await pollService.AddPollAsync(poll);
+            //await pollService.AddPollAsync(poll);
         }
     }
 }
