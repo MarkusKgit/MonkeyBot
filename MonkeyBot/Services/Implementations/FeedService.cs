@@ -6,6 +6,7 @@ using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Feeds;
 using System;
 using System.Collections.Generic;
@@ -196,7 +197,7 @@ namespace MonkeyBot.Services
 
             try
             {
-                html = System.Web.HttpUtility.HtmlDecode(html);
+                html = MonkeyHelpers.CleanHtmlString(html);
                 htmlDoc.LoadHtml(html);
             }
             catch (Exception ex)

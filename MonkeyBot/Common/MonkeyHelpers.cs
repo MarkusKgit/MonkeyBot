@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Common
 {
-    public static class Helpers
+    public static class MonkeyHelpers
     {
         /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
         public static async Task<IRole> GetManageRolesRoleAsync(ICommandContext context)
@@ -104,6 +104,29 @@ namespace MonkeyBot.Common
         public static string CleanHtmlString(string html)
         {
             return System.Net.WebUtility.HtmlDecode(html);
+        }
+
+        public static string GetUnicodeRegionalLetter(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return "🇦";
+                case 1:
+                    return "🇧";
+                case 2:
+                    return "🇨";
+                case 3:
+                    return "🇩";
+                case 4:
+                    return "🇪";
+                case 5:
+                    return "🇫";
+                case 6:
+                    return "🇬";
+                default:
+                    return "";
+            }
         }
     }
 }

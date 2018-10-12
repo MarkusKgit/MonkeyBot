@@ -83,7 +83,7 @@ namespace MonkeyBot.Modules
             {
                 char reactionLetter = (char)('A' + i);
                 questionBuilder.AppendLine($"{reactionLetter}: {answers[i].Trim()}");
-                reactions.Add(new Emoji(GetUnicodeRegionalLetter(i)));
+                reactions.Add(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(i)));
             }
             Poll poll = new Poll
             {
@@ -93,29 +93,6 @@ namespace MonkeyBot.Modules
                 Answers = new List<Emoji>(reactions)
             };
             await pollService.AddPollAsync(poll);
-        }
-
-        private static string GetUnicodeRegionalLetter(int index)
-        {
-            switch (index)
-            {
-                case 0:
-                    return "🇦";
-                case 1:
-                    return "🇧";
-                case 2:
-                    return "🇨";
-                case 3:
-                    return "🇩";
-                case 4:
-                    return "🇪";
-                case 5:
-                    return "🇫";
-                case 6:
-                    return "🇬";
-                default:
-                    return "";
-            }
         }
     }
 }

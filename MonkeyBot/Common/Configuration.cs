@@ -56,14 +56,14 @@ namespace MonkeyBot.Common
         public async Task SaveAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            await Helpers.WriteTextAsync(filePath, ToJson());
+            await MonkeyHelpers.WriteTextAsync(filePath, ToJson());
         }
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<Configuration> LoadAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            string json = await Helpers.ReadTextAsync(filePath);
+            string json = await MonkeyHelpers.ReadTextAsync(filePath);
             return JsonConvert.DeserializeObject<Configuration>(json);
         }
 
