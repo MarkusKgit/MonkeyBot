@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Trivia;
@@ -80,22 +79,22 @@ namespace MonkeyBot.Services
         }
 
         /// <summary>
-        /// Get a discord embed for showing the current global high scores for the guild
+        /// Gets the current global high scores for the guild
         /// </summary>
         /// <param name="context">Context of the channel where the high score was requested</param>
         /// <returns></returns>
-        public async Task<Embed> GetGlobalHighScoresEmbedAsync(int amount, SocketCommandContext context)
+        public async Task<string> GetGlobalHighScoresAsync(int amount, SocketCommandContext context)
         {
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (id.GuildId == null || !trivias.ContainsKey(id))
             {
                 using (var trivia = new OTDBTriviaInstance(context, dbService))
                 {
-                    return await trivia.GetGlobalHighScoresEmbedAsync(amount, id.GuildId.Value);
+                    return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value);
                 }
             }
             else
-                return await trivias[id].GetGlobalHighScoresEmbedAsync(amount, id.GuildId.Value);
+                return await trivias[id].GetGlobalHighScoresAsync(amount, id.GuildId.Value);
         }
     }
 }

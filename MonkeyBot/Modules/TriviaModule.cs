@@ -58,9 +58,15 @@ namespace MonkeyBot.Modules
         [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            Embed embed = await triviaService.GetGlobalHighScoresEmbedAsync(amount, Context as SocketCommandContext);
-            if (embed != null)
-                await ReplyAsync("", embed: embed);
+            var globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext);
+            if (globalScores != null)
+            {
+                var embedBuilder = new EmbedBuilder()
+                    .WithColor(new Color(46, 191, 84))
+                    .WithTitle("Global scores")
+                    .WithDescription(globalScores);
+                await ReplyAsync("", embed: embedBuilder.Build());
+            }
             else
                 await ReplyAsync("No stored scores found!");
         }

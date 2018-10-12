@@ -34,10 +34,10 @@ namespace MonkeyBot.Services
         Task<bool> StopTriviaAsync(DiscordId id);
 
         /// <summary>
-        /// Get a discord embed for showing the current global high scores for the guild
+        /// Gets the current global high scores for the guild
         /// </summary>
         /// <param name="context">Context of the channel where the high score was requested</param>
         /// <returns></returns>
-        Task<Embed> GetGlobalHighScoresEmbedAsync(int amount, SocketCommandContext context);
+        Task<string> GetGlobalHighScoresAsync(int amount, SocketCommandContext context);
     }
 }

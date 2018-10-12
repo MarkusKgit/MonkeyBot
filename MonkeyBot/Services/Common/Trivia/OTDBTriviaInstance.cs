@@ -38,6 +38,8 @@ namespace MonkeyBot.Services.Common.Trivia
         private int currentIndex;
         private OTDBQuestion currentQuestion;
         private IUserMessage currentQuestionMessage;
+        private readonly List<IUser> correctAnswerUsers = new List<IUser>();
+        private readonly List<IUser> wrongAnswerUsers = new List<IUser>();
 
         private TriviaStatus status = TriviaStatus.Stopped;
 
@@ -97,9 +99,9 @@ namespace MonkeyBot.Services.Common.Trivia
                      $"Starting trivia with {questionsToPlay} question{ (questionsToPlay == 1 ? "" : "s")}." + Environment.NewLine
                     + "- Answer each question by clicking on the corresponding Emoji" + Environment.NewLine
                     + "- Each question has a value of 1-3 points" + Environment.NewLine
-                    + "- The first one to get it right will receive the points for this question" + Environment.NewLine
-                    + "- Each wrong answer will reduce your points until you are back to zero" + Environment.NewLine
-                    + $"- You have {timeout.TotalSeconds} seconds for each question"
+                    + $"- You have {timeout.TotalSeconds} seconds for each question."
+                    + "- Only your first answer counts!" + Environment.NewLine
+                    + "- Each wrong answer will reduce your points by 1 until you are back to zero" + Environment.NewLine
                     )
                 .Build();
             await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: embed);
@@ -111,8 +113,11 @@ namespace MonkeyBot.Services.Common.Trivia
                 return false;
             }
             userScoresCurrent = new Dictionary<ulong, int>();
-            status = TriviaStatus.Running;
+            currentQuestionMessage = null;
+            correctAnswerUsers.Clear();
+            wrongAnswerUsers.Clear();
             currentIndex = 0;
+            status = TriviaStatus.Running;
             await GetNextQuestionAsync().ConfigureAwait(false);
             return true;
         }
@@ -125,7 +130,6 @@ namespace MonkeyBot.Services.Common.Trivia
         {
             if (!(status == TriviaStatus.Running))
                 return false;
-            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, $"Noone has answered the question :( The answer was: **{currentQuestion.CorrectAnswer}**");
             await GetNextQuestionAsync().ConfigureAwait(false);
             return true;
         }
@@ -138,11 +142,21 @@ namespace MonkeyBot.Services.Common.Trivia
         {
             if (!(status == TriviaStatus.Running))
                 return false;
-            string msg = "The quiz has ended.";
-            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg, embed: GetCurrentHighScoresEmbed());
-            Embed globalScoresEmbed = await GetGlobalHighScoresEmbedAsync(int.MaxValue, guildID);
-            if (globalScoresEmbed != null)
-                await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: globalScoresEmbed);
+
+            var embedBuilder = new EmbedBuilder()
+                    .WithColor(new Color(46, 191, 84))
+                    .WithTitle("The quiz has ended");
+
+            var currentScores = GetCurrentHighScores();
+            if (!currentScores.IsEmpty().OrWhiteSpace())
+                embedBuilder.AddField("Final scores:", currentScores, true);
+
+            var globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildID);
+            if (!globalScores.IsEmpty().OrWhiteSpace())
+                embedBuilder.AddField("Global top scores:", globalScores);
+
+            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: embedBuilder.Build());
+
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
             return true;
@@ -155,6 +169,43 @@ namespace MonkeyBot.Services.Common.Trivia
             if (currentQuestionMessage != null)
             {
                 interactiveService.RemoveReactionCallback(currentQuestionMessage);
+                int points = QuestionToPoints(currentQuestion);
+
+                var embedBuilder = new EmbedBuilder()
+                    .WithColor(new Color(46, 191, 84))
+                    .WithTitle("Time is up")
+                    .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
+
+                string msg = "";
+                if (correctAnswerUsers.Count > 0)
+                {
+                    correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points));
+                    msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.Username))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
+                }
+                else
+                {
+                    msg = "No one had it right";
+                }
+                embedBuilder.AddField("Correct answers", msg, true);
+                if (wrongAnswerUsers.Count > 0)
+                {
+                    wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
+                    msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.Username))}* had it wrong! You lose 1 point.";
+                }
+                else
+                {
+                    msg = "No one had it wrong.";
+                }
+                embedBuilder.AddField("Incorrect answers", msg, true);
+
+                var highScores = GetCurrentHighScores(3);
+                if (!highScores.IsEmpty().OrWhiteSpace())
+                    embedBuilder.AddField("Top 3:", highScores, true);
+
+                await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: embedBuilder.Build());
+
+                correctAnswerUsers.Clear();
+                wrongAnswerUsers.Clear();
             }
             if (currentIndex < questionsToPlay)
             {
@@ -176,10 +227,10 @@ namespace MonkeyBot.Services.Common.Trivia
                     var correctAnswerEmoji = currentQuestion.CorrectAnswer.ToLowerInvariant() == "true" ? trueEmoji : falseEmoji;
 
                     currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
-                        new ReactionCallbackData("", builder.Build(), timeout: timeout)
-                            .WithCallback(trueEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            .WithCallback(falseEmoji, async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false)),
-                        true
+                        new ReactionCallbackData("", builder.Build(), false, true, timeout, _ => GetNextQuestionAsync())
+                            .WithCallback(trueEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji))
+                            .WithCallback(falseEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji)),
+                        false
                     );
                 }
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
@@ -193,15 +244,14 @@ namespace MonkeyBot.Services.Common.Trivia
                     builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
 
                     currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
-                        new ReactionCallbackData("", builder.Build(), timeout: timeout)
-                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(0)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(1)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(2)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(3)), async (c, r) => await CheckAnswerAsync(r, correctAnswerEmoji).ConfigureAwait(false))
-                            , true);
+                        new ReactionCallbackData("", builder.Build(), false, true, timeout, _ => GetNextQuestionAsync())
+                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(0)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
+                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(1)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
+                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(2)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
+                            .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(3)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
+                            , false);
                 }
                 currentIndex++;
-                await CheckQuestionTimeOutAsync(currentQuestion);
             }
             else
             {
@@ -209,35 +259,16 @@ namespace MonkeyBot.Services.Common.Trivia
             }
         }
 
-        private async Task<Task> CheckAnswerAsync(SocketReaction r, Emoji correctAnswer)
+        private Task CheckAnswer(SocketReaction r, Emoji correctAnswer)
         {
             if (status == TriviaStatus.Running && currentQuestion != null && r.User.IsSpecified)
             {
-                int points = QuestionToPoints(currentQuestion);
                 if (r.Emote.Name == correctAnswer.Name)
-                {
-                    // Answer is correct.
-                    await AddPointsToUserAsync(r.User.Value, points);
-                    string msg = $"*{r.User.Value.Username}* is right! Here, have {points} point{(points == 1 ? "" : "s")}. The correct answer was: **{currentQuestion.CorrectAnswer}**";
-                    await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg, embed: GetCurrentHighScoresEmbed(3));
-                    return GetNextQuestionAsync();
-                }
+                    correctAnswerUsers.Add(r.User.Value);
                 else
-                {
-                    // Answer is incorrect - deduct points from user.
-                    await AddPointsToUserAsync(r.User.Value, -1 * points);
-                    string msg = $"*{r.User.Value.Username}* you are wrong! You just lost {points} point{(points == 1 ? "" : "s")}!";
-                    await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, msg);
-                }
+                    wrongAnswerUsers.Add(r.User.Value);
             }
             return Task.CompletedTask;
-        }
-
-        private async Task CheckQuestionTimeOutAsync(OTDBQuestion question)
-        {
-            await Task.Delay(timeout);
-            if (question == currentQuestion)
-                await SkipQuestionAsync();
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)
@@ -272,8 +303,14 @@ namespace MonkeyBot.Services.Common.Trivia
             {
                 var currentScore = await uow.TriviaScores.GetGuildUserScoreAsync(guildID, user.Id);
                 //pointsToAdd can be negative -> prevent less than zero points
-                if (currentScore.Score + pointsToAdd < 0)
+                if (currentScore == null && pointsToAdd < 0)
+                {
+                    pointsToAdd = 0;
+                }
+                else if (currentScore != null && currentScore.Score + pointsToAdd < 0)
+                {
                     pointsToAdd = -1 * currentScore.Score;
+                }
                 await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id, pointsToAdd);
                 await uow.CompleteAsync();
             }
@@ -292,7 +329,7 @@ namespace MonkeyBot.Services.Common.Trivia
                 pointsDict[user.Id] = 0;
         }
 
-        private Embed GetCurrentHighScoresEmbed(int amount = int.MaxValue)
+        private string GetCurrentHighScores(int amount = int.MaxValue)
         {
             if (status == TriviaStatus.Stopped || userScoresCurrent.Count < 1)
                 return null;
@@ -302,21 +339,16 @@ namespace MonkeyBot.Services.Common.Trivia
                 .Take(amount)
                 .Select((score, pos) => $"**#{pos + 1}: {discordClient.GetUser(score.Key).Username}**: {score.Value} point{(score.Value == 1 ? "" : "s")}");
 
-            var builder = new EmbedBuilder()
-                .WithColor(new Color(26, 137, 185))
-                .WithTitle($"High Scores for this round")
-                .WithDescription(string.Join(", ", sortedScores));
-
-            return builder.Build();
+            return string.Join(", ", sortedScores);
         }
 
         /// <summary>
-        /// Get a discord embed for showing the current global high scores for the guild
+        /// Get the current global high scores for the guild
         /// </summary>
         /// <param name="amount">Amount of scores to get (from first place)</param>
         /// <param name="guildId">Id of the guild to get the scores for</param>
         /// <returns></returns>
-        public async Task<Embed> GetGlobalHighScoresEmbedAsync(int amount, ulong guildId)
+        public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildId)
         {
             List<TriviaScore> userScoresAllTime;
             using (var uow = dbService.UnitOfWork)
@@ -333,11 +365,7 @@ namespace MonkeyBot.Services.Common.Trivia
                 .Take(correctedCount)
                 .Select((score, pos) => $"**#{pos + 1}: {guild.GetUser(score.UserID)?.Username}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
 
-            var builder = new EmbedBuilder()
-                .WithColor(new Color(46, 191, 84))
-                .AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, sortedScores));
-
-            return builder.Build();
+            return string.Join(Environment.NewLine, sortedScores);
         }
 
         // Loads the questions using the otdb API
