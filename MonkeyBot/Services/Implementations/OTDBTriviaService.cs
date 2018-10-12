@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using MonkeyBot.Common;
 using MonkeyBot.Services.Common.Trivia;
@@ -31,8 +32,7 @@ namespace MonkeyBot.Services
         /// Returns boolean success
         /// </summary>
         /// <param name="questionsToPlay">Amount of questions to play</param>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="context">Message context of the channel where the trivia should be hosted</param>
         /// <returns>success</returns>
         public async Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context)
         {
@@ -40,7 +40,9 @@ namespace MonkeyBot.Services
             DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-                trivias.TryAdd(id, new OTDBTriviaInstance(discordClient, dbService, context));
+#pragma warning disable CC0022 // Should dispose object
+                trivias.TryAdd(id, new OTDBTriviaInstance(context, dbService));
+#pragma warning restore CC0022 // Should dispose object
             }
 
             return await trivias[id].StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
@@ -49,8 +51,7 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
         /// <returns>success</returns>
         public async Task<bool> SkipQuestionAsync(DiscordId id)
         {
@@ -60,8 +61,7 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Stops the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
         /// <returns>success</returns>
         public async Task<bool> StopTriviaAsync(DiscordId id)
         {
@@ -77,6 +77,25 @@ namespace MonkeyBot.Services
 
                 return result;
             }
+        }
+
+        /// <summary>
+        /// Get a discord embed for showing the current global high scores for the guild
+        /// </summary>
+        /// <param name="context">Context of the channel where the high score was requested</param>
+        /// <returns></returns>
+        public async Task<Embed> GetGlobalHighScoresEmbedAsync(int amount, SocketCommandContext context)
+        {
+            var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
+            if (id.GuildId == null || !trivias.ContainsKey(id))
+            {
+                using (var trivia = new OTDBTriviaInstance(context, dbService))
+                {
+                    return await trivia.GetGlobalHighScoresEmbedAsync(amount, id.GuildId.Value);
+                }
+            }
+            else
+                return await trivias[id].GetGlobalHighScoresEmbedAsync(amount, id.GuildId.Value);
         }
     }
 }

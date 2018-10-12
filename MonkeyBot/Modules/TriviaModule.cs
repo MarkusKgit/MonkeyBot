@@ -4,10 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
-using MonkeyBot.Services.Common.Trivia;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -61,31 +58,11 @@ namespace MonkeyBot.Modules
         [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            List<TriviaScore> userScoresAllTime;
-            using (var uow = dbService.UnitOfWork)
-            {
-                userScoresAllTime = (await uow.TriviaScores.GetAllForGuildAsync(Context.Guild.Id));
-            }
-            int correctedCount = Math.Min(amount, userScoresAllTime.Count());
-            if (userScoresAllTime == null || correctedCount < 1)
-            {
-                await ReplyAsync("No scores found!");
-                return;
-            }
-            var sortedScores = userScoresAllTime.OrderByDescending(x => x.Score).Take(correctedCount).ToList();
-            List<string> scoresList = new List<string>();
-            for (int i = 0; i < sortedScores.Count; i++)
-            {
-                var score = sortedScores[i];
-                var userName = (await Context.Client.GetUserAsync(score.UserID))?.Username;
-                scoresList.Add($"**#{i + 1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
-            }
-            var builder = new EmbedBuilder
-            {
-                Color = new Color(46, 191, 84)
-            };
-            builder.AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, scoresList));
-            await ReplyAsync("", false, builder.Build());
+            Embed embed = await triviaService.GetGlobalHighScoresEmbedAsync(amount, Context as SocketCommandContext);
+            if (embed != null)
+                await ReplyAsync("", embed: embed);
+            else
+                await ReplyAsync("No stored scores found!");
         }
     }
 }
