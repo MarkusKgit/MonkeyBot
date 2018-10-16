@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration;
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
@@ -30,7 +31,7 @@ namespace MonkeyBot
             InitializeMapper();
 
             var services = ConfigureServices();
-
+            
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
             NLog.LogManager.Configuration = SetupNLogConfig();
@@ -115,6 +116,7 @@ namespace MonkeyBot
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             services.AddSingleton(new DbService());
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
+            services.AddSingleton<InteractiveService, InteractiveService>();
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();

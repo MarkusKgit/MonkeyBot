@@ -227,7 +227,7 @@ namespace MonkeyBot.Services.Common.Trivia
                     var correctAnswerEmoji = currentQuestion.CorrectAnswer.ToLowerInvariant() == "true" ? trueEmoji : falseEmoji;
 
                     currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
-                        new ReactionCallbackData("", builder.Build(), false, true, timeout, _ => GetNextQuestionAsync())
+                        new ReactionCallbackData("", builder.Build(), false, true, true, timeout, _ => GetNextQuestionAsync())
                             .WithCallback(trueEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji))
                             .WithCallback(falseEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji)),
                         false
@@ -244,7 +244,7 @@ namespace MonkeyBot.Services.Common.Trivia
                     builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
 
                     currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
-                        new ReactionCallbackData("", builder.Build(), false, true, timeout, _ => GetNextQuestionAsync())
+                        new ReactionCallbackData("", builder.Build(), false, true, true, timeout, _ => GetNextQuestionAsync())
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(0)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(1)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(2)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
