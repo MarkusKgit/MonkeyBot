@@ -67,10 +67,19 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("The specified server does not exist");
             if (serverToRemove.MessageId != null)
             {
-                var guild = discordClient.GetGuild(serverToRemove.GuildId);
-                var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
-                var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
-                await msg?.DeleteAsync();
+                try
+                {
+                    var guild = discordClient.GetGuild(serverToRemove.GuildId);
+                    var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
+                    var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
+                    if (msg != null)
+                        await msg.DeleteAsync();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error trying to remove message from game server");
+                }
+                
             }
 
             using (var uow = dbService.UnitOfWork)
