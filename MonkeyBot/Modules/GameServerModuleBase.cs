@@ -1,9 +1,6 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
-using MonkeyBot.Common;
-using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
 using System.Linq;
@@ -12,45 +9,18 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
-    /// <summary>Module that provides support for game servers that implement the steam server query api</summary>
-    [Group("GameServer")]
-    [Name("GameServer")]
-    [MinPermissions(AccessLevel.ServerAdmin)]
-    [RequireContext(ContextType.Guild)]
-    [RequireBotPermission(GuildPermission.EmbedLinks)]
-    public class GameServerModule : ModuleBase
+    public abstract class GameServerModuleBase : ModuleBase
     {
         private readonly IGameServerService gameServerService;
-        private readonly ILogger<GameServerModule> logger;
+        private readonly ILogger<ModuleBase> logger;
 
-        public GameServerModule(IGameServerService gameServerService, ILogger<GameServerModule> logger)
+        protected GameServerModuleBase(IGameServerService gameServerService, ILogger<ModuleBase> logger)
         {
             this.gameServerService = gameServerService;
             this.logger = logger;
         }
 
-        [Command("Add")]
-        [Remarks("Adds the specified game server and posts it's info info in the current channel")]
-        [Example("!gameserver add 127.0.0.1:1234")]
-        public async Task AddGameServerAsync([Remainder][Summary("The ip adress and query port of the server")] string ip)
-        {
-            await AddGameServerInternalAsync(ip, Context.Channel.Id);
-        }
-
-        [Command("Add")]
-        [Remarks("Adds the specified game server and sets the channel where the info will be posted.")]
-        [Example("!gameserver add \"127.0.0.1:1234\" \"general\"")]
-        public async Task AddGameServerAsync([Summary("The ip adress and query port of the server")] string ip, [Summary("The name of the channel where the server info should be posted")] string channelName)
-        {
-            var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-            if (channel == null)
-                await ReplyAsync("The specified channel does not exist");
-            else
-                await AddGameServerInternalAsync(ip, channel.Id);
-        }
-
-        private async Task AddGameServerInternalAsync(string ip, ulong channelID)
+        protected async Task AddGameServerInternalAsync(string ip, ulong channelID)
         {
             //Do parameter checks
             var endPoint = await ParseIPAsync(ip);
@@ -70,15 +40,7 @@ namespace MonkeyBot.Modules
             await ReplyAsync("GameServer added");
         }
 
-        [Command("Remove")]
-        [Remarks("Removes the specified game server")]
-        [Example("!gameserver remove 127.0.0.1:1234")]
-        public async Task RemoveGameServerAsync([Summary("The ip adress and query port of the server")] string ip)
-        {
-            await RemoveGameServerInternalAsync(ip);
-        }
-
-        private async Task RemoveGameServerInternalAsync(string ip)
+        protected async Task RemoveGameServerInternalAsync(string ip)
         {
             //Do parameter checks
             var endPoint = await ParseIPAsync(ip);

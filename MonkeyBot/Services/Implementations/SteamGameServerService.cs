@@ -1,63 +1,23 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using dokas.FluentStrings;
-using FluentScheduler;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Services.Common;
 using MonkeyBot.Services.Common.SteamServerQuery;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class GameServerService : IGameServerService
+    public class SteamGameServerService : BaseGameServerService
     {
-        private readonly DbService dbService;
-        private readonly DiscordSocketClient discordClient;
-        private readonly ILogger<GameServerService> logger;
-
-        public GameServerService(DbService db, DiscordSocketClient client, ILogger<GameServerService> logger)
+        public SteamGameServerService(DbService dbService, DiscordSocketClient discordClient, ILogger<SteamGameServerService> logger)
+            : base(GameServerType.Steam, dbService, discordClient, logger)
         {
-            this.dbService = db;
-            this.discordClient = client;
-            this.logger = logger;
         }
 
-        public void Initialize()
-        {
-            JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunNow().AndEvery(1).Minutes());
-        }
-
-        public async Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
-        {
-            var server = new DiscordGameServerInfo(endpoint, guildID, channelID);
-            using (var uow = dbService.UnitOfWork)
-            {
-                await uow.GameServers.AddOrUpdateAsync(server);
-                await uow.CompleteAsync();
-            }
-            await PostServerInfoAsync(server);
-        }
-
-        private async Task PostAllServerInfoAsync()
-        {
-            var servers = await GetServersAsync();
-            foreach (var server in servers)
-            {
-                try
-                {
-                    await PostServerInfoAsync(server);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Error posting server infos");
-                }
-            }
-        }
-
-        private async Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
+        protected override async Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
         {
             if (discordGameServer == null)
                 return;
@@ -130,35 +90,6 @@ namespace MonkeyBot.Services
             {
                 logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.IP}");
                 throw;
-            }
-        }
-
-        public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
-        {
-            var servers = await GetServersAsync();
-            var serverToRemove = servers.FirstOrDefault(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID);
-            if (serverToRemove == null)
-                throw new ArgumentException("The specified server does not exist");
-            if (serverToRemove.MessageId != null)
-            {
-                var guild = discordClient.GetGuild(serverToRemove.GuildId);
-                var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
-                var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
-                await msg?.DeleteAsync();
-            }
-
-            using (var uow = dbService.UnitOfWork)
-            {
-                await uow.GameServers.RemoveAsync(serverToRemove);
-                await uow.CompleteAsync();
-            }
-        }
-
-        private async Task<List<DiscordGameServerInfo>> GetServersAsync()
-        {
-            using (var uow = dbService.UnitOfWork)
-            {
-                return await uow.GameServers.GetAllAsync();
             }
         }
     }

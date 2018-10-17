@@ -11,11 +11,11 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common;
 using MonkeyBot.Services.Common.Announcements;
 using MonkeyBot.Services.Common.Feeds;
 using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.RoleButtons;
-using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
 using NLog.Extensions.Logging;
@@ -31,7 +31,7 @@ namespace MonkeyBot
             InitializeMapper();
 
             var services = ConfigureServices();
-            
+
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
             NLog.LogManager.Configuration = SetupNLogConfig();
@@ -41,7 +41,7 @@ namespace MonkeyBot
             var client = services.GetService<DiscordSocketClient>();
             await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
             await client.StartAsync();
-                        
+
             var manager = services.GetService<CommandManager>();
             await manager.StartAsync();
 
@@ -51,8 +51,11 @@ namespace MonkeyBot
             var announcements = services.GetService<IAnnouncementService>();
             await announcements.InitializeAsync();
 
-            var gameServerService = services.GetService<IGameServerService>();
-            gameServerService.Initialize();
+            var steamGameServerService = services.GetService<SteamGameServerService>();
+            steamGameServerService.Initialize();
+
+            var minecraftGameServerService = services.GetService<MineCraftGameServerService>();
+            minecraftGameServerService.Initialize();
 
             var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
@@ -116,13 +119,14 @@ namespace MonkeyBot
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             services.AddSingleton(new DbService());
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
-            services.AddSingleton<InteractiveService, InteractiveService>();
+            services.AddSingleton<InteractiveService>();
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
-            services.AddSingleton<ITriviaService, OTDBTriviaService>();            
+            services.AddSingleton<ITriviaService, OTDBTriviaService>();
             services.AddSingleton<IFeedService, FeedService>();
-            services.AddSingleton<IGameServerService, GameServerService>();
+            services.AddSingleton<SteamGameServerService>();
+            services.AddSingleton<MineCraftGameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
             services.AddSingleton<IRoleButtonService, RoleButtonService>();
             services.AddSingleton<IChuckService, ChuckService>();
