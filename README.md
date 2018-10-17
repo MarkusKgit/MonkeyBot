@@ -112,22 +112,6 @@ C# libraries that are being used:
 *Remarks:* Removes all feed urls  
   
 ---  
-### GameServer
-**Preconditions:** Minimum permission: *Server Admin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
-  
-`!gameserver add _ip`  
-*Example:* `!gameserver add 127.0.0.1:1234`  
-*Remarks:* Adds the specified game server and posts it's info info in the current channel  
-  
-`!gameserver add _ip _channelName`  
-*Example:* `!gameserver add "127.0.0.1:1234" "general"`  
-*Remarks:* Adds the specified game server and sets the channel where the info will be posted.  
-  
-`!gameserver remove _ip`  
-*Example:* `!gameserver remove 127.0.0.1:1234`  
-*Remarks:* Removes the specified game server  
-  
----  
 ### Game Subscriptions
 **Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
   
@@ -179,6 +163,22 @@ C# libraries that are being used:
 `!findmessageid _messageContent`  
 *Preconditions:* Can only be used in a *channel*  
 *Remarks:* Gets the message id of a message in the current channel with the provided message text  
+  
+---  
+### MineCraftGameServer
+**Preconditions:** Minimum permission: *Server Admin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
+  
+`!minecraftgameserver add _ip`  
+*Example:* `!gameserver add 127.0.0.1:1234`  
+*Remarks:* Adds the specified game server and posts it's info info in the current channel  
+  
+`!minecraftgameserver add _ip _channel`  
+*Example:* `!gameserver add "127.0.0.1:1234" "general"`  
+*Remarks:* Adds the specified game server and sets the channel where the info will be posted.  
+  
+`!minecraftgameserver remove _ip`  
+*Example:* `!gameserver remove 127.0.0.1:1234`  
+*Remarks:* Removes the specified game server  
   
 ---  
 ### Misc
@@ -254,6 +254,22 @@ C# libraries that are being used:
 *Remarks:* Lists all the members of the specified role  
   
 ---  
+### SteamGameServer
+**Preconditions:** Minimum permission: *Server Admin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
+  
+`!steamgameserver add _ip`  
+*Example:* `!gameserver add 127.0.0.1:1234`  
+*Remarks:* Adds the specified game server and posts it's info info in the current channel  
+  
+`!steamgameserver add _ip _channel`  
+*Example:* `!gameserver add "127.0.0.1:1234" "general"`  
+*Remarks:* Adds the specified game server and sets the channel where the info will be posted.  
+  
+`!steamgameserver remove _ip`  
+*Example:* `!gameserver remove 127.0.0.1:1234`  
+*Remarks:* Removes the specified game server  
+  
+---  
 ### Trivia
 **Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
   
@@ -283,4 +299,4 @@ C# libraries that are being used:
 *Example:* `!xkcd 101`  
 *Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets the xkcd comic with the specified number  
-
+  
