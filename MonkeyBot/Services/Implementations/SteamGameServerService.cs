@@ -71,7 +71,21 @@ namespace MonkeyBot.Services
                 builder.AddField("Server version", $"{serverInfo.GameVersion}{lastServerUpdate}");
 
                 builder.WithFooter($"Last check: {DateTime.Now}");
-                if (discordGameServer.MessageId == null)
+                if (discordGameServer.MessageId.HasValue)
+                {
+                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
+                    {
+                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
+                    }
+                    else
+                    {
+                        logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
+                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        return;
+                    }
+                }
+                else
                 {
                     discordGameServer.MessageId = (await channel?.SendMessageAsync("", false, builder.Build())).Id;
                     using (var uow = dbService.UnitOfWork)
@@ -79,11 +93,6 @@ namespace MonkeyBot.Services
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                         await uow.CompleteAsync();
                     }
-                }
-                else
-                {
-                    var msg = await channel.GetMessageAsync(discordGameServer.MessageId.Value) as Discord.Rest.RestUserMessage;
-                    await msg?.ModifyAsync(x => x.Embed = builder.Build());
                 }
             }
             catch (Exception ex)
