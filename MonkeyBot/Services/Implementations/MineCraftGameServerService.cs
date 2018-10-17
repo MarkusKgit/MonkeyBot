@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
@@ -63,8 +64,23 @@ namespace MonkeyBot.Services
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 builder.AddField("Server version", $"{stats.Version}{lastServerUpdate}");
 
-                builder.WithFooter($"Last check: {DateTime.Now}");
-                if (discordGameServer.MessageId == null)
+                builder.WithFooter($"Last check: {DateTime.Now}");                
+                if (discordGameServer.MessageId.HasValue)
+                {
+                    var existingMessage = await channel.GetMessageAsync(discordGameServer.MessageId.Value) as Discord.Rest.RestUserMessage;
+                    if (existingMessage != null)
+                    {
+                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
+                    }
+                    else
+                    {
+                        logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
+                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        return;
+                    }
+                }
+                else
                 {
                     discordGameServer.MessageId = (await channel?.SendMessageAsync("", false, builder.Build())).Id;
                     using (var uow = dbService.UnitOfWork)
@@ -72,12 +88,7 @@ namespace MonkeyBot.Services
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                         await uow.CompleteAsync();
                     }
-                }
-                else
-                {
-                    var msg = await channel.GetMessageAsync(discordGameServer.MessageId.Value) as Discord.Rest.RestUserMessage;
-                    await msg?.ModifyAsync(x => x.Embed = builder.Build());
-                }
+                }                
             }
             catch (Exception ex)
             {
