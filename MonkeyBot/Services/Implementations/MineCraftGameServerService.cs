@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
@@ -64,11 +63,11 @@ namespace MonkeyBot.Services
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 builder.AddField("Server version", $"{stats.Version}{lastServerUpdate}");
 
-                builder.WithFooter($"Last check: {DateTime.Now}");                
+                builder.WithFooter($"Last check: {DateTime.Now}");
                 if (discordGameServer.MessageId.HasValue)
                 {
-                    var existingMessage = await channel.GetMessageAsync(discordGameServer.MessageId.Value) as Discord.Rest.RestUserMessage;
-                    if (existingMessage != null)
+
+                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
                     {
                         await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
                     }
@@ -88,7 +87,7 @@ namespace MonkeyBot.Services
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
                         await uow.CompleteAsync();
                     }
-                }                
+                }
             }
             catch (Exception ex)
             {
