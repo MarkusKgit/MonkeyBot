@@ -51,7 +51,7 @@ namespace MonkeyBot.Utilities
 
             foreach (var module in commandService.Modules)
             {
-                builder.AppendLine(f.H2(module.Name));
+                builder.AppendLine(f.H3(module.Name));
                 var modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                 if (modulePreconditions != null && modulePreconditions.Count > 0)
                 {
@@ -82,6 +82,7 @@ namespace MonkeyBot.Utilities
                     }
                     builder.AppendLine(f.NewLine(""));
                 }
+                builder.AppendLine(f.NewLine(f.HorizontalRule()));
             }
             return builder.ToString();
         }

@@ -5,8 +5,6 @@
     /// </summary>
     public interface IDocumentFormatter
     {
-        string Strong(string input);
-
         string Em(string input);
 
         string H1(string input);
@@ -21,8 +19,12 @@
 
         string H6(string input);
 
-        string NewLine(string input);
+        string HorizontalRule();
 
         string InlineCode(string input);
+
+        string NewLine(string input);
+
+        string Strong(string input);
     }
 }

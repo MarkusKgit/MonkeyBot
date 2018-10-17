@@ -20,6 +20,8 @@
 
         public string H6(string input) => $"###### {input}";
 
+        public string HorizontalRule() => "---";
+
         public string InlineCode(string input) => $"`{input}`";
 
         public string NewLine(string input) => $"{input}  ";
