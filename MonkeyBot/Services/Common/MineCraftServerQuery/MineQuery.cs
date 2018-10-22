@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,10 +11,12 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
         private const ushort dataSize = 512;
         private const ushort numFields = 6;
 
-        public string Address { get; }
-        public ushort Port { get; }
+        private readonly ReadOnlyMemory<byte> payload = new ReadOnlyMemory<byte>(new byte[] { 0xFE, 0x01 });
 
-        public MineQuery(string address, ushort port)
+        public IPAddress Address { get; }
+        public int Port { get; }
+
+        public MineQuery(IPAddress address, int port)
         {
             Address = address;
             Port = port;
@@ -22,7 +25,7 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
         public async Task<MineStats> GetStatsAsync()
         {
             var rawServerData = new byte[dataSize];
-
+            
             try
             {
                 using (var tcpclient = new TcpClient())
@@ -31,8 +34,9 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
                     if (!tcpclient.Connected)
                         return null;
                     var stream = tcpclient.GetStream();
-                    var payload = new byte[] { 0xFE, 0x01 };
-                    await stream.WriteAsync(payload, 0, payload.Length);
+                    stream.ReadTimeout = 5000; // 5 sec timeout
+                    stream.WriteTimeout = 5000;                                        
+                    await stream.WriteAsync(payload);
                     int bytesRead = await stream.ReadAsync(rawServerData, 0, dataSize);
                     tcpclient.Close();
                 }

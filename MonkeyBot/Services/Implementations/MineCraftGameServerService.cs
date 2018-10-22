@@ -22,7 +22,7 @@ namespace MonkeyBot.Services
                 return;
             try
             {
-                var ms = new MineQuery("37.114.55.252", 25565);
+                var ms = new MineQuery(discordGameServer.IP.Address, discordGameServer.IP.Port);
                 var stats = await ms.GetStatsAsync();
                 if (stats == null)
                     return;
