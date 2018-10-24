@@ -17,21 +17,21 @@ namespace MonkeyBot.Services
         {
         }
 
-        protected override async Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
+        protected override async Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
         {
             if (discordGameServer == null)
-                return;
+                return false;
             try
             {
                 var server = new SteamGameServer(discordGameServer.IP);
                 var serverInfo = await server?.GetServerInfoAsync();
                 var playerInfo = (await server?.GetPlayersAsync()).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
-                    return;
+                    return false;
                 var guild = discordClient?.GetGuild(discordGameServer.GuildId);
                 var channel = guild?.GetTextChannel(discordGameServer.ChannelId);
                 if (guild == null || channel == null)
-                    return;
+                    return false;
                 var builder = new EmbedBuilder();
                 builder.WithColor(new Color(21, 26, 35));
                 builder.WithTitle($"{serverInfo.Description} Server ({discordGameServer.IP.Address}:{serverInfo.Port})");
@@ -82,7 +82,7 @@ namespace MonkeyBot.Services
                         logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
                         await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
-                        return;
+                        return false;
                     }
                 }
                 else
@@ -100,6 +100,7 @@ namespace MonkeyBot.Services
                 logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.IP}");
                 throw;
             }
+            return true;
         }
     }
 }

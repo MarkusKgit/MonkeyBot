@@ -45,10 +45,6 @@
       <HintPath>Libs\Discord.Addons.Interactive.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Common\MineCraftServerQuery\" />
-  </ItemGroup>
   
   <PropertyGroup>
   <RuntimeIdentifiers>win7-x64;ubuntu.16.04-x64</RuntimeIdentifiers>

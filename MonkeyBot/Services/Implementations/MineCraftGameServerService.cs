@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Services.Common;
 using MonkeyBot.Services.Common.MineCraftServerQuery;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -16,29 +17,38 @@ namespace MonkeyBot.Services
         {
         }
 
-        protected override async Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
+        protected override async Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
         {
             if (discordGameServer == null)
-                return;
+                return false;
+            MineQuery query = null;
             try
             {
-                var ms = new MineQuery(discordGameServer.IP.Address, discordGameServer.IP.Port);
-                var stats = await ms.GetStatsAsync();
-                if (stats == null)
-                    return;
+                query = new MineQuery(discordGameServer.IP.Address, discordGameServer.IP.Port);
+                var serverInfo = await query.GetServerInfoAsync();
+                if (serverInfo == null)
+                    return false;
                 var guild = discordClient?.GetGuild(discordGameServer.GuildId);
                 var channel = guild?.GetTextChannel(discordGameServer.ChannelId);
                 if (guild == null || channel == null)
-                    return;
+                    return false;
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"Minecraft Server ({discordGameServer.IP.Address}:{discordGameServer.IP.Port})")
-                    .WithDescription($"Motd: {stats.Motd}")
-                    .AddField("Online Players", $"{stats.CurrentPlayers}/{stats.MaximumPlayers}");
+                    .WithDescription($"Motd: {serverInfo.Description.Motd}");
+
+                if (serverInfo.Players.Sample != null && serverInfo.Players.Sample.Count > 0)
+                {
+                    builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)));
+                }
+                else
+                {
+                    builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
+                }
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
-                    discordGameServer.GameVersion = stats.Version;
+                    discordGameServer.GameVersion = serverInfo.Version.Name;
                     using (var uow = dbService.UnitOfWork)
                     {
                         await uow.GameServers.AddOrUpdateAsync(discordGameServer);
@@ -47,9 +57,9 @@ namespace MonkeyBot.Services
                 }
                 else
                 {
-                    if (stats.Version != discordGameServer.GameVersion)
+                    if (serverInfo.Version.Name != discordGameServer.GameVersion)
                     {
-                        discordGameServer.GameVersion = stats.Version;
+                        discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         using (var uow = dbService.UnitOfWork)
                         {
@@ -61,12 +71,10 @@ namespace MonkeyBot.Services
                 string lastServerUpdate = "";
                 if (discordGameServer.LastVersionUpdate.HasValue)
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
-                builder.AddField("Server version", $"{stats.Version}{lastServerUpdate}");
 
-                builder.WithFooter($"Last check: {DateTime.Now}");
+                builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
                 if (discordGameServer.MessageId.HasValue)
                 {
-
                     if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
                     {
                         await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
@@ -76,7 +84,7 @@ namespace MonkeyBot.Services
                         logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
                         await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
-                        return;
+                        return false;
                     }
                 }
                 else
@@ -94,6 +102,12 @@ namespace MonkeyBot.Services
                 logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.IP}");
                 throw;
             }
+            finally
+            {
+                if (query != null)
+                    query.Dispose();
+            }
+            return true;
         }
     }
 }

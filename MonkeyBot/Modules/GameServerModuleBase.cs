@@ -26,18 +26,21 @@ namespace MonkeyBot.Modules
             var endPoint = await ParseIPAsync(ip);
             if (endPoint == null)
                 return;
-
+            bool success = false;
             try
             {
                 // Add the Server to the Service to activate it
-                await gameServerService.AddServerAsync(endPoint, Context.Guild.Id, channelID);
+                success = await gameServerService.AddServerAsync(endPoint, Context.Guild.Id, channelID);
             }
             catch (Exception ex)
             {
                 await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}");
                 logger.LogWarning(ex, "Error adding a gameserver");
             }
-            await ReplyAsync("GameServer added");
+            if (success)
+                await ReplyAsync("GameServer added");
+            else
+                await ReplyAsync("GameServer could not be added");
         }
 
         protected async Task RemoveGameServerInternalAsync(string ip)

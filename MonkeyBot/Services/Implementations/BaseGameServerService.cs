@@ -30,18 +30,22 @@ namespace MonkeyBot.Services
             JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunNow().AndEvery(1).Minutes());
         }
 
-        public async Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
+        public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
             var server = new DiscordGameServerInfo(gameServerType, endpoint, guildID, channelID);
-            using (var uow = dbService.UnitOfWork)
+            bool success = await PostServerInfoAsync(server);
+            if (success)
             {
-                await uow.GameServers.AddOrUpdateAsync(server);
-                await uow.CompleteAsync();
+                using (var uow = dbService.UnitOfWork)
+                {
+                    await uow.GameServers.AddOrUpdateAsync(server);
+                    await uow.CompleteAsync();
+                }
             }
-            await PostServerInfoAsync(server);
+            return success;
         }
 
-        protected abstract Task PostServerInfoAsync(DiscordGameServerInfo discordGameServer);
+        protected abstract Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer);
 
         private async Task PostAllServerInfoAsync()
         {
@@ -79,7 +83,6 @@ namespace MonkeyBot.Services
                 {
                     logger.LogError(e, "Error trying to remove message from game server");
                 }
-                
             }
 
             using (var uow = dbService.UnitOfWork)
