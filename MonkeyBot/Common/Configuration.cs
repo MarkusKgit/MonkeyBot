@@ -26,6 +26,9 @@ namespace MonkeyBot.Common
         /// <summary> The bot's testing login token. </summary>
         public string TestingToken { get; set; } = "";
 
+        /// <summary> Api credentials for cloudinary for uploading pictures. </summary>
+        public CloudinaryCredentials CloudinaryCredentials { get; set; } = null;
+
         /// <summary>Makes sure that a config file exists and asks for the tokens on first run</summary>
         public static async Task EnsureExistsAsync()
         {

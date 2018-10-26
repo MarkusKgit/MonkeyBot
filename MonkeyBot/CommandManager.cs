@@ -35,7 +35,7 @@ namespace MonkeyBot
 
         public async Task StartAsync()
         {
-            await commandService.AddModulesAsync(Assembly.GetEntryAssembly());
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
 
             discordClient.MessageReceived += HandleCommandAsync;
         }
