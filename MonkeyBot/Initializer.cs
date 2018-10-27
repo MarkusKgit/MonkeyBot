@@ -1,21 +1,21 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration;
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
-using Fclp;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using MonkeyBot.Services.Common;
 using MonkeyBot.Services.Common.Announcements;
 using MonkeyBot.Services.Common.Feeds;
 using MonkeyBot.Services.Common.GameSubscription;
 using MonkeyBot.Services.Common.RoleButtons;
-using MonkeyBot.Services.Common.SteamServerQuery;
 using MonkeyBot.Services.Common.Trivia;
 using MonkeyBot.Services.Implementations;
 using NLog.Extensions.Logging;
@@ -26,20 +26,8 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task InitializeAsync(string[] args)
+        public static async Task<IServiceProvider> InitializeAsync(ApplicationArguments args)
         {
-            var parser = new FluentCommandLineParser<ApplicationArguments>();
-            parser
-                .Setup(arg => arg.BuildDocumentation)
-                .As('d', "docu")
-                .SetDefault(false)
-                .WithDescription("Build the documentation files in the app folder");
-            parser
-                .SetupHelp("?", "help")
-                .Callback(text => Console.WriteLine(text));
-            var parseResult = parser.Parse(args);
-            var parsedArgs = !parseResult.HasErrors ? parser.Object : null;
-
             InitializeMapper();
 
             var services = ConfigureServices();
@@ -63,8 +51,11 @@ namespace MonkeyBot
             var announcements = services.GetService<IAnnouncementService>();
             await announcements.InitializeAsync();
 
-            var gameServerService = services.GetService<IGameServerService>();
-            gameServerService.Initialize();
+            var steamGameServerService = services.GetService<SteamGameServerService>();
+            steamGameServerService.Initialize();
+
+            var minecraftGameServerService = services.GetService<MineCraftGameServerService>();
+            minecraftGameServerService.Initialize();
 
             var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
@@ -75,11 +66,13 @@ namespace MonkeyBot
             var feedService = services.GetService<IFeedService>();
             feedService.Start();
 
-            if (parsedArgs != null && parsedArgs.BuildDocumentation)
+            if (args != null && args.BuildDocumentation)
             {
                 await manager.BuildDocumentationAsync(); // Write the documentation
                 logger.LogInformation("Documentation built");
             }
+
+            return services;
         }
 
         private static NLog.Config.LoggingConfiguration SetupNLogConfig()
@@ -126,25 +119,22 @@ namespace MonkeyBot
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             services.AddSingleton(new DbService());
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
+            services.AddSingleton<InteractiveService>();
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<ITriviaService, OTDBTriviaService>();
-            services.AddSingleton<IPollService, PollService>();
             services.AddSingleton<IFeedService, FeedService>();
-            services.AddSingleton<IGameServerService, GameServerService>();
+            services.AddSingleton<SteamGameServerService>();
+            services.AddSingleton<MineCraftGameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
             services.AddSingleton<IRoleButtonService, RoleButtonService>();
             services.AddSingleton<IChuckService, ChuckService>();
+            services.AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>();
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
         }
-    }
-
-    public class ApplicationArguments
-    {
-        public bool BuildDocumentation { get; set; }
     }
 }

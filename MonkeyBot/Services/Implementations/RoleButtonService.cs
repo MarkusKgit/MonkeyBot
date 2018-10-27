@@ -71,11 +71,14 @@ namespace MonkeyBot.Services
             IEmote emote = guild.Emotes.FirstOrDefault(x => link.EmoteString.Contains(x.Name)) ?? new Emoji(link.EmoteString) as IEmote;
             if (emote == null)
                 return;
-            var reactedUsers = await msg.GetReactionUsersAsync(emote);
-            foreach (var user in reactedUsers)
+            var reactedUsers = msg.GetReactionUsersAsync(emote, 100);
+            await reactedUsers.ForEachAsync(async users =>
             {
-                await msg.RemoveReactionAsync(emote, user);
-            }
+                foreach (var user in users)
+                {
+                    await msg.RemoveReactionAsync(emote, user);
+                }
+            });
         }
 
         public async Task RemoveAllRoleButtonLinksAsync(ulong guildId)

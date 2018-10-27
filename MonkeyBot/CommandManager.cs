@@ -36,7 +36,7 @@ namespace MonkeyBot
 
         public async Task StartAsync()
         {
-            await commandService.AddModulesAsync(Assembly.GetEntryAssembly());
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
 
             discordClient.MessageReceived += HandleCommandAsync;
         }
@@ -162,11 +162,11 @@ namespace MonkeyBot
         {
             string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.HTML);
             string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
-            await Helpers.WriteTextAsync(fileHTML, docuHTML);
+            await MonkeyHelpers.WriteTextAsync(fileHTML, docuHTML);
 
             string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.MarkDown);
             string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
-            await Helpers.WriteTextAsync(fileMD, docuMD);
+            await MonkeyHelpers.WriteTextAsync(fileMD, docuMD);
         }
     }
 }

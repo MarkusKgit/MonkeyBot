@@ -4,10 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
-using MonkeyBot.Services.Common.Trivia;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -30,12 +27,13 @@ namespace MonkeyBot.Modules
             dbService = provider.GetService<DbService>();
         }
 
-        [Command("Start")]
+        [Command("Start", RunMode = RunMode.Async)]
         [Remarks("Starts a new trivia with the specified amount of questions.")]
         [Example("!trivia start 5")]
         public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questionAmount = 10)
         {
-            if (!await triviaService?.StartTriviaAsync(questionAmount, Context.Guild.Id, Context.Channel.Id))
+            var success = await triviaService.StartTriviaAsync(questionAmount, Context as SocketCommandContext).ConfigureAwait(false);
+            if (!success)
                 await ReplyAsync("Trivia could not be started :(");
         }
 
@@ -43,7 +41,7 @@ namespace MonkeyBot.Modules
         [Remarks("Stops a running trivia")]
         public async Task StopTriviaAsync()
         {
-            if (!(await triviaService?.StopTriviaAsync(Context.Guild.Id, Context.Channel.Id)))
+            if (!(await triviaService?.StopTriviaAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))))
                 await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
         }
 
@@ -51,7 +49,7 @@ namespace MonkeyBot.Modules
         [Remarks("Skips the current question")]
         public async Task SkipQuestionAsync()
         {
-            if (!(await triviaService?.SkipQuestionAsync(Context.Guild.Id, Context.Channel.Id)))
+            if (!(await triviaService?.SkipQuestionAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))))
                 await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
         }
 
@@ -60,31 +58,17 @@ namespace MonkeyBot.Modules
         [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            List<TriviaScore> userScoresAllTime;
-            using (var uow = dbService.UnitOfWork)
+            var globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext);
+            if (globalScores != null)
             {
-                userScoresAllTime = (await uow.TriviaScores.GetAllForGuildAsync(Context.Guild.Id));
+                var embedBuilder = new EmbedBuilder()
+                    .WithColor(new Color(46, 191, 84))
+                    .WithTitle("Global scores")
+                    .WithDescription(globalScores);
+                await ReplyAsync("", embed: embedBuilder.Build());
             }
-            int correctedCount = Math.Min(amount, userScoresAllTime.Count());
-            if (userScoresAllTime == null || correctedCount < 1)
-            {
-                await ReplyAsync("No scores found!");
-                return;
-            }
-            var sortedScores = userScoresAllTime.OrderByDescending(x => x.Score).Take(correctedCount).ToList();
-            List<string> scoresList = new List<string>();
-            for (int i = 0; i < sortedScores.Count; i++)
-            {
-                var score = sortedScores[i];
-                var userName = (await Context.Client.GetUserAsync(score.UserID))?.Username;
-                scoresList.Add($"**#{i + 1}: {userName}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
-            }
-            var builder = new EmbedBuilder
-            {
-                Color = new Color(46, 191, 84)
-            };
-            builder.AddField($"**Top {correctedCount} of all time**:", string.Join(Environment.NewLine, scoresList));
-            await ReplyAsync("", false, builder.Build());
+            else
+                await ReplyAsync("No stored scores found!");
         }
     }
 }

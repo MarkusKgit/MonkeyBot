@@ -8,6 +8,9 @@ namespace MonkeyBot.Database.Entities
 {
     public class GameServerEntity : BaseGuildEntity
     {
+        [Required]
+        public string GameServerType { get; set; }
+
         [Column("IP")]
         [Required]
         public string IPAsString { get; set; }

@@ -19,7 +19,7 @@ namespace MonkeyBot.Services
                 {
                     var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                     if (chuckResponse.Type == "success" && chuckResponse.Value != null)
-                        return Helpers.CleanHtmlString(chuckResponse.Value.Joke);
+                        return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);
                 }
                 return string.Empty;
             }
@@ -37,7 +37,7 @@ namespace MonkeyBot.Services
                 {
                     var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                     if (chuckResponse.Type == "success" && chuckResponse.Value != null)
-                        return Helpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
+                        return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
                 }
                 return string.Empty;
             }

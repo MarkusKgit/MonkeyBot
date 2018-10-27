@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using Discord;
+using Discord.Commands;
+using MonkeyBot.Common;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -12,25 +15,29 @@ namespace MonkeyBot.Services
         /// Returns boolean success
         /// </summary>
         /// <param name="questionsToPlay">Amount of questions to play</param>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="context">Message context of the channel where the trivia should be hosted</param>
         /// <returns>success</returns>
-        Task<bool> StartTriviaAsync(int questionsToPlay, ulong guildID, ulong channelID);
+        Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context);
 
         /// <summary>
         /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
         /// <returns>success</returns>
-        Task<bool> SkipQuestionAsync(ulong guildID, ulong channelID);
+        Task<bool> SkipQuestionAsync(DiscordId id);
 
         /// <summary>
         /// Stops the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="guildID">Id of the Discord Guild</param>
-        /// <param name="channelID">Id of the Discord channel where the trivia is played</param>
+        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
         /// <returns>success</returns>
-        Task<bool> StopTriviaAsync(ulong guildID, ulong channelID);
+        Task<bool> StopTriviaAsync(DiscordId id);
+
+        /// <summary>
+        /// Gets the current global high scores for the guild
+        /// </summary>
+        /// <param name="context">Context of the channel where the high score was requested</param>
+        /// <returns></returns>
+        Task<string> GetGlobalHighScoresAsync(int amount, SocketCommandContext context);
     }
 }

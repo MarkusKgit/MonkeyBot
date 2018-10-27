@@ -195,7 +195,7 @@ namespace MonkeyBot.Services
 
         private async Task AnnounceAsync(string message, ulong guildID, ulong channelID)
         {
-            await Helpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
+            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
         }
 
         private async Task<List<Announcement>> GetAllAnnouncementsAsync()

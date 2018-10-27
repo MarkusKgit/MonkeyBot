@@ -1,5 +1,5 @@
 ﻿using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.SteamServerQuery;
+using MonkeyBot.Services.Common;
 
 namespace MonkeyBot.Database.Repositories
 {

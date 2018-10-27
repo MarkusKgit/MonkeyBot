@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
+using dokas.FluentStrings;
 using System;
 using System.IO;
 using System.Linq;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Common
 {
-    public static class Helpers
+    public static class MonkeyHelpers
     {
         /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
         public static async Task<IRole> GetManageRolesRoleAsync(ICommandContext context)
@@ -31,7 +33,7 @@ namespace MonkeyBot.Common
             if (!File.Exists(filePath))
             {
                 string strippedPath = Path.GetDirectoryName(filePath);
-                if (!Directory.Exists(strippedPath))
+                if (!strippedPath.IsEmpty().OrWhiteSpace() && !Directory.Exists(strippedPath))
                     Directory.CreateDirectory(strippedPath);
             }
 
@@ -81,11 +83,11 @@ namespace MonkeyBot.Common
         /// <param name="guildID">Id of the Discord guild</param>
         /// <param name="channelID">Id of the Discord channel</param>
         /// <param name="text">Text to post</param>
-        public static async Task SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public static async Task<RestUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
             var guild = await client?.GetGuildAsync(guildID);
             var channel = await guild?.GetChannelAsync(channelID) as SocketTextChannel;
-            await channel?.SendMessageAsync(text, isTTS, embed, options);
+            return await channel?.SendMessageAsync(text, isTTS, embed, options);
         }
 
         public static async Task<T> WithCancellationAsync<T>(
@@ -103,6 +105,29 @@ namespace MonkeyBot.Common
         public static string CleanHtmlString(string html)
         {
             return System.Net.WebUtility.HtmlDecode(html);
+        }
+
+        public static string GetUnicodeRegionalLetter(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return "🇦";
+                case 1:
+                    return "🇧";
+                case 2:
+                    return "🇨";
+                case 3:
+                    return "🇩";
+                case 4:
+                    return "🇪";
+                case 5:
+                    return "🇫";
+                case 6:
+                    return "🇬";
+                default:
+                    return "";
+            }
         }
     }
 }

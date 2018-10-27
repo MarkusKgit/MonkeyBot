@@ -26,6 +26,9 @@ namespace MonkeyBot.Common
         /// <summary> The bot's testing login token. </summary>
         public string TestingToken { get; set; } = "";
 
+        /// <summary> Api credentials for cloudinary for uploading pictures. </summary>
+        public CloudinaryCredentials CloudinaryCredentials { get; set; } = null;
+
         /// <summary>Makes sure that a config file exists and asks for the tokens on first run</summary>
         public static async Task EnsureExistsAsync()
         {
@@ -56,14 +59,14 @@ namespace MonkeyBot.Common
         public async Task SaveAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            await Helpers.WriteTextAsync(filePath, ToJson());
+            await MonkeyHelpers.WriteTextAsync(filePath, ToJson());
         }
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<Configuration> LoadAsync()
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, FileName);
-            string json = await Helpers.ReadTextAsync(filePath);
+            string json = await MonkeyHelpers.ReadTextAsync(filePath);
             return JsonConvert.DeserializeObject<Configuration>(json);
         }
 

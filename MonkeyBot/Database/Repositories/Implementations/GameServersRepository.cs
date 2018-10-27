@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.SteamServerQuery;
+using MonkeyBot.Services.Common;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
@@ -18,6 +18,7 @@ namespace MonkeyBot.Database.Repositories
             {
                 dbSet.Add(dbServerInfo = new GameServerEntity
                 {
+                    GameServerType = obj.GameServerType.ToString(),
                     GuildId = obj.GuildId,
                     ChannelId = obj.ChannelId,
                     IP = obj.IP,
@@ -28,6 +29,7 @@ namespace MonkeyBot.Database.Repositories
             }
             else
             {
+                dbServerInfo.GameServerType = obj.GameServerType.ToString();
                 dbServerInfo.GuildId = obj.GuildId;
                 dbServerInfo.ChannelId = obj.ChannelId;
                 dbServerInfo.IP = obj.IP;

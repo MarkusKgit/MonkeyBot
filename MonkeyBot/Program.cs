@@ -1,19 +1,35 @@
-﻿using MonkeyBot;
+﻿using Discord.WebSocket;
+using Fclp;
+using Microsoft.Extensions.DependencyInjection;
+using MonkeyBot;
 using MonkeyBot.Common;
 using System;
 using System.Threading.Tasks;
 
 public class Program
 {
-#pragma warning disable CC0061
+    private static IServiceProvider services;
 
     public static async Task Main(string[] args)
     {
+        var parser = new FluentCommandLineParser<ApplicationArguments>();
+        parser
+            .Setup(arg => arg.BuildDocumentation)
+            .As('d', "docu")
+            .SetDefault(false)
+            .WithDescription("Build the documentation files in the app folder");
+        parser
+            .SetupHelp("?", "help")
+            .Callback(text => Console.WriteLine(text));
+        var parseResult = parser.Parse(args);
+        var parsedArgs = !parseResult.HasErrors ? parser.Object : null;
+
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
         await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
-        await Initializer.InitializeAsync(args);
+        services = await Initializer.InitializeAsync(parsedArgs);
 
         await Task.Delay(-1); // Prevent the console window from closing.
     }
@@ -27,5 +43,17 @@ public class Program
             await Console.Out.WriteLineAsync("Terminating!");
     }
 
-#pragma warning restore CC0061
+    private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
+    {
+        if (services != null)
+        {
+            var discordClient = services.GetService<DiscordSocketClient>();
+            if (discordClient != null)
+            {
+                discordClient.LogoutAsync().Wait();
+                discordClient.StopAsync().Wait();
+            }
+        }
+        await Console.Out.WriteLineAsync("Exiting!");
+    }
 }

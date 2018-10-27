@@ -24,7 +24,7 @@ namespace MonkeyBot.Modules
 
         [Command("SetWelcomeMessage")]
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
-        [Example("!SetWelcomeMessage \"Hello %user%, welcome to %server$\"")]
+        [Example("!SetWelcomeMessage \"Hello %user%, welcome to %server%\"")]
         public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
         {
             welcomeMsg = welcomeMsg.Trim('\"');

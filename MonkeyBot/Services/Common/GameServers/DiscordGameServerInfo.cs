@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
 
-namespace MonkeyBot.Services.Common.SteamServerQuery
+namespace MonkeyBot.Services.Common
 {
     public class DiscordGameServerInfo
     {
+        public GameServerType GameServerType { get; private set; }
+
         public IPEndPoint IP { get; private set; }
 
         public ulong GuildId { get; private set; }
@@ -21,8 +23,9 @@ namespace MonkeyBot.Services.Common.SteamServerQuery
         {
         }
 
-        public DiscordGameServerInfo(IPEndPoint endpoint, ulong guildID, ulong channelID)
+        public DiscordGameServerInfo(GameServerType gameServerType, IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
+            GameServerType = gameServerType;
             IP = endpoint;
             GuildId = guildID;
             ChannelId = channelID;

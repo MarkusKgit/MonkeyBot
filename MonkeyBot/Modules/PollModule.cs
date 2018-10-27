@@ -1,12 +1,15 @@
 ﻿using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.WebSocket;
 using dokas.FluentStrings;
+using Humanizer;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
-using MonkeyBot.Services;
 using MonkeyBot.Services.Common.Poll;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -17,13 +20,12 @@ namespace MonkeyBot.Modules
     [Name("Simple poll")]
     [RequireContext(ContextType.Guild)]
     [MinPermissions(AccessLevel.User)]
-    public class PollModule : ModuleBase
+    public class PollModule : InteractiveBase
     {
-        private readonly IPollService pollService;
+        private static TimeSpan pollDuration = TimeSpan.FromHours(1);
 
-        public PollModule(IPollService pollService)
+        public PollModule()
         {
-            this.pollService = pollService;
         }
 
         [Command("Poll")]
@@ -40,15 +42,19 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question");
                 return;
             }
-            List<Emoji> reactions = new List<Emoji> { new Emoji("👍"), new Emoji("👎"), new Emoji("🤷") };
             Poll poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
                 Question = question,
-                Answers = new List<Emoji>(reactions)
+                Answers = new List<PollAnswer>
+                {
+                    new PollAnswer("Yes", new Emoji("👍")),
+                    new PollAnswer("No", new Emoji("👎")),
+                    new PollAnswer("Don't care", new Emoji("🤷"))
+                }
             };
-            await pollService.AddPollAsync(poll);
+            await InlineReactionReplyAsync(GeneratePoll(poll), false);
         }
 
         [Command("Poll")]
@@ -64,58 +70,85 @@ namespace MonkeyBot.Modules
                 await StartPollAsync(question);
                 return;
             }
+            if (answers.Length < 2)
+            {
+                await ReplyAsync("Please provide at least 2 answers");
+                return;
+            }
             if (answers.Length > 7)
             {
                 await ReplyAsync("Please provide a maximum of 7 answers");
                 return;
             }
             question = question.Trim('\"');
-            if (question.IsEmpty())
+            if (question.IsEmpty().OrWhiteSpace())
             {
                 await ReplyAsync("Please enter a question");
                 return;
             }
 
-            StringBuilder questionBuilder = new StringBuilder();
-            List<Emoji> reactions = new List<Emoji>();
-            questionBuilder.AppendLine(question);
-            for (int i = 0; i < answers.Length; i++)
-            {
-                char reactionLetter = (char)('A' + i);
-                questionBuilder.AppendLine($"{reactionLetter}: {answers[i].Trim()}");
-                reactions.Add(new Emoji(GetUnicodeRegionalLetter(i)));
-            }
             Poll poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
-                Question = questionBuilder.ToString(),
-                Answers = new List<Emoji>(reactions)
+                Question = question,
+                Answers = answers.Select((ans, i) => new PollAnswer(ans, new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(i)))).ToList()
             };
-            await pollService.AddPollAsync(poll);
+            await InlineReactionReplyAsync(GeneratePoll(poll), false);
         }
 
-        private static string GetUnicodeRegionalLetter(int index)
+        private static ReactionCallbackData GeneratePoll(Poll poll)
         {
-            switch (index)
+            string answers = string.Join(Environment.NewLine, poll.Answers.Select(x => $"{x.AnswerEmoji} {x.Answer}"));
+
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle($"New Poll: {poll.Question}")
+                .WithColor(new Color(20, 20, 20))
+                .WithDescription(
+                    "- Pick an option by clicking on the corresponding Emoji" + Environment.NewLine
+                    + "- Only your first pick counts!" + Environment.NewLine
+                    + $"- You have {pollDuration.Humanize()} to cast your vote"
+                    )
+                .AddField("Pick one", answers);
+
+            var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll));
+            foreach (var answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
             {
-                case 0:
-                    return "🇦";
-                case 1:
-                    return "🇧";
-                case 2:
-                    return "🇨";
-                case 3:
-                    return "🇩";
-                case 4:
-                    return "🇪";
-                case 5:
-                    return "🇫";
-                case 6:
-                    return "🇬";
-                default:
-                    return "";
+                rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(c, r, poll));
             }
+            return rcbd;
+        }
+
+        private static Task AddVoteCount(SocketCommandContext context, SocketReaction reaction, Poll poll)
+        {
+            var answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
+            if (answer != null && reaction.User.IsSpecified)
+                poll.ReactionUsers.AddOrUpdate(answer, new List<IUser> { reaction.User.Value }, (_, list) =>
+                    {
+                        list.Add(reaction.User.Value);
+                        return list;
+                    }
+                );
+            return Task.CompletedTask;
+        }
+
+        private static async Task PollEndedAsync(SocketCommandContext context, Poll poll)
+        {
+            if (poll == null)
+                return;
+            var answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
+            var participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
+            string participantsString = "-";
+            if (participants != null && participants.Count > 0)
+                participantsString = string.Join(", ", participants?.Select(x => x.Mention));
+
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle($"Poll ended: {poll.Question}")
+                .WithColor(new Color(20, 20, 20))
+                .AddField("Results", string.Join(Environment.NewLine, answerCounts))
+                .AddField("Voters", participantsString);
+
+            await context.Channel.SendMessageAsync("", embed: embedBuilder.Build());
         }
     }
 }

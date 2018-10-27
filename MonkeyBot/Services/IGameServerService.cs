@@ -12,7 +12,7 @@ namespace MonkeyBot.Services
         /// <param name="guildID"></param>
         /// <param name="channelID"></param>
         /// <returns></returns>
-        Task AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID);
+        Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID);
 
         /// <summary>
         /// Removes a game server listener from the specified channel
