@@ -32,7 +32,7 @@ namespace MonkeyBot.Services.Implementations
 
             var uploadResult = await Task.Run(() => cloudinary.Upload(uploadParams));
 
-            return uploadResult.SecureUri.OriginalString;
+            return uploadResult?.SecureUri?.OriginalString ?? "";
         }
     }
 }
