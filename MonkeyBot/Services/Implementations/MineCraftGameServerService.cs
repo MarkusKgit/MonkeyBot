@@ -108,9 +108,9 @@ namespace MonkeyBot.Services
                         await existingMessage.ModifyAsync(x =>
                         {
                             //Reuse old image url if new one is not set
-                            if (pictureUrl.IsEmpty().OrWhiteSpace() && x.Embed.IsSpecified && x.Embed.Value.Image.HasValue)
+                            if (pictureUrl.IsEmpty().OrWhiteSpace() && existingMessage.Embeds.FirstOrDefault() != null && existingMessage.Embeds.First().Image.HasValue)
                             {
-                                builder.WithImageUrl(x.Embed.Value.Image.Value.Url);
+                                builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
                             }
                             x.Embed = builder.Build();
                             });
