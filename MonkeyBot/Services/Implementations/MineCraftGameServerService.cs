@@ -87,9 +87,10 @@ namespace MonkeyBot.Services
                 builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
                 // Generate chart every full 5 minutes (limit picture upload API calls)
+                string pictureUrl = "";
                 if (DateTime.Now.Minute % 5 == 0)
                 {
-                    string pictureUrl = await GenerateAndUploadChartAsync(
+                    pictureUrl = await GenerateAndUploadChartAsync(
                         discordGameServer.IP.ToString().Replace(".", "_").Replace(":", "_"),
                         serverInfo.Players.Online,
                         serverInfo.Players.Max);
@@ -103,8 +104,16 @@ namespace MonkeyBot.Services
                 if (discordGameServer.MessageId.HasValue)
                 {
                     if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
-                    {
-                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
+                    {                        
+                        await existingMessage.ModifyAsync(x =>
+                        {
+                            //Reuse old image url if new one is not set
+                            if (pictureUrl.IsEmpty().OrWhiteSpace() && x.Embed.IsSpecified && x.Embed.Value.Image.HasValue)
+                            {
+                                builder.WithImageUrl(x.Embed.Value.Image.Value.Url);
+                            }
+                            x.Embed = builder.Build();
+                            });
                     }
                     else
                     {
@@ -183,8 +192,6 @@ namespace MonkeyBot.Services
                 }
             };
             double tickSpan = span.TotalHours;
-
-            var xx = now - span;
 
             List<PointF> transformedValues = historicData
                 .Select(d => new PointF(
