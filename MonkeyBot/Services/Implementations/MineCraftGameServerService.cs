@@ -86,14 +86,18 @@ namespace MonkeyBot.Services
 
                 builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
-                string pictureUrl = await GenerateAndUploadChartAsync(
-                    discordGameServer.IP.ToString().Replace(".", "_").Replace(":", "_"),
-                    serverInfo.Players.Online,
-                    serverInfo.Players.Max);
-
-                if (!pictureUrl.IsEmpty().OrWhiteSpace())
+                // Generate chart every full 5 minutes (limit picture upload API calls)
+                if (DateTime.Now.Minute % 5 == 0)
                 {
-                    builder.WithImageUrl(pictureUrl);
+                    string pictureUrl = await GenerateAndUploadChartAsync(
+                        discordGameServer.IP.ToString().Replace(".", "_").Replace(":", "_"),
+                        serverInfo.Players.Online,
+                        serverInfo.Players.Max);
+
+                    if (!pictureUrl.IsEmpty().OrWhiteSpace())
+                    {
+                        builder.WithImageUrl(pictureUrl);
+                    }
                 }
 
                 if (discordGameServer.MessageId.HasValue)
