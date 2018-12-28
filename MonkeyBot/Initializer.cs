@@ -97,7 +97,7 @@ namespace MonkeyBot
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
-            cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(GetAnnouncement);
+            cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(x => GetAnnouncement(x));
 
             Mapper.Initialize(cfg);
         }
