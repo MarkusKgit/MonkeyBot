@@ -20,6 +20,7 @@ Currently it can only be self-hosted - no invite available. Feel free to contrib
 C# libraries that are being used:
 
 + [AutoMapper](https://github.com/AutoMapper/AutoMapper)
++ [CloudinaryDotNet](https://github.com/cloudinary/CloudinaryDotNet)
 + [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
 + [Discord.Net](https://github.com/RogueException/Discord.Net)
 + [Fluent Command Line Parser](https://github.com/PingmanTools/fluent-command-line-parser/tree/netstandard)
