@@ -5,7 +5,9 @@
     <a href="https://discord.gg/u43XvME"><img src="https://img.shields.io/badge/Join-MonkeyBot-7289DA.svg?longCache=true&style=flat-square&logo=discord"/>
     </a>
     <a href="https://ci.appveyor.com/project/MarkusKgit/monkeybot/branch/master"><img src="https://ci.appveyor.com/api/projects/status/n8jxa05v2o17hyww/branch/master?svg=true"/>
-    </a>  
+    </a>
+    <a href="https://github.com/MarkusKgit/MonkeyBot/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg"/>
+    </a>
   </p>
 </p>
 
