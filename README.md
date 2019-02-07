@@ -97,6 +97,19 @@ C# libraries that are being used:
 *Remarks:* Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.  
   
 ---  
+### Dog pictures
+**Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
+  
+`!dog `  
+*Remarks:* Gets a random Dog picture.  
+  
+`!dog _breed`  
+*Remarks:* Gets a random Dog picture for the given breed.  
+  
+`!dogbreeds `  
+*Remarks:* Gets a list of available dog breeds.  
+  
+---  
 ### Feeds
 **Preconditions:** Minimum permission: *Server Admin*, Can only be used in a *channel*, Bot requires guild permission: *Embed Links*  
   
@@ -303,3 +316,4 @@ C# libraries that are being used:
 *Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets the xkcd comic with the specified number  
   
+---  
