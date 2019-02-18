@@ -151,7 +151,10 @@ namespace MonkeyBot.Services
                 builder.WithColor(new Color(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                     builder.WithImageUrl(feed.ImageUrl);
-                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{ParseHtml(feed.Title) ?? guildFeed.URL}".TruncateTo(255) + "\"";
+                string feedTitle = ParseHtml(feed.Title);
+                if (feedTitle.IsEmpty().OrWhiteSpace())
+                    feedTitle = guildFeed.URL;
+                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255) + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
@@ -169,10 +172,14 @@ namespace MonkeyBot.Services
                     }
                     author = !author.IsEmpty().OrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
-                    string description = ParseHtml(feedItem.Description).Trim().TruncateTo(250).WithEllipsis();
-                    if (description.IsEmpty().OrWhiteSpace())
-                        description = "[...]";
-                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{description}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
+                    string content = ParseHtml(feedItem.Description).Trim();
+                    if (content.IsEmpty().OrWhiteSpace())
+                        content = ParseHtml(feedItem.Content).Trim();
+                    if (content.IsEmpty().OrWhiteSpace())
+                        content = "[...]";
+                    else
+                        content = content.TruncateTo(250).WithEllipsis();
+                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
                     builder.AddField(fieldName, fieldContent, true);
                 }
                 await channel?.SendMessageAsync("", false, builder.Build());
