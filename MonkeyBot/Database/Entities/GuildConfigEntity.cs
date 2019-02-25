@@ -15,6 +15,10 @@ namespace MonkeyBot.Database.Entities
 
         public ulong WelcomeMessageChannelId { get; set; }
 
+        public string GoodbyeMessageText { get; set; }
+
+        public ulong GoodbyeMessageChannelId { get; set; }
+
         [Column("Rules")]
         public string RulesAsString { get; set; }
 

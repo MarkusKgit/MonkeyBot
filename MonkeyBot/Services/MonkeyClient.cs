@@ -17,12 +17,13 @@ namespace MonkeyBot.Services
             MessageCacheSize = 1000
         };
 
-        public MonkeyClient(ILogger<MonkeyClient> logger, DbService db) : base(discordConfig)
+        public MonkeyClient(ILogger<MonkeyClient> logger, DbService dbService) : base(discordConfig)
         {
             this.logger = logger;
-            this.dbService = db;
+            this.dbService = dbService;
             this.Log += MonkeyClient_LogAsync;
             this.UserJoined += Client_UserJoinedAsync;
+            this.UserLeft += Client_UserLeftAsync;
             this.Connected += Client_ConnectedAsync;
         }
 
@@ -47,9 +48,28 @@ namespace MonkeyBot.Services
             }
             if (!welcomeMessage.IsEmpty())
             {
-                welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name);
-                welcomeMessage = welcomeMessage.Replace("%user%", arg.Mention);
+                welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Mention);                
                 await channel?.SendMessageAsync(welcomeMessage);
+            }
+        }
+
+        private async Task Client_UserLeftAsync(SocketGuildUser arg)
+        {
+            if (arg.Guild == null)
+                return;
+            ITextChannel channel = arg.Guild.DefaultChannel;
+            string goodbyeMessage = string.Empty;
+            using (var uow = dbService?.UnitOfWork)
+            {
+                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id);
+                goodbyeMessage = guildConfig?.GoodbyeMessageText;
+                if (guildConfig?.GoodbyeMessageChannelId != null)
+                    channel = arg.Guild.GetTextChannel(guildConfig.GoodbyeMessageChannelId) ?? arg.Guild.DefaultChannel;
+            }
+            if (!goodbyeMessage.IsEmpty())
+            {
+                goodbyeMessage = goodbyeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Username);
+                await channel?.SendMessageAsync(goodbyeMessage);
             }
         }
 

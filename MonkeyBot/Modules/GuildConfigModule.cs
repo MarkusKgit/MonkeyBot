@@ -21,7 +21,6 @@ namespace MonkeyBot.Modules
             this.dbService = db;
         }
 
-        #region WelcomeMessage
 
         [Command("SetWelcomeMessage")]
         [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
@@ -65,10 +64,48 @@ namespace MonkeyBot.Modules
             await ReplyAndDeleteAsync("Channel set");
         }
 
-        #endregion WelcomeMessage
+        [Command("SetGoodbyeMessage")]
+        [Remarks("Sets the Goodbye message for new users. Can make use of %user% and %server%")]
+        [Example("!SetGoodbyeMessage \"Goodbye %user%, farewell!\"")]
+        public async Task SetGoodbyeMessageAsync([Summary("The Goodbye message")][Remainder] string goodbyeMsg)
+        {
+            goodbyeMsg = goodbyeMsg.Trim('\"');
+            if (goodbyeMsg.IsEmpty())
+            {
+                await ReplyAsync("Please provide a goodbye message");
+                return;
+            }
 
-        #region Rules
+            using (var uow = dbService.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                config.GoodbyeMessageText = goodbyeMsg;
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+            await ReplyAndDeleteAsync("Message set");
+        }
 
+        [Command("SetGoodbyeChannel")]
+        [Remarks("Sets the channel where the Goodbye message will be posted")]
+        [Example("!SetGoodbyeChannel general")]
+        public async Task SetGoodbyeChannelAsync([Summary("The Goodbye message channel")][Remainder] string channelName)
+        {
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false);
+            using (var uow = dbService.UnitOfWork)
+            {
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                if (config == null)
+                    config = new GuildConfig(Context.Guild.Id);
+                config.GoodbyeMessageChannelId = channel.Id;
+                await uow.GuildConfigs.AddOrUpdateAsync(config);
+                await uow.CompleteAsync();
+            }
+            await ReplyAndDeleteAsync("Channel set");
+        }
+                        
         [Command("AddRule")]
         [Remarks("Adds a rule to the server.")]
         [Example("!AddRule \"You shall not pass!\"")]
@@ -107,7 +144,5 @@ namespace MonkeyBot.Modules
             }
             await ReplyAndDeleteAsync("Rules removed");
         }
-
-        #endregion Rules
     }
 }

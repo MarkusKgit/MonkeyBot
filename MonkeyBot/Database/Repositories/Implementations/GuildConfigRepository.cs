@@ -32,7 +32,9 @@ namespace MonkeyBot.Database.Repositories
                     Rules = obj.Rules,
                     CommandPrefix = obj.CommandPrefix,
                     WelcomeMessageText = obj.WelcomeMessageText,
-                    WelcomeMessageChannelId = obj.WelcomeMessageChannelId
+                    WelcomeMessageChannelId = obj.WelcomeMessageChannelId,
+                    GoodbyeMessageText = obj.GoodbyeMessageText,
+                    GoodbyeMessageChannelId = obj.GoodbyeMessageChannelId
                 });
             }
             else
@@ -42,6 +44,8 @@ namespace MonkeyBot.Database.Repositories
                 dbCfg.CommandPrefix = obj.CommandPrefix;
                 dbCfg.WelcomeMessageText = obj.WelcomeMessageText;
                 dbCfg.WelcomeMessageChannelId = obj.WelcomeMessageChannelId;
+                dbCfg.GoodbyeMessageText = obj.GoodbyeMessageText;
+                dbCfg.GoodbyeMessageChannelId = obj.GoodbyeMessageChannelId;
                 dbSet.Update(dbCfg);
             }
         }
