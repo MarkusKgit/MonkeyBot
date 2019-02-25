@@ -50,19 +50,11 @@ C# libraries that are being used:
 ### Announcements
 **Preconditions:** Minimum permission: *Server Admin*, Can only be used in a *channel*  
   
-`!announcements addrecurring _announcementId _cronExpression _announcement`  
-*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" "It is Friday 19:00"`  
-*Remarks:* Adds the specified recurring announcement to the current channel  
-  
-`!announcements addrecurring _announcementId _cronExpression _channelName _announcement`  
-*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" "general" "It is Friday 19:00"`  
+`!announcements addrecurring _announcementId _cronExpression _announcement _channelName`  
+*Example:* `!announcements addrecurring "weeklyMsg1" "0 19 * * 5" "It is Friday 19:00" "general"`  
 *Remarks:* Adds the specified recurring announcement to the specified channel  
   
-`!announcements addsingle _announcementId _time _announcement`  
-*Example:* `!announcements addsingle "reminder1" "19:00" "It is 19:00"`  
-*Remarks:* Adds the specified single announcement at the given time to the current channel  
-  
-`!announcements addsingle _announcementId _time _channelName _announcement`  
+`!announcements addsingle _announcementId _time _announcement _channelName`  
 *Example:* `!announcements addsingle "reminder1" "19:00" "general" "It is 19:00"`  
 *Remarks:* Adds the specified single announcement at the given time to the specified channel  
   
@@ -93,7 +85,7 @@ C# libraries that are being used:
 `!chuck `  
 *Remarks:* Gets a random Chuck Norris fact.  
   
-`!chuck _name`  
+`!chuck _username`  
 *Remarks:* Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.  
   
 ---  
@@ -150,6 +142,14 @@ C# libraries that are being used:
 `!setwelcomechannel _channelName`  
 *Example:* `!SetWelcomeChannel general`  
 *Remarks:* Sets the channel where the welcome message will be posted  
+  
+`!setgoodbyemessage _goodbyeMsg`  
+*Example:* `!SetGoodbyeMessage "Goodbye %user%, farewell!"`  
+*Remarks:* Sets the Goodbye message for new users. Can make use of %user% and %server%  
+  
+`!setgoodbyechannel _channelName`  
+*Example:* `!SetGoodbyeChannel general`  
+*Remarks:* Sets the channel where the Goodbye message will be posted  
   
 `!addrule _rule`  
 *Example:* `!AddRule "You shall not pass!"`  
@@ -212,7 +212,7 @@ C# libraries that are being used:
 *Preconditions:* User requires channel permission: *Manage Messages*, Bot requires channel permission: *Manage Messages*  
 *Remarks:* Deletes the specified amount of messages  
   
-`!prune _user _count`  
+`!prune _userName _count`  
 *Example:* `!Prune JohnDoe 10`  
 *Preconditions:* User requires channel permission: *Manage Messages*, Bot requires channel permission: *Manage Messages*  
 *Remarks:* Deletes the specified amount of messages for the specified user  
@@ -316,4 +316,4 @@ C# libraries that are being used:
 *Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets the xkcd comic with the specified number  
   
----  
+---
