@@ -17,7 +17,7 @@ namespace MonkeyBot.Modules
     [Name("Announcements")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireContext(ContextType.Guild)]
-    public class AnnouncementsModule : ModuleBase
+    public class AnnouncementsModule : MonkeyModuleBase
     {
         private readonly IAnnouncementService announcementService;
         private readonly ILogger<AnnouncementsModule> logger;
@@ -41,11 +41,8 @@ namespace MonkeyBot.Modules
         [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"general\" \"It is Friday 19:00\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
-            var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-            if (channel == null)
-                await ReplyAsync("The specified channel does not exist");
-            else
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName);
+            if (channel != null)
                 await AddRecurringAsync(announcementId, cronExpression, channel.Id, announcement);
         }
 
@@ -101,11 +98,8 @@ namespace MonkeyBot.Modules
         [Example("!announcements addsingle \"reminder1\" \"19:00\" \"general\" \"It is 19:00\"")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
         {
-            var allChannels = await Context.Guild.GetTextChannelsAsync();
-            var channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-            if (channel == null)
-                await ReplyAsync("The specified channel does not exist");
-            else
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName);
+            if (channel != null)
                 await AddSingleAsync(announcementId, time, channel.Id, announcement);
         }
 
@@ -175,7 +169,7 @@ namespace MonkeyBot.Modules
             }
             message = builder.ToString();
             await Context.User.SendMessageAsync(message);
-            await ReplyAsync("I have sent you a private message");
+            await ReplyAndDeleteAsync("I have sent you a private message");
         }
 
         [Command("Remove")]
@@ -192,7 +186,7 @@ namespace MonkeyBot.Modules
             try
             {
                 await announcementService.RemoveAsync(cleanID, Context.Guild.Id);
-                await ReplyAsync("The announcement has been removed!");
+                await ReplyAndDeleteAsync("The announcement has been removed!");
             }
             catch (Exception ex)
             {

@@ -16,25 +16,17 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
     [RequireBotPermission(GuildPermission.ManageRoles)]
-    public class SelfAssignRolesModule : ModuleBase
+    public class SelfAssignRolesModule : MonkeyModuleBase
     {
         [Command("Add")]
         [Remarks("Adds the specified role to your own roles.")]
         [Example("!roles add bf")]
-        public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName = null)
+        public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName)
         {
-            if (roleName.IsEmpty())
-            {
-                await ReplyAsync("You need to specify a role you wish to add!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
-                return;
-            }
             // Get the role with the specified name
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == roleName.ToLower());
-            if (role == null)
-            {
-                await ReplyAsync("The role you specified is invalid!" + Environment.NewLine + "Consider using \"!roles list\" to get a list of assignable roles");
-                return;
-            }
+            IRole role = await GetRoleInGuildAsync(roleName);
+            if (role == null)            
+                return;            
             // Get the role of the bot with permission manage roles
             var botRole = await MonkeyHelpers.GetManageRolesRoleAsync(Context);
             // The bot's role must be higher than the role to be able to assign it
@@ -50,7 +42,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             await guser.AddRoleAsync(role);
-            await ReplyAsync($"Role {role.Name} has been added");
+            await ReplyAndDeleteAsync($"Role {role.Name} has been added");
         }
 
         [Command("Remove")]
@@ -58,16 +50,9 @@ namespace MonkeyBot.Modules
         [Example("!roles remove bf")]
         public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
-            if (roleName.IsEmpty())
-            {
-                await ReplyAsync("You need to specify a role you wish to remove!");
-            }
-            // Get the role with the specified name
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name.ToLower() == roleName.ToLower());
+            IRole role = await GetRoleInGuildAsync(roleName);
             if (role == null)
-            {
-                await ReplyAsync("The role you specified is invalid!");
-            }
+                return;
             var guser = (IGuildUser)Context.User;
             if (!guser.RoleIds.Contains(role.Id))
             {
@@ -80,7 +65,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Insufficient permissions!");
             }
             await guser.RemoveRoleAsync(role);
-            await ReplyAsync($"Role {role.Name} has been removed");
+            await ReplyAndDeleteAsync($"Role {role.Name} has been removed");
         }
 
         [Command("List")]
@@ -134,7 +119,7 @@ namespace MonkeyBot.Modules
                 }
             }
             await Context.User.SendMessageAsync("", false, builder.Build());
-            await ReplyAsync("I have sent you a private message");
+            await ReplyAndDeleteAsync("I have sent you a private message");
         }
 
         [Command("ListMembers")]
@@ -142,12 +127,9 @@ namespace MonkeyBot.Modules
         [Example("!roles listmembers bf")]
         public async Task ListMembersAsync(string roleName)
         {
-            var role = Context.Guild.Roles.SingleOrDefault(x => x.Name.ToLower() == roleName.ToLower());
+            IRole role = await GetRoleInGuildAsync(roleName);
             if (role == null)
-            {
-                await ReplyAsync($"Role not found! Use roles list to get a list of all roles.");
                 return;
-            }
             var guildUsers = await Context.Guild.GetUsersAsync();
             var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
             if (roleUsers == null || roleUsers.Count() < 1)
@@ -164,7 +146,7 @@ namespace MonkeyBot.Modules
                     x.IsInline = false;
                 });
             await Context.User.SendMessageAsync("", false, builder.Build());
-            await ReplyAsync("I have sent you a private message");
+            await ReplyAndDeleteAsync("I have sent you a private message");
         }
     }
 }

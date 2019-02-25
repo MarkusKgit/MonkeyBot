@@ -14,7 +14,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
     [Name("Dog pictures")]
-    public class DogModule : ModuleBase
+    public class DogModule : MonkeyModuleBase
     {
         private readonly IDogService dogService;
 

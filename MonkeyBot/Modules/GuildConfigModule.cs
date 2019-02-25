@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
@@ -11,7 +12,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.ServerAdmin)]
     [Name("Guild Configuration")]
     [RequireContext(ContextType.Guild)]
-    public class GuildConfigModule : ModuleBase
+    public class GuildConfigModule : MonkeyModuleBase
     {
         private readonly DbService dbService;
 
@@ -43,26 +44,15 @@ namespace MonkeyBot.Modules
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
-            await ReplyAsync("Message set");
+            await ReplyAndDeleteAsync("Message set");
         }
 
         [Command("SetWelcomeChannel")]
         [Remarks("Sets the channel where the welcome message will be posted")]
         [Example("!SetWelcomeChannel general")]
         public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][Remainder] string channelName)
-        {
-            channelName = channelName.Trim('\"');
-            if (channelName.IsEmpty())
-            {
-                await ReplyAsync("Please provide a channel");
-                return;
-            }
-            var channel = (await Context.Guild.GetTextChannelsAsync()).SingleOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-            if (channel == null)
-            {
-                await ReplyAsync("Channel not found. Please check the spelling.");
-                return;
-            }
+        {            
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false);
             using (var uow = dbService.UnitOfWork)
             {
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
@@ -72,7 +62,7 @@ namespace MonkeyBot.Modules
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
-            await ReplyAsync("Channel set");
+            await ReplyAndDeleteAsync("Channel set");
         }
 
         #endregion WelcomeMessage
@@ -98,7 +88,7 @@ namespace MonkeyBot.Modules
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
-            await ReplyAsync("Rule added");
+            await ReplyAndDeleteAsync("Rule added");
         }
 
         [Command("RemoveRules")]
@@ -115,7 +105,7 @@ namespace MonkeyBot.Modules
                     await uow.CompleteAsync();
                 }
             }
-            await ReplyAsync("Rules removed");
+            await ReplyAndDeleteAsync("Rules removed");
         }
 
         #endregion Rules

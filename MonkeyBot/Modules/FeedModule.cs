@@ -17,7 +17,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireContext(ContextType.Guild)]
     [RequireBotPermission(GuildPermission.EmbedLinks)]
-    public class FeedModule : ModuleBase
+    public class FeedModule : MonkeyModuleBase
     {
         private readonly IFeedService feedService;
 
@@ -36,7 +36,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url!");
                 return;
             }
-            ITextChannel channel = await GetChannelAsync(channelName);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true);
             if (channel == null)
             {
                 await ReplyAsync("The specified channel was not found");
@@ -73,7 +73,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url");
                 return;
             }
-            ITextChannel channel = await GetChannelAsync(channelName);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true);
             if (channel == null)
             {
                 await ReplyAsync("The specified channel was not found");
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
         [Remarks("List all current feed urls")]
         public async Task ListFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetChannelAsync(channelName, false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false);
             var feedUrls = await feedService.GetFeedUrlsForGuildAsync(Context.Guild.Id, channel?.Id);
             if (feedUrls == null || feedUrls.Count < 1)
             {
@@ -124,24 +124,8 @@ namespace MonkeyBot.Modules
         [Remarks("Removes all feed urls")]
         public async Task RemoveFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetChannelAsync(channelName, false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false);
             await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id);
-        }
-
-        private async Task<ITextChannel> GetChannelAsync(string channelName, bool defaultToCurrent = true)
-        {
-            var allChannels = await Context.Guild.GetTextChannelsAsync();
-            ITextChannel channel = null;
-            if (!channelName.IsEmpty())
-            {
-                channel = allChannels.FirstOrDefault(x => x.Name.ToLower() == channelName.ToLower());
-            }
-            else if (defaultToCurrent)
-            {
-                channel = Context.Channel as ITextChannel;
-            }
-
-            return channel;
         }
     }
 }

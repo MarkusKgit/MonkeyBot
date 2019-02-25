@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using MonkeyBot.Common;
 using MonkeyBot.Modules.Common;
 using Newtonsoft.Json;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     [Name("Xkcd")]
-    public class XkcdModule : ModuleBase
+    public class XkcdModule : MonkeyModuleBase
     {
         private const string comicUrl = "https://xkcd.com/{0}/";
         private const string apiUrlLatest = "https://xkcd.com/info.0.json";
@@ -20,10 +21,10 @@ namespace MonkeyBot.Modules
         [Priority(0)]
         [Example("!xkcd latest")]
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
-        public async Task GetXkcdAsync(string arg = null)
+        public async Task GetXkcdAsync(string arg = "")
         {
             xkcdResponse comic = null;
-            if (arg != null && arg.ToLower() == "latest")
+            if (arg.ToLower() == "latest")
             {
                 comic = await GetComicAsync(null);
             }
@@ -32,10 +33,7 @@ namespace MonkeyBot.Modules
                 int max = await GetLatestNumberAsync();
                 var rnd = new Random();
                 int rndNumber = rnd.Next(1, max);
-                while (rndNumber == 404) // xkcd 404 does not exist
-                {
-                    rndNumber = rnd.Next(1, max);
-                }
+                while ((rndNumber = rnd.Next(1, max)) == 404) { } // xkcd 404 does not exist                
                 comic = await GetComicAsync(rndNumber);
             }
             await EmbedComicAsync(comic, Context.Channel);

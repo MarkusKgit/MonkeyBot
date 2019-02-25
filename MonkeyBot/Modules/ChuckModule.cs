@@ -13,7 +13,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
     [Name("Chuck Norris jokes")]
-    public class ChuckModule : ModuleBase
+    public class ChuckModule : MonkeyModuleBase
     {
         private readonly IChuckService chuckService;
 
@@ -37,39 +37,18 @@ namespace MonkeyBot.Modules
 
         [Command("Chuck")]
         [Remarks("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
-        public async Task GetChuckFactAsync([Remainder][Summary("The name of the person to chuck")] string name)
+        public async Task GetChuckFactAsync([Remainder][Summary("The name of the person to chuck")] string username)
         {
-            if (name.IsEmpty())
-            {
-                await ReplyAsync("Please provide a name");
-                return;
-            }
-
-            IGuildUser user = null;
-            if (name.StartsWith("<@") && ulong.TryParse(name.Replace("<@", "").Replace(">", ""), out var id))
-                user = await Context.Guild.GetUserAsync(id);
-            else
-            {
-                var users = (await Context.Guild?.GetUsersAsync())?.Where(x => x.Username.ToLower().Contains(name.ToLower()));
-                if (users != null && users.Count() == 1)
-                    user = users.First();
-                else if (users == null)
-                    await ReplyAsync("User not found");
-                else
-                    await ReplyAsync("Multiple users found! Please be more specific. Did you mean one of the following:"
-                        + Environment.NewLine
-                        + string.Join(", ", users.Select(x => x.Username))
-                        );
-            }
+            IGuildUser user = await GetUserInGuildAsync(username);
             if (user == null)
                 return;
-            var fact = await chuckService?.GetChuckFactAsync(name);
+            var fact = await chuckService?.GetChuckFactAsync(username);
             if (fact.IsEmpty())
             {
                 await ReplyAsync("Could not get a chuck fact :(");
                 return;
             }
-            fact = fact.Replace(name, user.Mention);
+            fact = fact.Replace(username, user.Mention);
             await ReplyAsync(fact);
         }
     }

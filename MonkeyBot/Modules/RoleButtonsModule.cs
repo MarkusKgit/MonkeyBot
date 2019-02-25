@@ -16,7 +16,7 @@ namespace MonkeyBot.Modules
     [Group("RoleButtons")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireBotPermission(GuildPermission.AddReactions | GuildPermission.ManageRoles | GuildPermission.ManageMessages)]
-    public class RoleButtonsModule : ModuleBase
+    public class RoleButtonsModule : MonkeyModuleBase
     {
         private readonly IRoleButtonService roleButtonService;
 
@@ -35,12 +35,9 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Message not found. Make sure the message Id is correct");
                 return;
             }
-            var role = Context.Guild.Roles.SingleOrDefault(x => x.Name.ToLowerInvariant() == roleName.ToLowerInvariant());
+            IRole role = await GetRoleInGuildAsync(roleName);
             if (role == null)
-            {
-                await ReplyAsync("Role not found. Make sure the Rolename is correct");
                 return;
-            }
             IEmote emote = Context.Guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name)) ?? new Emoji(emoteString) as IEmote;
             if (emote == null)
             {
@@ -65,12 +62,9 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Message not found. Make sure the message Id is correct");
                 return;
             }
-            var role = Context.Guild.Roles.SingleOrDefault(x => x.Name.ToLowerInvariant() == roleName.ToLowerInvariant());
+            IRole role = await GetRoleInGuildAsync(roleName);
             if (role == null)
-            {
-                await ReplyAsync("Role not found. Make sure the Rolename is correct");
                 return;
-            }
             if (!(await roleButtonService.ExistsAsync(Context.Guild.Id, messageId, role.Id)))
             {
                 await ReplyAsync("The specified link does not exist");

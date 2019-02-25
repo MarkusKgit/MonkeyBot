@@ -1,12 +1,13 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
+using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
     [Name("Benzen Facts")]
-    public class BenzenFactModule : ModuleBase
+    public class BenzenFactModule : MonkeyModuleBase
     {
         private readonly DbService dbService;
 

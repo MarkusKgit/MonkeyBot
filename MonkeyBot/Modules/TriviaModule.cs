@@ -14,7 +14,7 @@ namespace MonkeyBot.Modules
     [Name("Trivia")]
     [MinPermissions(AccessLevel.User)]
     [RequireContext(ContextType.Guild)]
-    public class TriviaModule : ModuleBase
+    public class TriviaModule : MonkeyModuleBase
     {
         private readonly ITriviaService triviaService;
         private readonly CommandManager commandManager;

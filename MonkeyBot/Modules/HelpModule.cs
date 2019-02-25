@@ -13,7 +13,7 @@ namespace MonkeyBot.Modules
     /// <summary>A module that provides help commands</summary>
     [Name("Help")]
     [MinPermissions(AccessLevel.User)]
-    public class HelpModule : ModuleBase<SocketCommandContext>
+    public class HelpModule : MonkeyModuleBase
     {
         private readonly CommandManager commandManager;
         private readonly CommandService commandService;
@@ -61,9 +61,9 @@ namespace MonkeyBot.Modules
                     });
                 }
             }
-            await Context.User.SendMessageAsync("", false, embedBuilder.Build());
-            if (!Context.IsPrivate)
-                await ReplyAsync("I have sent you a private message");
+            await Context.User.SendMessageAsync("", false, embedBuilder.Build());           
+            if (Context.Channel is IGuildChannel)
+                await ReplyAndDeleteAsync("I have sent you a private message");
         }
 
         [Command("help")]
@@ -114,8 +114,8 @@ namespace MonkeyBot.Modules
                 });
             }
             await Context.User.SendMessageAsync("", false, builder.Build());
-            if (!Context.IsPrivate)
-                await ReplyAsync("I have sent you a private message");
+            if (Context.Channel is IGuildChannel)
+                await ReplyAndDeleteAsync("I have sent you a private message");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using dokas.FluentStrings;
+using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     [Name("Info")]
-    public class InfoModule : ModuleBase
+    public class InfoModule : MonkeyModuleBase
     {
         private readonly DbService dbService;
 
@@ -37,7 +38,7 @@ namespace MonkeyBot.Modules
                 };
                 builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
                 await Context.User.SendMessageAsync("", false, builder.Build());
-                await ReplyAsync("I have sent you a private message");
+                await ReplyAndDeleteAsync("I have sent you a private message");
             }
         }
 

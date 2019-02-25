@@ -14,22 +14,22 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.ServerMod)]
     [Name("Moderator Commands")]
     [RequireContext(ContextType.Guild)]
-    public class ModeratorModule : ModuleBase
+    public class ModeratorModule : MonkeyModuleBase
     {
         [Command("Prune")]
         [Remarks("Deletes the specified amount of messages")]
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Example("!Prune 10")]
-        public async Task PruneAsync(int count = 100)
+        public async Task PruneAsync(int count = 10)
         {
             if (count < 1)
             {
                 await ReplyAsync("Count has to be at least 1");
                 return;
             }
-            if (count > 1000)
-                count = 1000;
+            if (count > 100)
+                count = 100;
             if (Context.Channel is ITextChannel channel)
             {
                 var msgs = await channel.GetMessagesAsync(count).FlattenAsync();
@@ -42,11 +42,11 @@ namespace MonkeyBot.Modules
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Example("!Prune JohnDoe 10")]
-        public async Task PruneAsync(IGuildUser user, int count = 100)
+        public async Task PruneAsync(string userName, int count = 10)
         {
+            IGuildUser user = await GetUserInGuildAsync(userName);
             if (user == null)
-            {
-                await ReplyAsync("Invalid user");
+            {                
                 return;
             }
             if (count < 1)
@@ -54,8 +54,8 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Count has to be at least 1");
                 return;
             }
-            if (count > 1000)
-                count = 1000;
+            if (count > 100)
+                count = 100;
             if (Context.Channel is ITextChannel channel)
             {
                 var msgs = (await channel.GetMessagesAsync(count).FlattenAsync()).Where(x => x.Author.Id == user.Id);

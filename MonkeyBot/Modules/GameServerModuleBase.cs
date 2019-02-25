@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
-    public abstract class GameServerModuleBase : ModuleBase
+    public abstract class GameServerModuleBase : MonkeyModuleBase
     {
         private readonly IGameServerService gameServerService;
         private readonly ILogger<ModuleBase> logger;

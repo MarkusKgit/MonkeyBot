@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
+using MonkeyBot.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -7,7 +8,7 @@ using System.Web;
 namespace MonkeyBot.Modules
 {
     [Name("Misc")]
-    public class MiscModule : ModuleBase
+    public class MiscModule : MonkeyModuleBase
     {
         private const string lmgtfyBaseUrl = "https://lmgtfy.com/?q=";
 
