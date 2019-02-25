@@ -29,19 +29,11 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddRecurring")]
-        [Remarks("Adds the specified recurring announcement to the current channel")]
-        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\"")]
-        public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement)
-        {
-            await AddRecurringAsync(announcementId, cronExpression, Context.Channel.Id, announcement);
-        }
-
-        [Command("AddRecurring")]
         [Remarks("Adds the specified recurring announcement to the specified channel")]
-        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"general\" \"It is Friday 19:00\"")]
-        public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
+        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\" \"general\"")]
+        public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement, [Summary("Optional: The name of the channel where the announcement should be posted")] string channelName = "")
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true);
             if (channel != null)
                 await AddRecurringAsync(announcementId, cronExpression, channel.Id, announcement);
         }
@@ -86,19 +78,11 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddSingle")]
-        [Remarks("Adds the specified single announcement at the given time to the current channel")]
-        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\"")]
-        public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement)
-        {
-            await AddSingleAsync(announcementId, time, Context.Channel.Id, announcement);
-        }
-
-        [Command("AddSingle")]
         [Remarks("Adds the specified single announcement at the given time to the specified channel")]
         [Example("!announcements addsingle \"reminder1\" \"19:00\" \"general\" \"It is 19:00\"")]
-        public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The name of the channel where the announcement should be posted")] string channelName, [Summary("The message to announce.")] string announcement)
+        public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement, [Summary("Optional: The name of the channel where the announcement should be posted")] string channelName = "")
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true);
             if (channel != null)
                 await AddSingleAsync(announcementId, time, channel.Id, announcement);
         }
