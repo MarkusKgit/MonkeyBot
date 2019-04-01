@@ -17,8 +17,8 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
         [JsonProperty(PropertyName = "version")]
         public VersionPayload Version { get; set; }
 
-        [JsonProperty(PropertyName = "favicon")]
-        public string Icon { get; set; }
+        [JsonProperty(PropertyName = "modinfo")]
+        public ModInfosPayload ModInfos { get; set; }
     }
 
     public class DescriptionPayload
@@ -55,5 +55,23 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
 
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
+    }
+
+    public class ModInfosPayload
+    {
+        [JsonProperty(PropertyName = "type")]
+        public string Type { get; set; }
+
+        [JsonProperty(PropertyName = "modList")]
+        public List<ModInfoPayload> ModList { get; set; }
+    }
+
+    public class ModInfoPayload
+    {
+        [JsonProperty(PropertyName = "modid")]
+        public string Id { get; set; }
+
+        [JsonProperty(PropertyName = "version")]
+        public string Version { get; set; }
     }
 }
