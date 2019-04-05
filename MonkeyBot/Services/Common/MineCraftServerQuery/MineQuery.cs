@@ -46,7 +46,7 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
 
             Flush(stream, 0);
 
-            var readBuffer = new byte[client.ReceiveBufferSize];
+            var readBuffer = new byte[1024];
             var completeBuffer = new List<byte>();
             int numberOfBytesRead;
             do
@@ -54,14 +54,15 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
                 numberOfBytesRead = await stream.ReadAsync(readBuffer);
                 completeBuffer.AddRange(readBuffer.Take(numberOfBytesRead));
             }
-            while (stream.DataAvailable && numberOfBytesRead > 0);
-
+            while (numberOfBytesRead > 0);
+	    
             try
             {
                 var b = completeBuffer.ToArray();
                 var length = ReadVarInt(b);
                 var packet = ReadVarInt(b);
                 var jsonLength = ReadVarInt(b);
+		// Console.WriteLine($"Json: {jsonLength}, Buffer: {completeBuffer.Count}");
                 if (jsonLength > completeBuffer.Count - offset)
                 {
                     //TODO: log receive error
