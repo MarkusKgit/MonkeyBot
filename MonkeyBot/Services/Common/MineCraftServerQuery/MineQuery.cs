@@ -11,10 +11,9 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
 {
     public class MineQuery : IDisposable
     {
-        private TcpClient _client;
-        private NetworkStream _stream;
-        private List<byte> _writeBuffer;
-        private int _offset;
+        private readonly TcpClient client;
+        private List<byte> writeBuffer;
+        private int offset;
 
         public IPAddress Address { get; }
         public int Port { get; }
@@ -23,16 +22,16 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
         {
             Address = address;
             Port = port;
-            _client = new TcpClient();
+            client = new TcpClient();
         }
 
         public async Task<MineQueryResult> GetServerInfoAsync()
         {
-            await _client.ConnectAsync(Address, Port);
-            if (!_client.Connected)
+            await client.ConnectAsync(Address, Port);
+            if (!client.Connected)
                 return null;
-            _writeBuffer = new List<byte>();
-            _stream = _client.GetStream();
+            writeBuffer = new List<byte>();
+            NetworkStream stream = client.GetStream();
 
             //Send a "Handshake" packet http://wiki.vg/Server_List_Ping#Ping_Process
 
@@ -40,22 +39,30 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
             WriteString(Address.ToString());
             WriteShort(25565);
             WriteVarInt(1);
-            Flush(0);
+            Flush(stream, 0);
 
             // Send a "Status Request" packet http://wiki.vg/Server_List_Ping#Ping_Process
 
-            Flush(0);
+            Flush(stream, 0);
 
-            var readBuffer = new byte[Int16.MaxValue];
-            _stream.Read(readBuffer, 0, readBuffer.Length);
+            var readBuffer = new byte[client.ReceiveBufferSize];
+            var completeBuffer = new List<byte>();
+            int numberOfBytesRead;
+            do
+            {
+                numberOfBytesRead = await stream.ReadAsync(readBuffer);
+                completeBuffer.AddRange(readBuffer);
+            }
+            while (stream.DataAvailable && numberOfBytesRead > 0);
 
             try
             {
-                var length = ReadVarInt(readBuffer);
-                var packet = ReadVarInt(readBuffer);
-                var jsonLength = ReadVarInt(readBuffer);
+                var b = completeBuffer.ToArray();
+                var length = ReadVarInt(b);
+                var packet = ReadVarInt(b);
+                var jsonLength = ReadVarInt(b);
 
-                var json = ReadString(readBuffer, jsonLength);
+                var json = ReadString(b, jsonLength);
                 var result = JsonConvert.DeserializeObject<MineQueryResult>(json);
                 return result;
             }
@@ -66,23 +73,23 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
             }
             finally
             {
-                _client.Close();
-                _stream.Dispose();
+                client.Close();
+                stream.Dispose();
             }
         }
 
         internal byte ReadByte(byte[] buffer)
         {
-            var b = buffer[_offset];
-            _offset += 1;
+            var b = buffer[offset];
+            offset += 1;
             return b;
         }
 
         internal byte[] Read(byte[] buffer, int length)
         {
             var data = new byte[length];
-            Array.Copy(buffer, _offset, data, 0, length);
-            _offset += length;
+            Array.Copy(buffer, offset, data, 0, length);
+            offset += length;
             return data;
         }
 
@@ -112,57 +119,53 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
         {
             while ((value & 128) != 0)
             {
-                _writeBuffer.Add((byte)(value & 127 | 128));
+                writeBuffer.Add((byte)(value & 127 | 128));
                 value = (int)((uint)value) >> 7;
             }
-            _writeBuffer.Add((byte)value);
+            writeBuffer.Add((byte)value);
         }
 
         internal void WriteShort(short value)
         {
-            _writeBuffer.AddRange(BitConverter.GetBytes(value));
+            writeBuffer.AddRange(BitConverter.GetBytes(value));
         }
 
         internal void WriteString(string data)
         {
             var buffer = Encoding.UTF8.GetBytes(data);
             WriteVarInt(buffer.Length);
-            _writeBuffer.AddRange(buffer);
+            writeBuffer.AddRange(buffer);
         }
 
-        internal void Write(byte b)
-        {
-            _stream.WriteByte(b);
-        }
 
-        internal void Flush(int id = -1)
+        internal void Flush(NetworkStream stream, int id = -1)
         {
-            var buffer = _writeBuffer.ToArray();
-            _writeBuffer.Clear();
+            var buffer = writeBuffer.ToArray();
+            writeBuffer.Clear();
 
             var add = 0;
             var packetData = new[] { (byte)0x00 };
             if (id >= 0)
             {
                 WriteVarInt(id);
-                packetData = _writeBuffer.ToArray();
+                packetData = writeBuffer.ToArray();
                 add = packetData.Length;
-                _writeBuffer.Clear();
+                writeBuffer.Clear();
             }
 
             WriteVarInt(buffer.Length + add);
-            var bufferLength = _writeBuffer.ToArray();
-            _writeBuffer.Clear();
+            var bufferLength = writeBuffer.ToArray();
+            writeBuffer.Clear();
 
-            _stream.Write(bufferLength, 0, bufferLength.Length);
-            _stream.Write(packetData, 0, packetData.Length);
-            _stream.Write(buffer, 0, buffer.Length);
+            stream.Write(bufferLength, 0, bufferLength.Length);
+            stream.Write(packetData, 0, packetData.Length);
+            stream.Write(buffer, 0, buffer.Length);
         }
 
         public void Dispose()
         {
-            _client.Close();
-            _client.Dispose();
+            client.Close();
+            client.Dispose();
         }
     }
 }
