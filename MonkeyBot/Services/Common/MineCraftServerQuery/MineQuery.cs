@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -51,7 +52,7 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
             do
             {
                 numberOfBytesRead = await stream.ReadAsync(readBuffer);
-                completeBuffer.AddRange(readBuffer);
+                completeBuffer.AddRange(readBuffer.Take(numberOfBytesRead));
             }
             while (stream.DataAvailable && numberOfBytesRead > 0);
 
@@ -61,6 +62,11 @@ namespace MonkeyBot.Services.Common.MineCraftServerQuery
                 var length = ReadVarInt(b);
                 var packet = ReadVarInt(b);
                 var jsonLength = ReadVarInt(b);
+                if (jsonLength > completeBuffer.Count - offset)
+                {
+                    //TODO: log receive error
+                    return null;
+                }
 
                 var json = ReadString(b, jsonLength);
                 var result = JsonConvert.DeserializeObject<MineQueryResult>(json);
