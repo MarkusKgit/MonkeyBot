@@ -131,7 +131,7 @@ namespace MonkeyBot.Services
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Error getting feeds");
+                logger.LogWarning(ex, $"Error getting feeds for {guildFeed.URL} in {guild.Name}:{channel.Name}");
                 return;
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
