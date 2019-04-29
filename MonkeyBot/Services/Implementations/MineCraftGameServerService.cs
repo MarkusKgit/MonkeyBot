@@ -148,9 +148,8 @@ namespace MonkeyBot.Services
         }
 
         private async Task<string> GenerateAndUploadChartAsync(string id, int currentPlayers, int maxPlayers)
-        {
-            const int numHours = 10;
-            TimeSpan span = TimeSpan.FromHours(numHours);
+        {            
+            TimeSpan historyPeriod = TimeSpan.FromHours(12);
             const string folder = "Gameservers";
 
             if (!Directory.Exists(folder))
@@ -159,7 +158,7 @@ namespace MonkeyBot.Services
             string storedValuesPath = $"{baseFilePath}.txt";
 
             var now = DateTime.Now;
-            var minTime = now.Subtract(span);
+            var minTime = now.Subtract(historyPeriod);
 
             var historicData = new List<HistoricData<int>>();
             if (File.Exists(storedValuesPath))
@@ -170,7 +169,11 @@ namespace MonkeyBot.Services
                     .Where(x => x.Time > minTime)
                     .ToList();
             }
-
+            // Sharper transition by adding the last known player count with current time stamp and then the new value if the value changed
+            if (historicData.Any() && historicData.Last().Value != currentPlayers)
+            {
+                historicData.Add(new HistoricData<int>(DateTime.Now, historicData.Last().Value));
+            }
             historicData.Add(new HistoricData<int>(DateTime.Now, currentPlayers));
 
             await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonConvert.SerializeObject(historicData, Formatting.Indented));
@@ -180,9 +183,9 @@ namespace MonkeyBot.Services
                 AxisX = new ChartAxis
                 {
                     Min = 0,
-                    Max = numHours,
-                    NumTicks = numHours + 1,
-                    LabelFunc = (x) => $"{x - numHours}h"
+                    Max = (int)historyPeriod.TotalHours,
+                    NumTicks = (int)historyPeriod.TotalHours + 1,
+                    LabelFunc = (x) => x == (int)historyPeriod.TotalHours ? "Now" : $"{x - historyPeriod.TotalHours}h"
                 },
                 AxisY = new ChartAxis
                 {
@@ -191,7 +194,7 @@ namespace MonkeyBot.Services
                     NumTicks = 11
                 }
             };
-            double tickSpan = span.TotalHours;
+            double tickSpan = historyPeriod.TotalHours;
 
             List<PointF> transformedValues = historicData
                 .Select(d => new PointF(
