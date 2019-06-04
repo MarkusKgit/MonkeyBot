@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="8.1.0" />
+    <PackageReference Include="AutoMapper" Version="8.1.1" />
     <PackageReference Include="CloudinaryDotNet" Version="1.8.0" />
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="Discord.Net" Version="2.1.0" />
