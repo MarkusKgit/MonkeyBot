@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
-using MonkeyBot.Modules.Common;
-using Newtonsoft.Json;
+using MonkeyBot.Services;
+using MonkeyBot.Services.Common.Xkcd;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -12,9 +12,14 @@ namespace MonkeyBot.Modules
     [Name("Xkcd")]
     public class XkcdModule : MonkeyModuleBase
     {
-        private const string comicUrl = "https://xkcd.com/{0}/";
-        private const string apiUrlLatest = "https://xkcd.com/info.0.json";
-        private const string apiUrlSpecific = "http://xkcd.com/{0}/info.0.json";
+        private readonly IXkcdService xkcdService;
+        private readonly ILogger logger;
+
+        public XkcdModule(IXkcdService xkcdService, ILogger<XkcdModule> logger)
+        {
+            this.xkcdService = xkcdService;
+            this.logger = logger;
+        }
 
         [Command("xkcd")]
         [Remarks("Gets a random xkcd comic or the latest xkcd comic by appending \"latest\" to the command")]
@@ -23,20 +28,16 @@ namespace MonkeyBot.Modules
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
         public async Task GetXkcdAsync(string arg = "")
         {
-            xkcdResponse comic = null;
-            if (arg.ToLower() == "latest")
+            XkcdResponse comic;
+            if (!string.IsNullOrEmpty(arg) && arg.Equals("latest", StringComparison.OrdinalIgnoreCase))
             {
-                comic = await GetComicAsync(null);
+                comic = await xkcdService.GetLatestComicAsync().ConfigureAwait(false);
             }
             else
             {
-                int max = await GetLatestNumberAsync();
-                var rnd = new Random();
-                int rndNumber = rnd.Next(1, max);
-                while ((rndNumber = rnd.Next(1, max)) == 404) { } // xkcd 404 does not exist                
-                comic = await GetComicAsync(rndNumber);
+                comic = await xkcdService.GetRandomComicAsync().ConfigureAwait(false);
             }
-            await EmbedComicAsync(comic, Context.Channel);
+            await EmbedComicAsync(comic, Context.Channel).ConfigureAwait(false);
         }
 
         [Command("xkcd")]
@@ -46,50 +47,38 @@ namespace MonkeyBot.Modules
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
         public async Task GetXkcdAsync(int number)
         {
-            int maxNumer = await GetLatestNumberAsync();
-            if (number < 1 || number > maxNumer || number == 404)
+            try
             {
-                await ReplyAsync("The specified comic does not exist!");
-                return;
+                var comic = await xkcdService.GetComicAsync(number).ConfigureAwait(false);
+                await EmbedComicAsync(comic, Context.Channel).ConfigureAwait(false);
             }
-            var comic = await GetComicAsync(number);
-            await EmbedComicAsync(comic, Context.Channel);
+            catch (ArgumentOutOfRangeException)
+            {
+                await ReplyAsync("The specified comic does not exist!").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while getting xkcd comic");
+            }
+
         }
 
-        private async static Task EmbedComicAsync(xkcdResponse comic, IMessageChannel channel)
+        private async Task EmbedComicAsync(XkcdResponse comic, IMessageChannel channel)
         {
             if (comic == null)
                 return;
             var builder = new EmbedBuilder();
-            builder.WithImageUrl(comic.ImgUrl);
-            builder.WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", string.Format(comicUrl, comic.Number));
-            builder.WithTitle(comic.Title);
+            string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
+            builder.WithImageUrl(comic.ImgUrl.ToString());
+            builder.WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", comicUrl);
+            builder.WithTitle(comic.SafeTitle);
             builder.WithDescription(comic.Alt);
             if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
             {
                 DateTime date = new DateTime(year, month, day);
                 builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
-            await channel.SendMessageAsync("", false, builder.Build());
-        }
-
-        private async static Task<xkcdResponse> GetComicAsync(int? number)
-        {
-            using (var http = new HttpClient())
-            {
-                string apiUrl = number.HasValue ? string.Format(apiUrlSpecific, number.Value) : apiUrlLatest;
-                var response = await http.GetStringAsync(apiUrl).ConfigureAwait(false);
-                var comic = JsonConvert.DeserializeObject<xkcdResponse>(response);
-                return comic;
-            }
-        }
-
-        private async static Task<int> GetLatestNumberAsync()
-        {
-            var comic = await GetComicAsync(null);
-            if (comic != null)
-                return comic.Number;
-            return 0;
+            await channel.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
         }
     }
 }

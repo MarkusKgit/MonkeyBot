@@ -3,7 +3,6 @@ using Discord.Commands;
 using dokas.FluentStrings;
 using Humanizer;
 using MonkeyBot.Common;
-using MonkeyBot.Modules;
 using MonkeyBot.Preconditions;
 using System;
 using System.Linq;

@@ -132,6 +132,7 @@ namespace MonkeyBot
             services.AddSingleton<IChuckService, ChuckService>();
             services.AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>();
             services.AddSingleton<IDogService, DogService>();
+            services.AddSingleton<IXkcdService, XkcdService>();
             services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
