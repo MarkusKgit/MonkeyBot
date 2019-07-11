@@ -1,5 +1,5 @@
 ﻿using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.GameSubscription;
+using MonkeyBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

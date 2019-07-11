@@ -1,7 +1,7 @@
 ﻿using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.Announcements;
+using MonkeyBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

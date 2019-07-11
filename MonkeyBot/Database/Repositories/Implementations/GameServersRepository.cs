@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common;
+using MonkeyBot.Services;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories

@@ -6,7 +6,7 @@ using dokas.FluentStrings;
 using Humanizer;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
-using MonkeyBot.Services.Common.Poll;
+using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

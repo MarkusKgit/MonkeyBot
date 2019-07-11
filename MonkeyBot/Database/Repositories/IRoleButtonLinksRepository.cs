@@ -1,5 +1,5 @@
 ﻿using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.RoleButtons;
+using MonkeyBot.Services;
 
 namespace MonkeyBot.Database.Repositories
 {

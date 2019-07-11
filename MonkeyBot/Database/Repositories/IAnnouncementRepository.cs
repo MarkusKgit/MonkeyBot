@@ -1,5 +1,5 @@
 ﻿using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.Announcements;
+using MonkeyBot.Services;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories

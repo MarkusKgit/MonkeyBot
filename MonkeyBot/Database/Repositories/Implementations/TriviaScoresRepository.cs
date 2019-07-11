@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
-using MonkeyBot.Services.Common.Trivia;
+using MonkeyBot.Services;
 using System.Linq;
 using System.Threading.Tasks;
 

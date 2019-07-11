@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
-using MonkeyBot.Services.Common.Announcements;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
