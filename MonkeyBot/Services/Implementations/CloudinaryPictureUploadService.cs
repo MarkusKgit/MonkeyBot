@@ -11,7 +11,7 @@ namespace MonkeyBot.Services.Implementations
 
         public CloudinaryPictureUploadService()
         {
-            var config = Configuration.LoadAsync().GetAwaiter().GetResult();
+            var config = DiscordClientConfiguration.LoadAsync().GetAwaiter().GetResult();
 
             if (config.CloudinaryCredentials == null)
                 return;

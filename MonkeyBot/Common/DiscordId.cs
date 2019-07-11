@@ -18,7 +18,7 @@ namespace MonkeyBot.Common
         public DiscordId(ulong? guildId, ulong? channelId, ulong? userId)
         {
             if (guildId == null && channelId == null && userId == null)
-                throw new ArgumentNullException("Provide at least one id");
+                throw new ArgumentNullException($"{nameof(guildId)}, {nameof(channelId)}, {nameof(userId)}", "Provide at least one id");
             GuildId = guildId;
             ChannelId = channelId;
             UserId = userId;
@@ -31,20 +31,19 @@ namespace MonkeyBot.Common
 
         public bool Equals(DiscordId other)
         {
+            if (other == null)
+                return false;
             //if both IDs have a value then the values must be equal or either one has no value (is null) then this id part can be ignored
-            bool guild = ((this.GuildId.HasValue && other.GuildId.HasValue && (this.GuildId == other.GuildId)) || (!this.GuildId.HasValue || !other.GuildId.HasValue));
-            bool channel = ((this.ChannelId.HasValue && other.ChannelId.HasValue && (this.ChannelId == other.ChannelId)) || (!this.ChannelId.HasValue || !other.ChannelId.HasValue));
-            bool user = ((this.UserId.HasValue && other.UserId.HasValue && (this.UserId == other.UserId)) || (!this.UserId.HasValue || !other.UserId.HasValue));
+            bool guild = (GuildId.HasValue && other.GuildId.HasValue && (GuildId == other.GuildId)) || (!GuildId.HasValue || !other.GuildId.HasValue);
+            bool channel = (ChannelId.HasValue && other.ChannelId.HasValue && (ChannelId == other.ChannelId)) || (!ChannelId.HasValue || !other.ChannelId.HasValue);
+            bool user = (UserId.HasValue && other.UserId.HasValue && (UserId == other.UserId)) || (!UserId.HasValue || !other.UserId.HasValue);
             return (guild && channel && user);
         }
 
-        public override int GetHashCode()
-        {
-            return (int)(GuildId ?? 0) + (int)(ChannelId ?? 0) + (int)(UserId ?? 0);
-        }
+        public override int GetHashCode() => (GuildId, ChannelId, UserId).GetHashCode();
 
-        public static bool operator ==(DiscordId lhs, DiscordId rhs) => lhs.Equals(rhs);
+        public static bool operator ==(DiscordId lhs, DiscordId rhs) => lhs != null && lhs.Equals(rhs);
 
-        public static bool operator !=(DiscordId lhs, DiscordId rhs) => !lhs.Equals(rhs);
+        public static bool operator !=(DiscordId lhs, DiscordId rhs) => lhs != null && !lhs.Equals(rhs);
     }
 }

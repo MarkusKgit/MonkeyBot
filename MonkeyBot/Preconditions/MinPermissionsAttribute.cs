@@ -39,7 +39,7 @@ namespace MonkeyBot.Preconditions
             if (c.User.IsBot) // Prevent other bots from executing commands.
                 return AccessLevel.Blocked;
 
-            var config = await Configuration.LoadAsync();
+            var config = await DiscordClientConfiguration.LoadAsync();
             var owners = config.Owners;
             if (owners != null && owners.Contains(c.User.Id)) // Give configured owners special access.
                 return AccessLevel.BotOwner;

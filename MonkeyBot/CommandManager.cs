@@ -46,14 +46,14 @@ namespace MonkeyBot
         public async Task<string> GetPrefixAsync(ulong? guildId)
         {
             if (guildId == null)
-                return Configuration.DefaultPrefix;
+                return DiscordClientConfiguration.DefaultPrefix;
             using (var uow = dbService.UnitOfWork)
             {
                 var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value))?.CommandPrefix;
                 if (prefix != null)
                     return prefix;
                 else
-                    return Configuration.DefaultPrefix;
+                    return DiscordClientConfiguration.DefaultPrefix;
             }
         }
 

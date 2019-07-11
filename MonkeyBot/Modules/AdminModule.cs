@@ -22,12 +22,10 @@ namespace MonkeyBot.Modules
             IGuildUser user = await GetUserInGuildAsync(username);
             if (user == null)
                 return;
-            var config = await Configuration.LoadAsync();
-            var owners = config.Owners.ToList();
-            if (!owners.Contains(user.Id))
+            var config = await DiscordClientConfiguration.LoadAsync();           
+            if (!config.Owners.Contains(user.Id))
             {
-                owners.Add(user.Id);
-                config.Owners = owners.ToArray();
+                config.AddOwner(user.Id);                
                 await config.SaveAsync();
                 await ReplyAsync($"{user.Username} has been added to the list of bot owners!");
             }
@@ -45,12 +43,10 @@ namespace MonkeyBot.Modules
             IGuildUser user = await GetUserInGuildAsync(username);
             if (user == null)
                 return;
-            var config = await Configuration.LoadAsync();
-            var owners = config.Owners.ToList();
-            if (owners.Contains(user.Id))
+            var config = await DiscordClientConfiguration.LoadAsync();            
+            if (config.Owners.Contains(user.Id))
             {
-                owners.Remove(user.Id);
-                config.Owners = owners.ToArray();
+                config.RemoveOwner(user.Id);
                 await config.SaveAsync();
                 await ReplyAsync($"{user.Username} has been removed from the list of bot owners!");
             }

@@ -39,7 +39,7 @@ namespace MonkeyBot
             var logger = services.GetService<ILogger<MonkeyClient>>();
 
             var client = services.GetService<DiscordSocketClient>();
-            await client.LoginAsync(TokenType.Bot, (await Configuration.LoadAsync()).ProductiveToken);
+            await client.LoginAsync(TokenType.Bot, (await DiscordClientConfiguration.LoadAsync()).Token);
             await client.StartAsync();
 
             var manager = services.GetService<CommandManager>();

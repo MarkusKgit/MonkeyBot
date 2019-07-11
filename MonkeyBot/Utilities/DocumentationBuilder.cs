@@ -46,7 +46,7 @@ namespace MonkeyBot.Utilities
 
         private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
         {
-            string prefix = Configuration.DefaultPrefix;
+            string prefix = DiscordClientConfiguration.DefaultPrefix;
             StringBuilder builder = new StringBuilder();
 
             foreach (var module in commandService.Modules)

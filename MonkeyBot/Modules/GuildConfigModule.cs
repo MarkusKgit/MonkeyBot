@@ -121,7 +121,7 @@ namespace MonkeyBot.Modules
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
-                config.Rules.Add(rule);
+                config.AddRule(rule);
                 await uow.GuildConfigs.AddOrUpdateAsync(config);
                 await uow.CompleteAsync();
             }
@@ -137,7 +137,7 @@ namespace MonkeyBot.Modules
                 var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
                 if (config != null)
                 {
-                    config.Rules.Clear();
+                    config.ClearRules();
                     await uow.GuildConfigs.AddOrUpdateAsync(config);
                     await uow.CompleteAsync();
                 }

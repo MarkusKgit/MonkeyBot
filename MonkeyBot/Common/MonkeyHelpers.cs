@@ -14,14 +14,6 @@ namespace MonkeyBot.Common
 {
     public static class MonkeyHelpers
     {
-        /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
-        public static async Task<IRole> GetManageRolesRoleAsync(ICommandContext context)
-        {
-            var thisBot = await context.Guild.GetUserAsync(context.Client.CurrentUser.Id);
-            var ownrole = context.Guild.Roles.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
-            return ownrole;
-        }
-
         /// <summary>
         /// Writes the specified string to a textfile asynchronously
         /// </summary>
@@ -48,7 +40,7 @@ namespace MonkeyBot.Common
                 useAsync: true)
                 )
             {
-                await sourceStream.WriteAsync(encodedText, 0, encodedText.Length);
+                await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);
             };
         }
 
@@ -67,7 +59,7 @@ namespace MonkeyBot.Common
 
                 byte[] buffer = new byte[0x1000];
                 int numRead;
-                while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
                 {
                     string text = Encoding.UTF8.GetString(buffer, 0, numRead);
                     sb.Append(text);
@@ -85,20 +77,19 @@ namespace MonkeyBot.Common
         /// <param name="text">Text to post</param>
         public static async Task<RestUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
-            var guild = await client?.GetGuildAsync(guildID);
-            var channel = await guild?.GetChannelAsync(channelID) as SocketTextChannel;
-            return await channel?.SendMessageAsync(text, isTTS, embed, options);
+            var guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
+            var channel = await (guild?.GetChannelAsync(channelID)).ConfigureAwait(false) as SocketTextChannel;
+            return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 
-        public static async Task<T> WithCancellationAsync<T>(
-    this Task<T> task, CancellationToken cancellationToken)
+        public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
             using (cancellationToken.Register(
                         s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
-                if (task != await Task.WhenAny(task, tcs.Task))
+                if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
                     throw new OperationCanceledException(cancellationToken);
-            return await task;
+            return await task.ConfigureAwait(false);
         }
 
         //Converts all html encoded special characters
@@ -107,27 +98,13 @@ namespace MonkeyBot.Common
             return System.Net.WebUtility.HtmlDecode(html);
         }
 
+        private static readonly string[] regionalIndicatorLetters = "🇦|🇧|🇨|🇩|🇪|🇫|🇬|🇭|🇮|🇯|🇰|🇱|🇲|🇳|🇴|🇵|🇶|🇷||🇸|🇹|🇺|🇻|🇼|🇽|🇾|🇿|".Split('|');
+
         public static string GetUnicodeRegionalLetter(int index)
         {
-            switch (index)
-            {
-                case 0:
-                    return "🇦";
-                case 1:
-                    return "🇧";
-                case 2:
-                    return "🇨";
-                case 3:
-                    return "🇩";
-                case 4:
-                    return "🇪";
-                case 5:
-                    return "🇫";
-                case 6:
-                    return "🇬";
-                default:
-                    return "";
-            }
+            if (index < 0 || index >= regionalIndicatorLetters.Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return regionalIndicatorLetters[index];            
         }
     }
 }

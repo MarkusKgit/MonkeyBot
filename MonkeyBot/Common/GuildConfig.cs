@@ -6,7 +6,7 @@ namespace MonkeyBot.Common
     {
         public ulong GuildId { get; set; }
 
-        public string CommandPrefix { get; set; } = Configuration.DefaultPrefix;
+        public string CommandPrefix { get; set; } = DiscordClientConfiguration.DefaultPrefix;
 
         public string WelcomeMessageText { get; set; } = "Welcome to the %server% server, %user%!";
 
@@ -16,7 +16,13 @@ namespace MonkeyBot.Common
 
         public ulong GoodbyeMessageChannelId { get; set; }
 
-        public List<string> Rules { get; set; } = new List<string>();
+        private readonly List<string> rules = new List<string>();
+
+        public IReadOnlyList<string> Rules => rules.AsReadOnly();
+
+        public void AddRule(string rule) => rules.Add(rule);
+
+        public void ClearRules() => rules.Clear();
 
         public GuildConfig(ulong guildId)
         {

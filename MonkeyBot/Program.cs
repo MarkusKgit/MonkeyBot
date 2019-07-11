@@ -27,7 +27,7 @@ public class Program
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
-        await Configuration.EnsureExistsAsync(); // Ensure the configuration file has been created.
+        await DiscordClientConfiguration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
         services = await Initializer.InitializeAsync(parsedArgs);
 

@@ -8,4 +8,5 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0013:Use ternary operator", Justification = "<Pending>")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0014:Use ternary operator", Justification = "<Pending>")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CC0097:You have missing/unexistent parameters in Xml Docs", Justification = "<Pending>")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>")]
 

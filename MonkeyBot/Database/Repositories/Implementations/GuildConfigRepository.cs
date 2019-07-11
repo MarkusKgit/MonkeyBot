@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database.Entities;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Database.Repositories
@@ -29,7 +30,7 @@ namespace MonkeyBot.Database.Repositories
                 dbSet.Add(dbCfg = new GuildConfigEntity
                 {
                     GuildId = obj.GuildId,
-                    Rules = obj.Rules,
+                    Rules = obj.Rules.ToList(),
                     CommandPrefix = obj.CommandPrefix,
                     WelcomeMessageText = obj.WelcomeMessageText,
                     WelcomeMessageChannelId = obj.WelcomeMessageChannelId,

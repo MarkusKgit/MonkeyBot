@@ -28,7 +28,7 @@ namespace MonkeyBot.Modules
             if (role == null)            
                 return;            
             // Get the role of the bot with permission manage roles
-            var botRole = await MonkeyHelpers.GetManageRolesRoleAsync(Context);
+            var botRole = await GetManageRolesRoleAsync();
             // The bot's role must be higher than the role to be able to assign it
             if (botRole?.Position <= role.Position)
             {
@@ -58,7 +58,7 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync("You don't have that role");
             }
-            var botRole = await MonkeyHelpers.GetManageRolesRoleAsync(Context);
+            var botRole = await GetManageRolesRoleAsync();
             // The bot's role must be higher than the role to be able to remove it
             if (botRole?.Position <= role.Position)
             {
@@ -74,7 +74,7 @@ namespace MonkeyBot.Modules
         {
             List<string> allRoles = new List<string>();
             // Get the role of the bot with permission manage roles
-            IRole botRole = await MonkeyHelpers.GetManageRolesRoleAsync(Context);
+            IRole botRole = await GetManageRolesRoleAsync();
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             foreach (var role in Context.Guild.Roles)
             {
@@ -99,7 +99,7 @@ namespace MonkeyBot.Modules
                 Description = "These are the are all the assignable roles and the users assigned to them:"
             };
             // Get the role of the bot with permission manage roles
-            IRole botRole = await MonkeyHelpers.GetManageRolesRoleAsync(Context);
+            IRole botRole = await GetManageRolesRoleAsync();
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             var guildUsers = await Context.Guild.GetUsersAsync();
             foreach (var role in Context.Guild.Roles)
