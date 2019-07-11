@@ -1,5 +1,4 @@
-﻿using MonkeyBot.Services.Common.Xkcd;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services

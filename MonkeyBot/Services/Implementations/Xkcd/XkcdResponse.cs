@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MonkeyBot.Services.Common.Xkcd
+namespace MonkeyBot.Services
 {
     public class XkcdResponse
     {

@@ -3,7 +3,6 @@ using Discord.Commands;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
-using MonkeyBot.Services.Common.Xkcd;
 using System;
 using System.Threading.Tasks;
 
