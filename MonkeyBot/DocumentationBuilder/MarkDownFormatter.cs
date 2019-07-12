@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Utilities
+﻿namespace MonkeyBot.DocumentationBuilder
 {
     /// <summary>
     /// Provides helper functions to format a string in markdown syntax

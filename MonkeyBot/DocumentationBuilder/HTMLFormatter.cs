@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Utilities
+﻿namespace MonkeyBot.DocumentationBuilder
 {
     /// <summary>
     /// Provides helper functions to format a string in html syntax
@@ -21,7 +21,7 @@
         public string H6(string input) => $"<h6>{input}</h6>";
 
         public string HorizontalRule() => "<hr>";
-        
+
         public string InlineCode(string input) => $"<code>{input}</code>";
 
         public string NewLine(string input) => $"{input}</br>";

@@ -8,7 +8,7 @@ using System;
 using System.Linq;
 using System.Text;
 
-namespace MonkeyBot.Utilities
+namespace MonkeyBot.DocumentationBuilder
 {
     /// <summary>
     /// Helper class to automatically build documentation based on the implemented Modules
@@ -64,7 +64,7 @@ namespace MonkeyBot.Utilities
                     {
                         parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
                     }
-                    builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases.First()} {parameters}")));
+                    builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases[0]} {parameters}")));
                     var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                     if (example != null && !example.ExampleText.IsEmpty())
                     {
