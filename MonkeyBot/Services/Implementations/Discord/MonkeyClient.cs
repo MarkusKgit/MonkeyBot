@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -41,15 +42,15 @@ namespace MonkeyBot.Services
             string welcomeMessage = string.Empty;
             using (var uow = dbService?.UnitOfWork)
             {
-                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id);
+                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id).ConfigureAwait(false);
                 welcomeMessage = guildConfig?.WelcomeMessageText;
                 if (guildConfig?.WelcomeMessageChannelId != null)
                     channel = arg.Guild.GetTextChannel(guildConfig.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;
             }
             if (!welcomeMessage.IsEmpty())
             {
-                welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Mention);                
-                await channel?.SendMessageAsync(welcomeMessage);
+                welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Mention);
+                await (channel?.SendMessageAsync(welcomeMessage)).ConfigureAwait(false);
             }
         }
 
@@ -61,7 +62,7 @@ namespace MonkeyBot.Services
             string goodbyeMessage = string.Empty;
             using (var uow = dbService?.UnitOfWork)
             {
-                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id);
+                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id).ConfigureAwait(false);
                 goodbyeMessage = guildConfig?.GoodbyeMessageText;
                 if (guildConfig?.GoodbyeMessageChannelId != null)
                     channel = arg.Guild.GetTextChannel(guildConfig.GoodbyeMessageChannelId) ?? arg.Guild.DefaultChannel;
@@ -69,7 +70,7 @@ namespace MonkeyBot.Services
             if (!goodbyeMessage.IsEmpty())
             {
                 goodbyeMessage = goodbyeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Username);
-                await channel?.SendMessageAsync(goodbyeMessage);
+                await (channel?.SendMessageAsync(goodbyeMessage)).ConfigureAwait(false);
             }
         }
 
@@ -77,10 +78,10 @@ namespace MonkeyBot.Services
         {
             var msg = $"{logMessage.Source}: {logMessage.Message}";
             var ex = logMessage.Exception;
-            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed"))
+            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed", StringComparison.OrdinalIgnoreCase))
             {
                 var adminMessage = $"{msg} {ex?.Message}";
-                await NotifyAdminAsync(adminMessage);
+                await NotifyAdminAsync(adminMessage).ConfigureAwait(false);
             }
             switch (logMessage.Severity)
             {
@@ -117,7 +118,7 @@ namespace MonkeyBot.Services
         public async Task NotifyAdminAsync(string adminMessage)
         {
             var adminuser = GetUser(327885109560737793);
-            await adminuser?.SendMessageAsync(adminMessage);
+            await (adminuser?.SendMessageAsync(adminMessage)).ConfigureAwait(false);
         }
     }
 }

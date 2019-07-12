@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using dokas.FluentStrings;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,14 +33,14 @@ namespace MonkeyBot.Services
                 joinedGame = after.Activity.Name;
             if (joinedGame.IsEmpty())
                 return;
-            var gameSubscriptions = await GetGameSubscriptionsAsync();
+            var gameSubscriptions = await GetGameSubscriptionsAsync().ConfigureAwait(false);
             if (gameSubscriptions == null)
                 return;
             foreach (var subscription in gameSubscriptions)
             {
                 if (subscription == null)
                     continue;
-                if (!joinedGame.ToLower().Contains(subscription.GameName.ToLower())) // Skip if user is not subscribed to game
+                if (!joinedGame.Contains(subscription.GameName, StringComparison.OrdinalIgnoreCase)) // Skip if user is not subscribed to game
                     continue;
                 if (subscription.UserId == after.Id) // Don't message because of own game join
                     continue;
@@ -51,7 +50,7 @@ namespace MonkeyBot.Services
                 var subscribedUser = client.GetUser(subscription.UserId);
                 if (subscribedUser == null)
                     continue;
-                await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!");
+                await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!").ConfigureAwait(false);
             }
         }
 
@@ -60,21 +59,21 @@ namespace MonkeyBot.Services
             var gameSubscription = new GameSubscription(guildId, userId, gameName);
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.GameSubscriptions.AddOrUpdateAsync(gameSubscription);
-                await uow.CompleteAsync();
+                await uow.GameSubscriptions.AddOrUpdateAsync(gameSubscription).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
         public async Task RemoveSubscriptionAsync(string gameName, ulong guildId, ulong userId)
         {
-            var subscriptions = await GetGameSubscriptionsAsync();
-            var subscriptionToRemove = subscriptions.FirstOrDefault(x => x.GameName.ToLower().Contains(gameName.ToLower()) && x.GuildId == guildId && x.UserId == userId);
+            var subscriptions = await GetGameSubscriptionsAsync().ConfigureAwait(false);
+            var subscriptionToRemove = subscriptions.FirstOrDefault(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildId == guildId && x.UserId == userId);
             if (subscriptionToRemove == null)
                 throw new ArgumentException("The specified subscription does not exist");
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.GameSubscriptions.RemoveAsync(subscriptionToRemove);
-                await uow.CompleteAsync();
+                await uow.GameSubscriptions.RemoveAsync(subscriptionToRemove).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -82,7 +81,7 @@ namespace MonkeyBot.Services
         {
             using (var uow = dbService.UnitOfWork)
             {
-                return await uow.GameSubscriptions.GetAllAsync();
+                return await uow.GameSubscriptions.GetAllAsync().ConfigureAwait(false);
             }
         }
     }

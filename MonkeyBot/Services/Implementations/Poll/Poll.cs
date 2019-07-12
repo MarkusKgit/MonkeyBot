@@ -12,7 +12,7 @@ namespace MonkeyBot.Services
         public ulong MessageId { get; set; }
         public string Question { get; set; }
         public List<PollAnswer> Answers { get; set; }
-        public ConcurrentDictionary<PollAnswer, List<IUser>> ReactionUsers { get; set; }
+        public ConcurrentDictionary<PollAnswer, List<IUser>> ReactionUsers { get; }
 
         public Poll()
         {
@@ -32,21 +32,13 @@ namespace MonkeyBot.Services
             AnswerEmoji = answerEmoji;
         }
 
-        public bool Equals(PollAnswer other)
-        {
-            return
-                Answer == other.Answer &&
-                AnswerEmoji.Equals(other.AnswerEmoji);
-        }
+        public bool Equals(PollAnswer other) => 
+            other != null &&
+            Answer == other.Answer &&
+            AnswerEmoji.Equals(other.AnswerEmoji);
 
-        public override bool Equals(object other)
-        {
-            return other is PollAnswer && Equals(other as PollAnswer);
-        }
+        public override bool Equals(object other) => other is PollAnswer ans && Equals(ans);
 
-        public override int GetHashCode()
-        {
-            return (Answer, AnswerEmoji).GetHashCode();
-        }
+        public override int GetHashCode() => (Answer, AnswerEmoji).GetHashCode();
     }
 }

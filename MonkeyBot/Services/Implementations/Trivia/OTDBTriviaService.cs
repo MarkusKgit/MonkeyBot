@@ -13,15 +13,13 @@ namespace MonkeyBot.Services
     public class OTDBTriviaService : ITriviaService
     {
         private readonly DbService dbService;
-        private readonly DiscordSocketClient discordClient;
 
         // holds all trivia instances on a per guild and channel basis
         private readonly ConcurrentDictionary<DiscordId, OTDBTriviaInstance> trivias;
 
-        public OTDBTriviaService(DbService db, DiscordSocketClient client)
+        public OTDBTriviaService(DbService dbService)
         {
-            this.dbService = db;
-            this.discordClient = client;
+            this.dbService = dbService;
             trivias = new ConcurrentDictionary<DiscordId, OTDBTriviaInstance>();
         }
 
@@ -38,9 +36,7 @@ namespace MonkeyBot.Services
             DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-#pragma warning disable CC0022 // Should dispose object
                 trivias.TryAdd(id, new OTDBTriviaInstance(context, dbService));
-#pragma warning restore CC0022 // Should dispose object
             }
 
             return await trivias[id].StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
@@ -53,7 +49,7 @@ namespace MonkeyBot.Services
         /// <returns>success</returns>
         public async Task<bool> SkipQuestionAsync(DiscordId id)
         {
-            return trivias.ContainsKey(id) ? await trivias[id].SkipQuestionAsync() : false;
+            return trivias.ContainsKey(id) ? await trivias[id].SkipQuestionAsync().ConfigureAwait(false) : false;
         }
 
         /// <summary>
@@ -67,7 +63,7 @@ namespace MonkeyBot.Services
                 return false;
             else
             {
-                var result = await trivias[id].StopTriviaAsync();
+                var result = await trivias[id].StopTriviaAsync().ConfigureAwait(false);
                 if (trivias.TryRemove(id, out var instance))
                 {
                     instance.Dispose();
@@ -89,11 +85,11 @@ namespace MonkeyBot.Services
             {
                 using (var trivia = new OTDBTriviaInstance(context, dbService))
                 {
-                    return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value);
+                    return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
                 }
             }
             else
-                return await trivias[id].GetGlobalHighScoresAsync(amount, id.GuildId.Value);
+                return await trivias[id].GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
         }
     }
 }

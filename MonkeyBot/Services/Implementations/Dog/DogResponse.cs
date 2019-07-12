@@ -1,8 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 namespace MonkeyBot.Services
-{
-    // https://dog.ceo/dog-api/documentation/
+{    
     public class DogResponse
     {
         [JsonProperty("status")]

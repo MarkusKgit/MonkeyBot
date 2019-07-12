@@ -10,20 +10,28 @@ namespace MonkeyBot.Services
 {
     public class SteamGameServerService : BaseGameServerService
     {
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
+        private readonly ILogger<SteamGameServerService> logger;
+
         public SteamGameServerService(DbService dbService, DiscordSocketClient discordClient, ILogger<SteamGameServerService> logger)
             : base(GameServerType.Steam, dbService, discordClient, logger)
         {
+            this.dbService = dbService;
+            this.discordClient = discordClient;
+            this.logger = logger;
         }
 
         protected override async Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
         {
             if (discordGameServer == null)
                 return false;
+            SteamGameServer server = null;
             try
             {
-                var server = new SteamGameServer(discordGameServer.IP);
-                var serverInfo = await server?.GetServerInfoAsync();
-                var playerInfo = (await server?.GetPlayersAsync()).Where(x => !x.Name.IsEmpty()).ToList();
+                server = new SteamGameServer(discordGameServer.IP);
+                var serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
+                var playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
                     return false;
                 var guild = discordClient?.GetGuild(discordGameServer.GuildId);
@@ -46,8 +54,8 @@ namespace MonkeyBot.Services
                     discordGameServer.GameVersion = serverInfo.GameVersion;
                     using (var uow = dbService.UnitOfWork)
                     {
-                        await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                        await uow.CompleteAsync();
+                        await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                        await uow.CompleteAsync().ConfigureAwait(false);
                     }
                 }
                 else
@@ -58,8 +66,8 @@ namespace MonkeyBot.Services
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         using (var uow = dbService.UnitOfWork)
                         {
-                            await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                            await uow.CompleteAsync();
+                            await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                            await uow.CompleteAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -71,25 +79,25 @@ namespace MonkeyBot.Services
                 builder.WithFooter($"Last check: {DateTime.Now}");
                 if (discordGameServer.MessageId.HasValue)
                 {
-                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
+                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build());
+                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build()).ConfigureAwait(false);
                     }
                     else
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
-                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
-                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId).ConfigureAwait(false);
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
                         return false;
                     }
                 }
                 else
                 {
-                    discordGameServer.MessageId = (await channel?.SendMessageAsync("", false, builder.Build())).Id;
+                    discordGameServer.MessageId = (await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false)).Id;
                     using (var uow = dbService.UnitOfWork)
                     {
-                        await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                        await uow.CompleteAsync();
+                        await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                        await uow.CompleteAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -97,6 +105,11 @@ namespace MonkeyBot.Services
             {
                 logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.IP}");
                 throw;
+            }
+            finally
+            {
+                if (server != null)
+                    server.Dispose();
             }
             return true;
         }

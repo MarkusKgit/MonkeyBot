@@ -12,9 +12,9 @@ namespace MonkeyBot.Services
     public abstract class BaseGameServerService : IGameServerService
     {
         private readonly GameServerType gameServerType;
-        protected readonly DbService dbService;
-        protected readonly DiscordSocketClient discordClient;
-        protected readonly ILogger<IGameServerService> logger;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
+        private readonly ILogger<IGameServerService> logger;
 
         protected BaseGameServerService(GameServerType gameServerType, DbService dbService, DiscordSocketClient discordClient, ILogger<IGameServerService> logger)
         {
@@ -26,19 +26,19 @@ namespace MonkeyBot.Services
 
         public void Initialize()
         {
-            JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunNow().AndEvery(1).Minutes());
+            JobManager.AddJob(async () => await PostAllServerInfoAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(1).Minutes());
         }
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
             var server = new DiscordGameServerInfo(gameServerType, endpoint, guildID, channelID);
-            bool success = await PostServerInfoAsync(server);
+            bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
             if (success)
             {
                 using (var uow = dbService.UnitOfWork)
                 {
-                    await uow.GameServers.AddOrUpdateAsync(server);
-                    await uow.CompleteAsync();
+                    await uow.GameServers.AddOrUpdateAsync(server).ConfigureAwait(false);
+                    await uow.CompleteAsync().ConfigureAwait(false);
                 }
             }
             return success;
@@ -48,12 +48,12 @@ namespace MonkeyBot.Services
 
         private async Task PostAllServerInfoAsync()
         {
-            var servers = (await GetServersAsync()).Where(x => x.GameServerType == gameServerType);
+            var servers = (await GetServersAsync().ConfigureAwait(false)).Where(x => x.GameServerType == gameServerType);
             foreach (var server in servers)
             {
                 try
                 {
-                    await PostServerInfoAsync(server);
+                    await PostServerInfoAsync(server).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -64,7 +64,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            var servers = await GetServersAsync();
+            var servers = await GetServersAsync().ConfigureAwait(false);
             var serverToRemove = servers.FirstOrDefault(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID);
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
@@ -74,9 +74,9 @@ namespace MonkeyBot.Services
                 {
                     var guild = discordClient.GetGuild(serverToRemove.GuildId);
                     var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
-                    var msg = await channel?.GetMessageAsync(serverToRemove.MessageId.Value) as Discord.Rest.RestUserMessage;
+                    var msg = await (channel?.GetMessageAsync(serverToRemove.MessageId.Value)).ConfigureAwait(false) as Discord.Rest.RestUserMessage;
                     if (msg != null)
-                        await msg.DeleteAsync();
+                        await msg.DeleteAsync().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -86,8 +86,8 @@ namespace MonkeyBot.Services
 
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.GameServers.RemoveAsync(serverToRemove);
-                await uow.CompleteAsync();
+                await uow.GameServers.RemoveAsync(serverToRemove).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -95,7 +95,7 @@ namespace MonkeyBot.Services
         {
             using (var uow = dbService.UnitOfWork)
             {
-                return await uow.GameServers.GetAllAsync();
+                return await uow.GameServers.GetAllAsync().ConfigureAwait(false);
             }
         }
     }

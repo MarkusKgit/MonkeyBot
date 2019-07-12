@@ -32,7 +32,7 @@ namespace MonkeyBot.Services
 
         public void Start()
         {
-            JobManager.AddJob(async () => await GetAllFeedUpdatesAsync(), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
+            JobManager.AddJob(async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
         }
 
         public async Task AddFeedAsync(string url, ulong guildId, ulong channelId)
@@ -45,10 +45,10 @@ namespace MonkeyBot.Services
             };
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.Feeds.AddOrUpdateAsync(feed);
-                await uow.CompleteAsync();
+                await uow.Feeds.AddOrUpdateAsync(feed).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await GetFeedUpdateAsync(feed, true);
+            await GetFeedUpdateAsync(feed, true).ConfigureAwait(false);
         }
 
         public async Task RemoveFeedAsync(string url, ulong guildId, ulong channelId)
@@ -61,29 +61,29 @@ namespace MonkeyBot.Services
             };
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.Feeds.RemoveAsync(feed);
-                await uow.CompleteAsync();
+                await uow.Feeds.RemoveAsync(feed).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
         public async Task RemoveAllFeedsAsync(ulong guildId, ulong? channelId)
         {
-            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
+            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
             if (allFeeds == null)
                 return;
             using (var uow = dbService.UnitOfWork)
             {
                 foreach (var feed in allFeeds)
                 {
-                    await uow.Feeds.RemoveAsync(feed);
+                    await uow.Feeds.RemoveAsync(feed).ConfigureAwait(false);
                 }
-                await uow.CompleteAsync();
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
         public async Task<List<(ulong feedChannelId, string feedUrl)>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null)
         {
-            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
+            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
             return allFeeds?.Select(x => (x.ChannelId, x.URL)).ToList();
         }
 
@@ -93,9 +93,9 @@ namespace MonkeyBot.Services
             using (var uow = dbService.UnitOfWork)
             {
                 if (channelId.HasValue)
-                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId, x => x.ChannelId == channelId);
+                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId, x => x.ChannelId == channelId).ConfigureAwait(false);
                 else
-                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId);
+                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId).ConfigureAwait(false);
             }
             return allFeeds;
         }
@@ -104,16 +104,16 @@ namespace MonkeyBot.Services
         {
             foreach (var guild in discordClient?.Guilds)
             {
-                await GetGuildFeedUpdatesAsync(guild);
+                await GetGuildFeedUpdatesAsync(guild).ConfigureAwait(false);
             }
         }
 
         private async Task GetGuildFeedUpdatesAsync(SocketGuild guild)
         {
-            var feeds = await GetAllFeedsInternalAsync(guild.Id);
+            var feeds = await GetAllFeedsInternalAsync(guild.Id).ConfigureAwait(false);
             foreach (var feed in feeds)
             {
-                await GetFeedUpdateAsync(feed);
+                await GetFeedUpdateAsync(feed).ConfigureAwait(false);
             }
         }
 
@@ -126,7 +126,7 @@ namespace MonkeyBot.Services
             Feed feed;
             try
             {
-                feed = await FeedReader.ReadAsync(guildFeed.URL);
+                feed = await FeedReader.ReadAsync(guildFeed.URL).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -181,14 +181,14 @@ namespace MonkeyBot.Services
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
                     builder.AddField(fieldName, fieldContent, true);
                 }
-                await channel?.SendMessageAsync("", false, builder.Build());
+                await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
                     using (var uow = dbService.UnitOfWork)
                     {
-                        await uow.Feeds.AddOrUpdateAsync(guildFeed);
-                        await uow.CompleteAsync();
+                        await uow.Feeds.AddOrUpdateAsync(guildFeed).ConfigureAwait(false);
+                        await uow.CompleteAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -221,7 +221,7 @@ namespace MonkeyBot.Services
                 foreach (HtmlNode node in textNodes)
                 {
                     if (!node.InnerText.IsEmpty().OrWhiteSpace())
-                        sb.Append(node.InnerText.Trim());
+                        sb.Append(node.InnerText.Trim() + "|");
                 }
             }
             if (iframes != null)

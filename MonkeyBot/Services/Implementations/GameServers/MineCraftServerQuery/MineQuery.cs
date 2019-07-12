@@ -28,7 +28,7 @@ namespace MonkeyBot.Services
 
         public async Task<MineQueryResult> GetServerInfoAsync()
         {
-            await client.ConnectAsync(Address, Port);
+            await client.ConnectAsync(Address, Port).ConfigureAwait(false);
             if (!client.Connected)
                 return null;
             writeBuffer = new List<byte>();
@@ -62,7 +62,7 @@ namespace MonkeyBot.Services
                 var length = ReadVarInt(b);
                 var packet = ReadVarInt(b);
                 var jsonLength = ReadVarInt(b);
-                // Console.WriteLine($"Json: {jsonLength}, Buffer: {completeBuffer.Count}");
+                
                 if (jsonLength > completeBuffer.Count - offset)
                 {
                     //TODO: log receive error
@@ -173,6 +173,6 @@ namespace MonkeyBot.Services
         {
             client.Close();
             client.Dispose();
-        }
+        }        
     }
 }

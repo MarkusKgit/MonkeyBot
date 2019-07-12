@@ -122,41 +122,43 @@ namespace MonkeyBot.Services
             Parser parser = new Parser(data);
             if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_INFO)
                 throw new Exception("A2S_INFO message header is not valid");
-            serverInfo = new SteamServerInfo();
-            serverInfo.Protocol = parser.ReadByte();
-            serverInfo.Name = parser.ReadString();
-            serverInfo.Map = parser.ReadString();
-            serverInfo.Directory = parser.ReadString();
-            serverInfo.Description = parser.ReadString();
-            serverInfo.Id = parser.ReadUShort();
-            serverInfo.Players = parser.ReadByte();
-            serverInfo.MaxPlayers = parser.ReadByte();
-            serverInfo.Bots = parser.ReadByte();
-            serverInfo.ServerType = new Func<GameServertype>(() =>
+            serverInfo = new SteamServerInfo
             {
-                switch ((char)parser.ReadByte())
+                Protocol = parser.ReadByte(),
+                Name = parser.ReadString(),
+                Map = parser.ReadString(),
+                Directory = parser.ReadString(),
+                Description = parser.ReadString(),
+                Id = parser.ReadUShort(),
+                Players = parser.ReadByte(),
+                MaxPlayers = parser.ReadByte(),
+                Bots = parser.ReadByte(),
+                ServerType = new Func<GameServertype>(() =>
                 {
-                    case 'l': return GameServertype.Listen;
-                    case 'd': return GameServertype.Dedicated;
-                    case 'p': return GameServertype.SourceTV;
-                }
-                return GameServertype.Invalid;
-            })();
-            serverInfo.Environment = new Func<GameEnvironment>(() =>
-            {
-                switch ((char)parser.ReadByte())
+                    switch ((char)parser.ReadByte())
+                    {
+                        case 'l': return GameServertype.Listen;
+                        case 'd': return GameServertype.Dedicated;
+                        case 'p': return GameServertype.SourceTV;
+                    }
+                    return GameServertype.Invalid;
+                })(),
+                Environment = new Func<GameEnvironment>(() =>
                 {
-                    case 'l': return GameEnvironment.Linux;
-                    case 'w': return GameEnvironment.Windows;
-                    case 'm': return GameEnvironment.Mac;
-                    case 'o': return GameEnvironment.Mac;
-                }
-                return GameEnvironment.Invalid;
-            })();
-            serverInfo.IsPrivate = parser.ReadByte() > 0;
-            serverInfo.IsSecure = parser.ReadByte() > 0;
+                    switch ((char)parser.ReadByte())
+                    {
+                        case 'l': return GameEnvironment.Linux;
+                        case 'w': return GameEnvironment.Windows;
+                        case 'm': return GameEnvironment.Mac;
+                        case 'o': return GameEnvironment.Mac;
+                    }
+                    return GameEnvironment.Invalid;
+                })(),
+                IsPrivate = parser.ReadByte() > 0,
+                IsSecure = parser.ReadByte() > 0,
 
-            serverInfo.GameVersion = parser.ReadString();
+                GameVersion = parser.ReadString()
+            };
 
             if (parser.HasUnParsedBytes)
             {

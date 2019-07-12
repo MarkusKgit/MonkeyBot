@@ -31,14 +31,14 @@ namespace MonkeyBot.Services
 
         public async Task InitializeAsync()
         {
-            await RemovePastJobsAsync();
-            await BuildJobsAsync();
+            await RemovePastJobsAsync().ConfigureAwait(false);
+            await BuildJobsAsync().ConfigureAwait(false);
         }
 
         private async void JobManager_JobEndAsync(JobEndInfo obj)
         {
             // When a job is done check if old jobs exist and remove them
-            await RemovePastJobsAsync();
+            await RemovePastJobsAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -62,8 +62,8 @@ namespace MonkeyBot.Services
             AddRecurringJob(announcement);
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.Announcements.AddOrUpdateAsync(announcement);
-                await uow.CompleteAsync();
+                await uow.Announcements.AddOrUpdateAsync(announcement).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -71,7 +71,7 @@ namespace MonkeyBot.Services
         {
             var id = GetUniqueId(announcement);
             // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(id).ToRunEvery(5).Seconds());
+            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId).ConfigureAwait(false), (x) => x.WithName(id).ToRunEvery(5).Seconds());
             // Retrieve the schedule from the newly created job
             var schedule = JobManager.AllSchedules.FirstOrDefault(x => x.Name == id);
             // Create a cronSchedule with the provided cronExpression
@@ -109,8 +109,8 @@ namespace MonkeyBot.Services
             AddSingleJob(announcement);
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.Announcements.AddOrUpdateAsync(announcement);
-                await uow.CompleteAsync();
+                await uow.Announcements.AddOrUpdateAsync(announcement).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -119,7 +119,7 @@ namespace MonkeyBot.Services
             // The announcment's name must be unique on a per guild basis
             string uniqueName = GetUniqueId(announcement);
             // Add a new RunOnce job with the provided ID to the Jobmanager
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId), (x) => x.WithName(uniqueName).ToRunOnceAt(announcement.ExcecutionTime));
+            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildId, announcement.ChannelId).ConfigureAwait(false), (x) => x.WithName(uniqueName).ToRunOnceAt(announcement.ExcecutionTime));
         }
 
         /// <summary>
@@ -130,14 +130,14 @@ namespace MonkeyBot.Services
         public async Task RemoveAsync(string announcementName, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName);
+            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             JobManager.RemoveJob(GetUniqueId(announcement));
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.Announcements.RemoveAsync(announcement);
-                await uow.CompleteAsync();
+                await uow.Announcements.RemoveAsync(announcement).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -150,7 +150,7 @@ namespace MonkeyBot.Services
         public async Task<DateTime> GetNextOccurenceAsync(string announcementName, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName);
+            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             var job = JobManager.GetSchedule(GetUniqueId(announcement));
@@ -162,7 +162,7 @@ namespace MonkeyBot.Services
         {
             using (var uow = dbService.UnitOfWork)
             {
-                var announcements = await GetAllAnnouncementsAsync();
+                var announcements = await GetAllAnnouncementsAsync().ConfigureAwait(false);
                 for (int i = announcements.Count - 1; i >= 0; i--)
                 {
                     var announcement = announcements[i];
@@ -171,10 +171,10 @@ namespace MonkeyBot.Services
                         var id = GetUniqueId(announcement);
                         if (JobManager.GetSchedule(id) != null)
                             JobManager.RemoveJob(id);
-                        await uow.Announcements.RemoveAsync(announcement);
+                        await uow.Announcements.RemoveAsync(announcement).ConfigureAwait(false);
                     }
                 }
-                await uow.CompleteAsync();
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -182,7 +182,7 @@ namespace MonkeyBot.Services
         private async Task BuildJobsAsync()
         {
             //JobManager.RemoveAllJobs();
-            var announcements = await GetAllAnnouncementsAsync();
+            var announcements = await GetAllAnnouncementsAsync().ConfigureAwait(false);
             foreach (var announcement in announcements)
             {
                 if (announcement is RecurringAnnouncement)
@@ -194,14 +194,14 @@ namespace MonkeyBot.Services
 
         private async Task AnnounceAsync(string message, ulong guildID, ulong channelID)
         {
-            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
+            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message).ConfigureAwait(false);
         }
 
         private async Task<List<Announcement>> GetAllAnnouncementsAsync()
         {
             using (var uow = dbService.UnitOfWork)
             {
-                return await uow.Announcements.GetAllAsync();
+                return await uow.Announcements.GetAllAsync().ConfigureAwait(false);
             }
         }
 
@@ -209,7 +209,7 @@ namespace MonkeyBot.Services
         {
             using (var uow = dbService.UnitOfWork)
             {
-                return await uow.Announcements.GetAllForGuildAsync(guildID);
+                return await uow.Announcements.GetAllForGuildAsync(guildID).ConfigureAwait(false);
             }
         }
 
@@ -217,7 +217,7 @@ namespace MonkeyBot.Services
         {
             using (var uow = dbService.UnitOfWork)
             {
-                return (await uow.Announcements.GetAllForGuildAsync(guildId, x => x.Name == announcementName)).SingleOrDefault();
+                return (await uow.Announcements.GetAllForGuildAsync(guildId, x => x.Name == announcementName).ConfigureAwait(false)).SingleOrDefault();
             }
         }
 

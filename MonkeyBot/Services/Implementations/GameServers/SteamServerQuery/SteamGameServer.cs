@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class SteamGameServer
+    public class SteamGameServer : IDisposable
     {
         public IPEndPoint EndPoint
         {
@@ -18,11 +18,11 @@ namespace MonkeyBot.Services
             private set;
         }
 
-        private byte[] PlayerChallengeId = null;
+        private byte[] playerChallengeId = null;
 
-        private bool IsPlayerChallengeId;
+        private bool isPlayerChallengeId;
 
-        private UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
+        private readonly UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
 
         public SteamGameServer(IPEndPoint endPoint)
         {
@@ -31,32 +31,31 @@ namespace MonkeyBot.Services
 
         public async Task<SteamServerInfo> GetServerInfoAsync()
         {
-            var response = await GetServerResponseAsync(QueryMsg.InfoQuery);
+            var response = await GetServerResponseAsync(QueryMsg.InfoQuery).ConfigureAwait(false);
             return SteamServerInfo.Parse(response); // Skip header
         }
 
         public async Task<ReadOnlyCollection<PlayerInfo>> GetPlayersAsync()
         {
-            byte[] recvData = null;
-            List<PlayerInfo> players = null;
-            Parser parser = null;
+            List<PlayerInfo> players;
             try
             {
-                if (PlayerChallengeId == null)
+                byte[] recvData;
+                if (playerChallengeId == null)
                 {
-                    recvData = await GetPlayerChallengeIdAsync();
-                    if (IsPlayerChallengeId)
-                        PlayerChallengeId = recvData;
+                    recvData = await GetPlayerChallengeIdAsync().ConfigureAwait(false);
+                    if (isPlayerChallengeId)
+                        playerChallengeId = null;
                 }
-                if (IsPlayerChallengeId)
+                if (isPlayerChallengeId)
                 {
-                    byte[] combinedArray = new byte[QueryMsg.PlayerQuery.Length + PlayerChallengeId.Length];
+                    byte[] combinedArray = new byte[QueryMsg.PlayerQuery.Length + playerChallengeId.Length];
                     Buffer.BlockCopy(QueryMsg.PlayerQuery, 0, combinedArray, 0, QueryMsg.PlayerQuery.Length);
-                    Buffer.BlockCopy(PlayerChallengeId, 0, combinedArray, QueryMsg.PlayerQuery.Length, PlayerChallengeId.Length);
-                    recvData = await GetServerResponseAsync(combinedArray);
+                    Buffer.BlockCopy(playerChallengeId, 0, combinedArray, QueryMsg.PlayerQuery.Length, playerChallengeId.Length);
+                    recvData = await GetServerResponseAsync(combinedArray).ConfigureAwait(false);
                 }
 
-                parser = new Parser(recvData);
+                Parser parser = new Parser(null);
                 if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_PLAYER)
                     throw new Exception("A2S_PLAYER message header is not valid");
                 int playerCount = parser.ReadByte();
@@ -76,7 +75,7 @@ namespace MonkeyBot.Services
             }
             catch (Exception e)
             {
-                e.Data.Add("ReceivedData", recvData == null ? new byte[1] : recvData);
+                e.Data.Add("ReceivedData", (byte[])null == null ? new byte[1] : null);
                 throw;
             }
             return new ReadOnlyCollection<PlayerInfo>(players);
@@ -84,24 +83,21 @@ namespace MonkeyBot.Services
 
         private async Task<byte[]> GetPlayerChallengeIdAsync()
         {
-            byte[] recvBytes = null;
-            byte header = 0;
-            Parser parser = null;
-            recvBytes = await GetServerResponseAsync(QueryMsg.PlayerChallengeQuery);
+            byte[] recvBytes = await GetServerResponseAsync(QueryMsg.PlayerChallengeQuery).ConfigureAwait(false);
             try
             {
-                parser = new Parser(recvBytes);
-                header = parser.ReadByte();
+                Parser parser = new Parser(recvBytes);
+                byte header = parser.ReadByte();
                 switch (header)
                 {
-                    case (byte)ResponseMsgHeader.A2S_SERVERQUERY_GETCHALLENGE: IsPlayerChallengeId = true; return parser.GetUnParsedBytes();
-                    case (byte)ResponseMsgHeader.A2S_PLAYER: IsPlayerChallengeId = false; return recvBytes;
+                    case (byte)ResponseMsgHeader.A2S_SERVERQUERY_GETCHALLENGE: isPlayerChallengeId = true; return parser.GetUnParsedBytes();
+                    case (byte)ResponseMsgHeader.A2S_PLAYER: isPlayerChallengeId = false; return recvBytes;
                     default: throw new Exception("A2S_SERVERQUERY_GETCHALLENGE message header is not valid");
                 }
             }
             catch (Exception e)
             {
-                e.Data.Add("ReceivedData", recvBytes == null ? new byte[1] : recvBytes);
+                e.Data.Add("ReceivedData", recvBytes ?? new byte[1]);
                 throw;
             }
         }
@@ -109,18 +105,24 @@ namespace MonkeyBot.Services
         private async Task<byte[]> GetServerResponseAsync(byte[] Query)
         {
             if (!client.Client.Connected)
-                await client.Client.ConnectAsync(EndPoint);
-            await client.SendAsync(Query, Query.Length, EndPoint);
+                await client.Client.ConnectAsync(EndPoint).ConfigureAwait(false);
+            await client.SendAsync(Query, Query.Length, EndPoint).ConfigureAwait(false);
             using (var cts = new CancellationTokenSource())
             {
                 client.Client.ReceiveTimeout = 2000;
                 cts.CancelAfter(2000);
 
-                var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token);
+                var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
                 byte[] result = new byte[response.Buffer.Length - 4];
                 response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
                 return result;
             }
+        }
+
+        public void Dispose()
+        {
+            client.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

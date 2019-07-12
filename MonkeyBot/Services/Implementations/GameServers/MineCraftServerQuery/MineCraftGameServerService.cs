@@ -16,6 +16,9 @@ namespace MonkeyBot.Services
     public class MineCraftGameServerService : BaseGameServerService
     {
         private readonly IPictureUploadService pictureUploadService;
+        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;
+        private readonly ILogger<MineCraftGameServerService> logger;
 
         public MineCraftGameServerService(
             DbService dbService,
@@ -25,6 +28,9 @@ namespace MonkeyBot.Services
             : base(GameServerType.Minecraft, dbService, discordClient, logger)
         {
             this.pictureUploadService = pictureUploadService;
+            this.dbService = dbService;
+            this.discordClient = discordClient;
+            this.logger = logger;
         }
 
         protected override async Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer)
@@ -35,7 +41,7 @@ namespace MonkeyBot.Services
             try
             {
                 query = new MineQuery(discordGameServer.IP.Address, discordGameServer.IP.Port);
-                var serverInfo = await query.GetServerInfoAsync();
+                var serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
                 if (serverInfo == null)
                     return false;
                 var guild = discordClient?.GetGuild(discordGameServer.GuildId);
@@ -61,8 +67,8 @@ namespace MonkeyBot.Services
                     discordGameServer.GameVersion = serverInfo.Version.Name;
                     using (var uow = dbService.UnitOfWork)
                     {
-                        await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                        await uow.CompleteAsync();
+                        await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                        await uow.CompleteAsync().ConfigureAwait(false);
                     }
                 }
                 else
@@ -73,8 +79,8 @@ namespace MonkeyBot.Services
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         using (var uow = dbService.UnitOfWork)
                         {
-                            await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                            await uow.CompleteAsync();
+                            await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                            await uow.CompleteAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -91,7 +97,7 @@ namespace MonkeyBot.Services
                     pictureUrl = await GenerateAndUploadChartAsync(
                         discordGameServer.IP.ToString().Replace(".", "_").Replace(":", "_"),
                         serverInfo.Players.Online,
-                        serverInfo.Players.Max);
+                        serverInfo.Players.Max).ConfigureAwait(false);
 
                     if (!pictureUrl.IsEmpty().OrWhiteSpace())
                     {
@@ -101,7 +107,7 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.MessageId.HasValue)
                 {
-                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value) is IUserMessage existingMessage && existingMessage != null)
+                    if (await channel.GetMessageAsync(discordGameServer.MessageId.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
                     {                        
                         await existingMessage.ModifyAsync(x =>
                         {
@@ -111,24 +117,24 @@ namespace MonkeyBot.Services
                                 builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
                             }
                             x.Embed = builder.Build();
-                            });
+                            }).ConfigureAwait(false);
                     }
                     else
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.IP}. Original message was removed.");
-                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId);
-                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        await RemoveServerAsync(discordGameServer.IP, discordGameServer.GuildId).ConfigureAwait(false);
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.IP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
                         return false;
                     }
                 }
                 else
                 {
-                    var message = await channel?.SendMessageAsync("", false, builder.Build());
+                    var message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                     discordGameServer.MessageId = message.Id;
                     using (var uow = dbService.UnitOfWork)
                     {
-                        await uow.GameServers.AddOrUpdateAsync(discordGameServer);
-                        await uow.CompleteAsync();
+                        await uow.GameServers.AddOrUpdateAsync(discordGameServer).ConfigureAwait(false);
+                        await uow.CompleteAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -161,7 +167,7 @@ namespace MonkeyBot.Services
             var historicData = new List<HistoricData<int>>();
             if (File.Exists(storedValuesPath))
             {
-                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath);
+                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
                 List<HistoricData<int>> loadedData = JsonConvert.DeserializeObject<List<HistoricData<int>>>(json);
                 historicData = loadedData
                     .Where(x => x.Time > minTime)
@@ -174,7 +180,7 @@ namespace MonkeyBot.Services
             }
             historicData.Add(new HistoricData<int>(DateTime.Now, currentPlayers));
 
-            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonConvert.SerializeObject(historicData, Formatting.Indented));
+            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonConvert.SerializeObject(historicData, Formatting.Indented)).ConfigureAwait(false);
 
             var chart = new XYChart
             {
@@ -204,7 +210,7 @@ namespace MonkeyBot.Services
 
             chart.ExportChart(pictureFilePath, transformedValues);
 
-            string pictureUrl = await pictureUploadService.UploadPictureAsync(pictureFilePath, id);
+            string pictureUrl = await pictureUploadService.UploadPictureAsync(pictureFilePath, id).ConfigureAwait(false);
             return pictureUrl;
         }
     }

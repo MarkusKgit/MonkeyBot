@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using dokas.FluentStrings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,19 +32,19 @@ namespace MonkeyBot.Services
             var guild = discordClient.GetGuild(guildId);
             if (guild == null)
                 return;
-            var msg = await GetMessageAsync(guild, messageId);
+            var msg = await GetMessageAsync(guild, messageId).ConfigureAwait(false);
             if (msg == null)
                 return;
-            IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name)) ?? new Emoji(emoteString) as IEmote;
+            IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.Ordinal)) ?? new Emoji(emoteString) as IEmote;
             if (emote == null)
                 return;
             if (msg.Reactions.Count(x => x.Key == emote) < 1)
-                await msg.AddReactionAsync(emote);
+                await msg.AddReactionAsync(emote).ConfigureAwait(false);
             var link = new RoleButtonLink(guildId, messageId, roleId, emoteString);
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.RoleButtonLinks.AddOrUpdateAsync(link);
-                await uow.CompleteAsync();
+                await uow.RoleButtonLinks.AddOrUpdateAsync(link).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -52,22 +53,22 @@ namespace MonkeyBot.Services
             RoleButtonLink link;
             using (var uow = dbService.UnitOfWork)
             {
-                link = (await uow.RoleButtonLinks.GetAllForGuildAsync(guildId, x => x.MessageId == messageId && x.RoleId == roleId)).SingleOrDefault();
+                link = (await uow.RoleButtonLinks.GetAllForGuildAsync(guildId, x => x.MessageId == messageId && x.RoleId == roleId).ConfigureAwait(false)).SingleOrDefault();
             }
             if (link == null)
                 return;
             using (var uow = dbService.UnitOfWork)
             {
-                await uow.RoleButtonLinks.RemoveAsync(link);
-                await uow.CompleteAsync();
+                await uow.RoleButtonLinks.RemoveAsync(link).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
             var guild = discordClient.GetGuild(guildId);
             if (guild == null)
                 return;
-            var msg = await GetMessageAsync(guild, messageId);
+            var msg = await GetMessageAsync(guild, messageId).ConfigureAwait(false);
             if (msg == null)
                 return;
-            IEmote emote = guild.Emotes.FirstOrDefault(x => link.EmoteString.Contains(x.Name)) ?? new Emoji(link.EmoteString) as IEmote;
+            IEmote emote = guild.Emotes.FirstOrDefault(x => link.EmoteString.Contains(x.Name, StringComparison.Ordinal)) ?? new Emoji(link.EmoteString) as IEmote;
             if (emote == null)
                 return;
             var reactedUsers = msg.GetReactionUsersAsync(emote, 100);
@@ -75,21 +76,21 @@ namespace MonkeyBot.Services
             {
                 foreach (var user in users)
                 {
-                    await msg.RemoveReactionAsync(emote, user);
+                    await msg.RemoveReactionAsync(emote, user).ConfigureAwait(false);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         public async Task RemoveAllRoleButtonLinksAsync(ulong guildId)
         {
             using (var uow = dbService.UnitOfWork)
             {
-                var links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId);
+                var links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId).ConfigureAwait(false);
                 foreach (var link in links)
                 {
-                    await uow.RoleButtonLinks.RemoveAsync(link);
+                    await uow.RoleButtonLinks.RemoveAsync(link).ConfigureAwait(false);
                 }
-                await uow.CompleteAsync();
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
         }
 
@@ -98,7 +99,7 @@ namespace MonkeyBot.Services
             bool exists;
             using (var uow = dbService.UnitOfWork)
             {
-                var links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId, x => x.MessageId == messageId && x.RoleId == roleId);
+                var links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId, x => x.MessageId == messageId && x.RoleId == roleId).ConfigureAwait(false);
                 if (!emoteString.IsEmpty().OrWhiteSpace())
                     links = links?.Where(x => x.EmoteString == emoteString).ToList();
                 exists = links?.Count() > 0;
@@ -111,7 +112,7 @@ namespace MonkeyBot.Services
             List<RoleButtonLink> links;
             using (var uow = dbService.UnitOfWork)
             {
-                links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId);
+                links = await uow.RoleButtonLinks.GetAllForGuildAsync(guildId).ConfigureAwait(false);
             }
             if (links == null || links.Count() < 1)
                 return "";
@@ -127,19 +128,19 @@ namespace MonkeyBot.Services
 
         private async Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-            await AddOrRemoveRoleAsync(AddOrRemove.Remove, arg1, arg2, arg3);
+            await AddOrRemoveRoleAsync(AddOrRemove.Remove, arg1, arg2, arg3).ConfigureAwait(false);
         }
 
         private async Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-            await AddOrRemoveRoleAsync(AddOrRemove.Add, arg1, arg2, arg3);
+            await AddOrRemoveRoleAsync(AddOrRemove.Add, arg1, arg2, arg3).ConfigureAwait(false);
         }
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
             if (arg2 == null || !arg3.User.IsSpecified)
                 return;
-            var msg = arg1.HasValue ? arg1.Value : await arg1.GetOrDownloadAsync();
+            var msg = arg1.HasValue ? arg1.Value : await arg1.GetOrDownloadAsync().ConfigureAwait(false);
 
             if (!(msg.Channel is ITextChannel textChannel))
                 return;
@@ -151,26 +152,26 @@ namespace MonkeyBot.Services
             var emote = arg3.Emote;
             if (user.IsBot)
                 return;
-            List<RoleButtonLink> buttonLinks = await GetRoleButtonLinksAsync();
+            List<RoleButtonLink> buttonLinks = await GetRoleButtonLinksAsync().ConfigureAwait(false);
             var match = buttonLinks.SingleOrDefault(x => x.GuildId == guild.Id && x.MessageId == msg.Id && x.EmoteString == emote.ToString());
             if (match != null)
             {
                 var role = guild.GetRole(match.RoleId);
-                var gUser = await guild.GetUserAsync(user.Id);
+                var gUser = await guild.GetUserAsync(user.Id).ConfigureAwait(false);
                 if (action == AddOrRemove.Add)
                 {
-                    await gUser.AddRoleAsync(role);
-                    await gUser.SendMessageAsync($"Role {role.Name} added");
+                    await gUser.AddRoleAsync(role).ConfigureAwait(false);
+                    await gUser.SendMessageAsync($"Role {role.Name} added").ConfigureAwait(false);
                 }
                 else
                 {
-                    await gUser.RemoveRoleAsync(role);
-                    await gUser.SendMessageAsync($"Role {role.Name} removed");
+                    await gUser.RemoveRoleAsync(role).ConfigureAwait(false);
+                    await gUser.SendMessageAsync($"Role {role.Name} removed").ConfigureAwait(false);
                 }
             }
             else if (buttonLinks.Count(x => x.MessageId == msg.Id) > 0) // Remove all new reactions that were not added by Bot
             {
-                await msg.RemoveReactionAsync(emote, user);
+                await msg.RemoveReactionAsync(emote, user).ConfigureAwait(false);
             }
         }
 
@@ -178,7 +179,7 @@ namespace MonkeyBot.Services
         {
             foreach (var tc in guild.TextChannels)
             {
-                var msg = await tc.GetMessageAsync(messageId);
+                var msg = await tc.GetMessageAsync(messageId).ConfigureAwait(false);
                 if (msg != null && msg is IUserMessage userMsg)
                 {
                     return userMsg;
@@ -192,7 +193,7 @@ namespace MonkeyBot.Services
             List<RoleButtonLink> links;
             using (var uow = dbService.UnitOfWork)
             {
-                links = await uow.RoleButtonLinks.GetAllAsync();
+                links = await uow.RoleButtonLinks.GetAllAsync().ConfigureAwait(false);
             }
             return links;
         }

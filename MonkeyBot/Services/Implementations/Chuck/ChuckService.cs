@@ -1,18 +1,22 @@
 ﻿using dokas.FluentStrings;
 using MonkeyBot.Common;
 using Newtonsoft.Json;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
+    //http://www.icndb.com/api/
     public class ChuckService : IChuckService
     {
+        private static readonly Uri randomJokeApiUrl = new Uri("http://api.icndb.com/jokes/random");
+
         public async Task<string> GetChuckFactAsync()
         {
             using (var httpClient = new HttpClient())
             {
-                var json = await httpClient.GetStringAsync($"http://api.icndb.com/jokes/random");
+                var json = await httpClient.GetStringAsync(randomJokeApiUrl).ConfigureAwait(false);
 
                 if (!json.IsEmpty())
                 {
@@ -29,8 +33,10 @@ namespace MonkeyBot.Services
             if (userName.IsEmpty())
                 return string.Empty;
             using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync($"http://api.icndb.com/jokes/random?firstName={userName}");
+            {                
+                var url = new UriBuilder(randomJokeApiUrl);
+                url.Query = $"firstName={userName}";
+                var json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
 
                 if (!json.IsEmpty())
                 {

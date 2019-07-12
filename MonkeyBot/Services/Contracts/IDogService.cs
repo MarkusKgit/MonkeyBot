@@ -5,18 +5,13 @@ namespace MonkeyBot.Services
 {
     public interface IDogService
     {
-        /// <summary>
-        /// Get a random dog picture
-        /// </summary>
-        /// <returns></returns>
-        Task<string> GetDogPictureUrlAsync();
 
         /// <summary>
-        /// Get a random dog picture of the given breed
+        /// Get a random dog picture of the given <paramref name="breed"/> or from all dogs if <paramref name="breed"/> is left empty
         /// </summary>
         /// <param name="breed">The name of the breed to get a picture for</param>
         /// <returns></returns>
-        Task<string> GetDogPictureUrlAsync(string breed);
+        Task<string> GetDogPictureUrlAsync(string breed = "");
 
         /// <summary>
         /// Get a all dog breeds

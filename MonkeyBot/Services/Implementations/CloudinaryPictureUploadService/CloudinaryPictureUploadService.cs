@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
                 PublicId = id
             };
 
-            var uploadResult = await Task.Run(() => cloudinary?.Upload(uploadParams));
+            var uploadResult = await Task.Run(() => cloudinary?.Upload(uploadParams)).ConfigureAwait(false);
 
             return uploadResult?.SecureUri?.OriginalString ?? "";
         }
