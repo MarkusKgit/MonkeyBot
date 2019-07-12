@@ -13,7 +13,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async override Task AddOrUpdateAsync(RoleButtonLink obj)
         {
-            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString);
+            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString).ConfigureAwait(false);
             if (link == null)
             {
                 dbSet.Add(link = new RoleButtonLinkEntity
@@ -37,7 +37,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString);
+            var link = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.MessageId == obj.MessageId && x.RoleId == obj.RoleId && x.EmoteString == obj.EmoteString).ConfigureAwait(false);
             if (link != null)
                 dbSet.Remove(link);
         }

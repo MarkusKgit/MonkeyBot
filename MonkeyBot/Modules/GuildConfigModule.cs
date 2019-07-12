@@ -30,20 +30,20 @@ namespace MonkeyBot.Modules
             welcomeMsg = welcomeMsg.Trim('\"');
             if (welcomeMsg.IsEmpty())
             {
-                await ReplyAsync("Please provide a welcome message");
+                await ReplyAsync("Please provide a welcome message").ConfigureAwait(false);
                 return;
             }
 
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.WelcomeMessageText = welcomeMsg;
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await ReplyAndDeleteAsync("Message set");
+            await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
 
         [Command("SetWelcomeChannel")]
@@ -51,17 +51,17 @@ namespace MonkeyBot.Modules
         [Example("!SetWelcomeChannel general")]
         public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][Remainder] string channelName)
         {            
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.WelcomeMessageChannelId = channel.Id;
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await ReplyAndDeleteAsync("Channel set");
+            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
 
         [Command("SetGoodbyeMessage")]
@@ -72,20 +72,20 @@ namespace MonkeyBot.Modules
             goodbyeMsg = goodbyeMsg.Trim('\"');
             if (goodbyeMsg.IsEmpty())
             {
-                await ReplyAsync("Please provide a goodbye message");
+                await ReplyAsync("Please provide a goodbye message").ConfigureAwait(false);
                 return;
             }
 
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.GoodbyeMessageText = goodbyeMsg;
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await ReplyAndDeleteAsync("Message set");
+            await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
 
         [Command("SetGoodbyeChannel")]
@@ -93,17 +93,17 @@ namespace MonkeyBot.Modules
         [Example("!SetGoodbyeChannel general")]
         public async Task SetGoodbyeChannelAsync([Summary("The Goodbye message channel")][Remainder] string channelName)
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.GoodbyeMessageChannelId = channel.Id;
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await ReplyAndDeleteAsync("Channel set");
+            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
                         
         [Command("AddRule")]
@@ -113,19 +113,19 @@ namespace MonkeyBot.Modules
         {
             if (rule.IsEmpty())
             {
-                await ReplyAsync("Please enter a rule");
+                await ReplyAsync("Please enter a rule").ConfigureAwait(false);
                 return;
             }
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config == null)
                     config = new GuildConfig(Context.Guild.Id);
                 config.AddRule(rule);
-                await uow.GuildConfigs.AddOrUpdateAsync(config);
-                await uow.CompleteAsync();
+                await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                await uow.CompleteAsync().ConfigureAwait(false);
             }
-            await ReplyAndDeleteAsync("Rule added");
+            await ReplyAndDeleteAsync("Rule added").ConfigureAwait(false);
         }
 
         [Command("RemoveRules")]
@@ -134,15 +134,15 @@ namespace MonkeyBot.Modules
         {
             using (var uow = dbService.UnitOfWork)
             {
-                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id);
+                var config = await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false);
                 if (config != null)
                 {
                     config.ClearRules();
-                    await uow.GuildConfigs.AddOrUpdateAsync(config);
-                    await uow.CompleteAsync();
+                    await uow.GuildConfigs.AddOrUpdateAsync(config).ConfigureAwait(false);
+                    await uow.CompleteAsync().ConfigureAwait(false);
                 }
             }
-            await ReplyAndDeleteAsync("Rules removed");
+            await ReplyAndDeleteAsync("Rules removed").ConfigureAwait(false);
         }
     }
 }

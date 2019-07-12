@@ -30,20 +30,20 @@ namespace MonkeyBot.Modules
         {
             if (gameName.IsEmpty())
             {
-                await ReplyAsync("You need to specify a game you wish to subscribe to!");
+                await ReplyAsync("You need to specify a game you wish to subscribe to!").ConfigureAwait(false);
                 return;
             }
             try
             {
                 // Add the Subscription to the Service to activate it
-                await gameSubscriptionService.AddSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id);
+                await gameSubscriptionService.AddSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}");
+                await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error adding a game subscription");
             }
-            await ReplyAsync($"You are now subscribed to {gameName}");
+            await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
         }
 
         [Command("Unsubscribe")]
@@ -53,20 +53,20 @@ namespace MonkeyBot.Modules
         {
             if (gameName.IsEmpty())
             {
-                await ReplyAsync("You need to specify a game you wish to unsubscribe from!");
+                await ReplyAsync("You need to specify a game you wish to unsubscribe from!").ConfigureAwait(false);
                 return;
             }
             try
             {
                 // Remove the subscription from the Service
-                await gameSubscriptionService.RemoveSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id);
+                await gameSubscriptionService.RemoveSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}");
+                await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a game subscription");
             }
-            await ReplyAsync($"You are now unsubscribed from {gameName}");
+            await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
         }
     }
 }

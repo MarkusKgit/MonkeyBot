@@ -16,7 +16,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async Task<GuildConfig> GetAsync(ulong guildId)
         {
-            var dbConfig = await dbSet.SingleOrDefaultAsync(x => (ulong)x.GuildId == guildId);
+            var dbConfig = await dbSet.SingleOrDefaultAsync(x => (ulong)x.GuildId == guildId).ConfigureAwait(false);
             if (dbConfig == null)
                 return null;
             return Mapper.Map<GuildConfig>(dbConfig);
@@ -24,7 +24,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(GuildConfig obj)
         {
-            var dbCfg = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId);
+            var dbCfg = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId).ConfigureAwait(false);
             if (dbCfg == null)
             {
                 dbSet.Add(dbCfg = new GuildConfigEntity
@@ -55,7 +55,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId);
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId).ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }

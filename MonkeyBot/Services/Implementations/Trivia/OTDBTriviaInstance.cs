@@ -373,7 +373,7 @@ namespace MonkeyBot.Services
         {
             if (apiToken.IsEmpty())
             {
-                await GetTokenAsync();
+                await GetTokenAsync().ConfigureAwait(false);
             }
             // Amount of questions per request is limited to 50 by the API
             if (count > 50)

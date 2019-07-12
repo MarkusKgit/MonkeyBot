@@ -16,7 +16,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(GameSubscription obj)
         {
-            var gameSubscription = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.UserId == obj.UserId && x.GameName == obj.GameName);
+            var gameSubscription = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.UserId == obj.UserId && x.GameName == obj.GameName).ConfigureAwait(false);
             if (gameSubscription == null)
             {
                 dbSet.Add(gameSubscription = new GameSubscriptionEntity
@@ -36,7 +36,7 @@ namespace MonkeyBot.Database.Repositories
 
         public async Task<List<GameSubscription>> GetAllForUserAsync(ulong userId)
         {
-            var gameSubscription = await dbSet.Where(x => (ulong)x.UserId == userId).ToListAsync();
+            var gameSubscription = await dbSet.Where(x => x.UserId == userId).ToListAsync().ConfigureAwait(false);
             if (gameSubscription == null)
                 return null;
             return Mapper.Map<List<GameSubscription>>(gameSubscription);
@@ -46,7 +46,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.UserId == obj.UserId && x.GameName == obj.GameName);
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.UserId == obj.UserId && x.GameName == obj.GameName).ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }

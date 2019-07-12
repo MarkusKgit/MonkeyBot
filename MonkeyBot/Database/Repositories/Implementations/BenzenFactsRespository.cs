@@ -15,19 +15,19 @@ namespace MonkeyBot.Database.Repositories
         public async override Task AddOrUpdateAsync(string fact)
         {
             if (dbSet.Count(x => x.Fact == fact) < 1)
-                await dbSet.AddAsync(new BenzenFactEntity { Fact = fact });
+                await dbSet.AddAsync(new BenzenFactEntity { Fact = fact }).ConfigureAwait(false);
         }
 
         public async Task<string> GetRandomFactAsync()
         {
             Random rnd = new Random();
-            var allFacts = await dbSet.ToListAsync();
+            var allFacts = await dbSet.ToListAsync().ConfigureAwait(false);
             return allFacts?.ElementAt(rnd.Next(0, allFacts.Count - 1)).Fact;
         }
 
         public async override Task RemoveAsync(string fact)
         {
-            var entity = await dbSet.Where(x => x.Fact == fact).SingleOrDefaultAsync();
+            var entity = await dbSet.Where(x => x.Fact == fact).SingleOrDefaultAsync().ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }

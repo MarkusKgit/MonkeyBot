@@ -39,7 +39,7 @@ namespace MonkeyBot.Modules
             question = question.Trim('\"');
             if (question.IsEmpty())
             {
-                await ReplyAsync("Please enter a question");
+                await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
             Poll poll = new Poll
@@ -54,7 +54,7 @@ namespace MonkeyBot.Modules
                     new PollAnswer("Don't care", new Emoji("🤷"))
                 }
             };
-            await InlineReactionReplyAsync(GeneratePoll(poll), false);
+            await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
         }
 
         [Command("Poll")]
@@ -67,23 +67,23 @@ namespace MonkeyBot.Modules
         {
             if (answers == null || answers.Length <= 0)
             {
-                await StartPollAsync(question);
+                await StartPollAsync(question).ConfigureAwait(false);
                 return;
             }
             if (answers.Length < 2)
             {
-                await ReplyAsync("Please provide at least 2 answers");
+                await ReplyAsync("Please provide at least 2 answers").ConfigureAwait(false);
                 return;
             }
             if (answers.Length > 7)
             {
-                await ReplyAsync("Please provide a maximum of 7 answers");
+                await ReplyAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
                 return;
             }
             question = question.Trim('\"');
             if (question.IsEmpty().OrWhiteSpace())
             {
-                await ReplyAsync("Please enter a question");
+                await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
 
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
                 Question = question,
                 Answers = answers.Select((ans, i) => new PollAnswer(ans, new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(i)))).ToList()
             };
-            await InlineReactionReplyAsync(GeneratePoll(poll), false);
+            await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
         }
 
         private static ReactionCallbackData GeneratePoll(Poll poll)
@@ -111,15 +111,15 @@ namespace MonkeyBot.Modules
                     )
                 .AddField("Pick one", answers);
 
-            var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll));
+            var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll).ConfigureAwait(false));
             foreach (var answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
             {
-                rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(c, r, poll));
+                rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(r, poll));
             }
             return rcbd;
         }
 
-        private static Task AddVoteCount(SocketCommandContext context, SocketReaction reaction, Poll poll)
+        private static Task AddVoteCount(SocketReaction reaction, Poll poll)
         {
             var answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
             if (answer != null && reaction.User.IsSpecified)
@@ -148,7 +148,7 @@ namespace MonkeyBot.Modules
                 .AddField("Results", string.Join(Environment.NewLine, answerCounts))
                 .AddField("Voters", participantsString);
 
-            await context.Channel.SendMessageAsync("", embed: embedBuilder.Build());
+            await context.Channel.SendMessageAsync("", embed: embedBuilder.Build()).ConfigureAwait(false);
         }
     }
 }

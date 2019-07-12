@@ -26,30 +26,30 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random Chuck Norris fact.")]
         public async Task GetChuckFactAsync()
         {
-            var fact = await chuckService?.GetChuckFactAsync();
+            var fact = await (chuckService?.GetChuckFactAsync()).ConfigureAwait(false);
             if (fact.IsEmpty())
             {
-                await ReplyAsync("Could not get a chuck fact :(");
+                await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
                 return;
             }
-            await ReplyAsync(fact);
+            await ReplyAsync(fact).ConfigureAwait(false);
         }
 
         [Command("Chuck")]
         [Remarks("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
         public async Task GetChuckFactAsync([Remainder][Summary("The name of the person to chuck")] string username)
         {
-            IGuildUser user = await GetUserInGuildAsync(username);
+            IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
-            var fact = await chuckService?.GetChuckFactAsync(username);
+            var fact = await (chuckService?.GetChuckFactAsync(username)).ConfigureAwait(false);
             if (fact.IsEmpty())
             {
-                await ReplyAsync("Could not get a chuck fact :(");
+                await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
                 return;
             }
             fact = fact.Replace(username, user.Mention);
-            await ReplyAsync(fact);
+            await ReplyAsync(fact).ConfigureAwait(false);
         }
     }
 }

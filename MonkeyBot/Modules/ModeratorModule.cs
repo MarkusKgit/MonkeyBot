@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Fclp.Internals.Extensions;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System.Linq;
@@ -25,15 +24,15 @@ namespace MonkeyBot.Modules
         {
             if (count < 1)
             {
-                await ReplyAsync("Count has to be at least 1");
+                await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)
                 count = 100;
             if (Context.Channel is ITextChannel channel)
             {
-                var msgs = await channel.GetMessagesAsync(count).FlattenAsync();
-                await channel.DeleteMessagesAsync(msgs);
+                var msgs = await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false);
+                await channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
             }
         }
 
@@ -44,22 +43,22 @@ namespace MonkeyBot.Modules
         [Example("!Prune JohnDoe 10")]
         public async Task PruneAsync(string userName, int count = 10)
         {
-            IGuildUser user = await GetUserInGuildAsync(userName);
+            IGuildUser user = await GetUserInGuildAsync(userName).ConfigureAwait(false);
             if (user == null)
-            {                
+            {
                 return;
             }
             if (count < 1)
             {
-                await ReplyAsync("Count has to be at least 1");
+                await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)
                 count = 100;
             if (Context.Channel is ITextChannel channel)
             {
-                var msgs = (await channel.GetMessagesAsync(count).FlattenAsync()).Where(x => x.Author.Id == user.Id);
-                await channel.DeleteMessagesAsync(msgs);
+                var msgs = (await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false)).Where(x => x.Author.Id == user.Id);
+                await channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
             }
         }
     }

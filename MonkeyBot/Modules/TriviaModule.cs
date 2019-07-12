@@ -34,23 +34,23 @@ namespace MonkeyBot.Modules
         {
             var success = await triviaService.StartTriviaAsync(questionAmount, Context as SocketCommandContext).ConfigureAwait(false);
             if (!success)
-                await ReplyAsync("Trivia could not be started :(");
+                await ReplyAsync("Trivia could not be started :(").ConfigureAwait(false);
         }
 
         [Command("Stop")]
         [Remarks("Stops a running trivia")]
         public async Task StopTriviaAsync()
         {
-            if (!(await triviaService?.StopTriviaAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))))
-                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
+            if (!(await (triviaService?.StopTriviaAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))).ConfigureAwait(false)))
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.").ConfigureAwait(false);
         }
 
         [Command("Skip")]
         [Remarks("Skips the current question")]
         public async Task SkipQuestionAsync()
         {
-            if (!(await triviaService?.SkipQuestionAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))))
-                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.");
+            if (!(await (triviaService?.SkipQuestionAsync(new DiscordId(Context.Guild.Id, Context.Channel.Id, null))).ConfigureAwait(false)))
+                await ReplyAsync($"No trivia is running! Use {commandManager.GetPrefixAsync(Context.Guild)}trivia start to create a new one.").ConfigureAwait(false);
         }
 
         [Command("Scores")]
@@ -58,17 +58,17 @@ namespace MonkeyBot.Modules
         [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            var globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext);
+            var globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext).ConfigureAwait(false);
             if (globalScores != null)
             {
                 var embedBuilder = new EmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("Global scores")
                     .WithDescription(globalScores);
-                await ReplyAsync("", embed: embedBuilder.Build());
+                await ReplyAsync("", embed: embedBuilder.Build()).ConfigureAwait(false);
             }
             else
-                await ReplyAsync("No stored scores found!");
+                await ReplyAsync("No stored scores found!").ConfigureAwait(false);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace MonkeyBot.Modules
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
         {
-            string prefix = await commandManager.GetPrefixAsync(Context.Guild);
+            string prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
             var embedBuilder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
@@ -40,13 +40,13 @@ namespace MonkeyBot.Modules
                 var builder = new StringBuilder();
                 foreach (var cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
+                    var result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(false);
                     if (result.IsSuccess)
                     {
                         string parameters = string.Empty;
                         if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                             parameters = $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*";
-                        builder.AppendLine($"{prefix}{cmd.Aliases.First()}  {parameters}");
+                        builder.AppendLine($"{prefix}{cmd.Aliases[0]}  {parameters}");
                     }
                 }
                 var description = builder.ToString();
@@ -61,9 +61,9 @@ namespace MonkeyBot.Modules
                     });
                 }
             }
-            await Context.User.SendMessageAsync("", false, embedBuilder.Build());           
+            await Context.User.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);           
             if (Context.Channel is IGuildChannel)
-                await ReplyAndDeleteAsync("I have sent you a private message");
+                await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
         }
 
         [Command("help")]
@@ -75,11 +75,11 @@ namespace MonkeyBot.Modules
 
             if (!result.IsSuccess)
             {
-                await Context.User.SendMessageAsync($"Sorry, I couldn't find a command like **{command}**.");
+                await Context.User.SendMessageAsync($"Sorry, I couldn't find a command like **{command}**.").ConfigureAwait(false);
                 return;
             }
 
-            string prefix = await commandManager.GetPrefixAsync(Context.Guild);
+            string prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
@@ -113,9 +113,9 @@ namespace MonkeyBot.Modules
                     x.IsInline = false;
                 });
             }
-            await Context.User.SendMessageAsync("", false, builder.Build());
+            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
             if (Context.Channel is IGuildChannel)
-                await ReplyAndDeleteAsync("I have sent you a private message");
+                await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
         }
     }
 }

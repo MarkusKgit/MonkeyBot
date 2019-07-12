@@ -37,10 +37,7 @@ namespace MonkeyBot.Database
             this.context = context;
         }
 
-        public Task<int> CompleteAsync()
-        {
-            return context.SaveChangesAsync();
-        }
+        public Task<int> CompleteAsync() => context.SaveChangesAsync();
 
         private bool disposed = false;
 

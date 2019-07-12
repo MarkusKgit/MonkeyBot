@@ -13,7 +13,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(FeedDTO feed)
         {
-            var dbFeed = await GetDBFeedAsync(feed);
+            var dbFeed = await GetDBFeedAsync(feed).ConfigureAwait(false);
             if (dbFeed == null)
             {
                 dbSet.Add(dbFeed = new FeedEntity
@@ -36,7 +36,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task RemoveAsync(FeedDTO feed)
         {
-            var entity = await GetDBFeedAsync(feed);
+            var entity = await GetDBFeedAsync(feed).ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }

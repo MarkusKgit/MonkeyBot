@@ -13,7 +13,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(DiscordGameServerInfo obj)
         {
-            var dbServerInfo = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port);
+            var dbServerInfo = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port).ConfigureAwait(false);
             if (dbServerInfo == null)
             {
                 dbSet.Add(dbServerInfo = new GameServerEntity
@@ -43,7 +43,7 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await dbSet.FirstOrDefaultAsync(x => (ulong)x.GuildId == obj.GuildId && (ulong)x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port);
+            var entity = await dbSet.FirstOrDefaultAsync(x => x.GuildId == obj.GuildId && x.ChannelId == obj.ChannelId && x.IP.Address.ToString() == obj.IP.Address.ToString() && x.IP.Port == obj.IP.Port).ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }

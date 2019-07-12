@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task<List<Announcement>> GetAllAsync(System.Linq.Expressions.Expression<System.Func<AnnouncementEntity, bool>> predicate = null)
         {
-            var dbAnnouncements = await dbSet.ToListAsync();
+            var dbAnnouncements = await dbSet.ToListAsync().ConfigureAwait(false);
             if (dbAnnouncements == null)
                 return null;
             List<Announcement> announcements = new List<Announcement>();
@@ -31,7 +32,7 @@ namespace MonkeyBot.Database.Repositories
 
         public override async Task AddOrUpdateAsync(Announcement announcement)
         {
-            var dbAnnouncement = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name);
+            var dbAnnouncement = await GetDbAnnouncementAsync(announcement.GuildId, announcement.ChannelId, announcement.Name).ConfigureAwait(false);
             if (dbAnnouncement == null)
             {
                 dbSet.Add(dbAnnouncement = new AnnouncementEntity
@@ -69,14 +70,14 @@ namespace MonkeyBot.Database.Repositories
         {
             if (obj == null)
                 return;
-            var entity = await GetDbAnnouncementAsync(obj.GuildId, obj.ChannelId, obj.Name);
+            var entity = await GetDbAnnouncementAsync(obj.GuildId, obj.ChannelId, obj.Name).ConfigureAwait(false);
             if (entity != null)
                 dbSet.Remove(entity);
         }
 
         private Task<AnnouncementEntity> GetDbAnnouncementAsync(ulong guildId, ulong channelId, string announcementName)
         {
-            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name.ToLower() == announcementName.ToLower() && x.GuildId == guildId && x.ChannelId == channelId);
+            var dbAnnouncement = dbSet.FirstOrDefaultAsync(x => x.Name.Equals(announcementName, StringComparison.OrdinalIgnoreCase) && x.GuildId == guildId && x.ChannelId == channelId);
             return dbAnnouncement;
         }
     }
