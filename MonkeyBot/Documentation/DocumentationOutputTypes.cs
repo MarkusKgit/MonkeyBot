@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.DocumentationBuilder
+﻿namespace MonkeyBot.Documentation
 {
     public enum DocumentationOutputTypes
     {

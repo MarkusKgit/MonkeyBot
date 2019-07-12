@@ -8,7 +8,7 @@ using System;
 using System.Linq;
 using System.Text;
 
-namespace MonkeyBot.DocumentationBuilder
+namespace MonkeyBot.Documentation
 {
     /// <summary>
     /// Helper class to automatically build documentation based on the implemented Modules

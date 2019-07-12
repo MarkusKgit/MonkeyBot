@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using dokas.FluentStrings;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
-using MonkeyBot.DocumentationBuilder;
+using MonkeyBot.Documentation;
 using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace MonkeyBot
 
         public async Task StartAsync()
         {
-            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider).ConfigureAwait(false);
 
             discordClient.MessageReceived += HandleCommandAsync;
         }
@@ -49,7 +49,7 @@ namespace MonkeyBot
                 return DiscordClientConfiguration.DefaultPrefix;
             using (var uow = dbService.UnitOfWork)
             {
-                var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value))?.CommandPrefix;
+                var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value).ConfigureAwait(false))?.CommandPrefix;
                 if (prefix != null)
                     return prefix;
                 else
@@ -63,7 +63,7 @@ namespace MonkeyBot
                 return;
             var context = new SocketCommandContext(discordClient, msg);
             var guild = (msg.Channel as SocketTextChannel)?.Guild;
-            var prefix = await GetPrefixAsync(guild?.Id);
+            var prefix = await GetPrefixAsync(guild?.Id).ConfigureAwait(false);
             int argPos = 0;
 
             if (msg.HasStringPrefix(prefix, ref argPos))
@@ -71,7 +71,7 @@ namespace MonkeyBot
                 string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
                 if (!commandText.IsEmpty())
                 {
-                    var result = await commandService.ExecuteAsync(context, argPos, serviceProvider);
+                    var result = await commandService.ExecuteAsync(context, argPos, serviceProvider).ConfigureAwait(false);
 
                     if (!result.IsSuccess)
                     {
@@ -79,18 +79,18 @@ namespace MonkeyBot
                         {
                             var error = result.Error.Value;
                             var errorMessage = GetCommandErrorMessage(error, prefix, commandText);
-                            await context.Channel.SendMessageAsync(errorMessage);
+                            await context.Channel.SendMessageAsync(errorMessage).ConfigureAwait(false);
                             if (error == CommandError.Exception || error == CommandError.ParseFailed || error == CommandError.Unsuccessful)
                             {
                                 if (discordClient is MonkeyClient monkeyClient)
                                 {
-                                    await monkeyClient.NotifyAdminAsync(errorMessage);
+                                    await monkeyClient.NotifyAdminAsync(errorMessage).ConfigureAwait(false);
                                 }
                             }
                         }
                         else
                         {
-                            await context.Channel.SendMessageAsync(result.ToString());
+                            await context.Channel.SendMessageAsync(result.ToString()).ConfigureAwait(false);
                         }
                     }
                 }
@@ -109,7 +109,7 @@ namespace MonkeyBot
                             .SelectMany(module => module.Commands)
                             .SelectMany(command => command.Aliases.Select(a => $"{prefix}{a}"))
                             .Distinct()
-                            .Where(alias => alias.ToLowerInvariant().Contains(commandText))
+                            .Where(alias => alias.Contains(commandText, StringComparison.OrdinalIgnoreCase))
                             .ToList();
 
                         string message = "";
@@ -162,11 +162,11 @@ namespace MonkeyBot
         {
             string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.HTML);
             string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
-            await MonkeyHelpers.WriteTextAsync(fileHTML, docuHTML);
+            await MonkeyHelpers.WriteTextAsync(fileHTML, docuHTML).ConfigureAwait(false);
 
             string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.MarkDown);
             string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
-            await MonkeyHelpers.WriteTextAsync(fileMD, docuMD);
+            await MonkeyHelpers.WriteTextAsync(fileMD, docuMD).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.DocumentationBuilder
+﻿namespace MonkeyBot.Documentation
 {
     /// <summary>
     /// Interface for a class that can return formatted strings in a specific markdown language

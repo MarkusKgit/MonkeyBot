@@ -32,17 +32,17 @@ namespace MonkeyBot
             var logger = services.GetService<ILogger<MonkeyClient>>();
 
             var client = services.GetService<DiscordSocketClient>();
-            await client.LoginAsync(TokenType.Bot, (await DiscordClientConfiguration.LoadAsync()).Token);
-            await client.StartAsync();
+            await client.LoginAsync(TokenType.Bot, (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token).ConfigureAwait(false);
+            await client.StartAsync().ConfigureAwait(false);
 
             var manager = services.GetService<CommandManager>();
-            await manager.StartAsync();
+            await manager.StartAsync().ConfigureAwait(false);
 
             var registry = services.GetService<Registry>();
             JobManager.Initialize(registry);
 
             var announcements = services.GetService<IAnnouncementService>();
-            await announcements.InitializeAsync();
+            await announcements.InitializeAsync().ConfigureAwait(false);
 
             var steamGameServerService = services.GetService<SteamGameServerService>();
             steamGameServerService.Initialize();
@@ -61,7 +61,7 @@ namespace MonkeyBot
 
             if (args != null && args.BuildDocumentation)
             {
-                await manager.BuildDocumentationAsync(); // Write the documentation
+                await manager.BuildDocumentationAsync().ConfigureAwait(false); // Write the documentation
                 logger.LogInformation("Documentation built");
             }
 
