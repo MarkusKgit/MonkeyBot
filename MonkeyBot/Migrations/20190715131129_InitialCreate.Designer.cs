@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190715115236_InitialCreate")]
+    [Migration("20190715131129_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,25 +42,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.FeedEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<ulong>("ChannelId");
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<DateTime?>("LastUpdate");
-
-                    b.Property<string>("URL")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Feeds");
                 });
 
             modelBuilder.Entity("MonkeyBot.Database.Entities.GameServerEntity", b =>
@@ -153,6 +134,28 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("BenzenFacts");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.Feed", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<ulong>("ChannelID");
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<DateTime?>("LastUpdate");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<string>("URL")
+                        .IsRequired();
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Feeds");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.GuildConfig", b =>

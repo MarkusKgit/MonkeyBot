@@ -5,8 +5,10 @@ using Discord.WebSocket;
 using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +21,13 @@ namespace MonkeyBot.Services
     {
         private const int updateIntervallMinutes = 30;
 
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
         private readonly ILogger<FeedService> logger;
 
-        public FeedService(DbService dbService, DiscordSocketClient client, ILogger<FeedService> logger)
+        public FeedService(MonkeyDBContext dbContext, DiscordSocketClient client, ILogger<FeedService> logger)
         {
-            this.dbService = dbService;
+            this.dbContext = dbContext;
             this.discordClient = client;
             this.logger = logger;
         }
@@ -35,69 +37,51 @@ namespace MonkeyBot.Services
             JobManager.AddJob(async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
         }
 
-        public async Task AddFeedAsync(string url, ulong guildId, ulong channelId)
+        public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)
         {
-            var feed = new FeedDTO
+            var feed = new Models.Feed
             {
+                Name = name,
                 URL = url,
-                GuildId = guildId,
-                ChannelId = channelId
+                GuildID = guildID,
+                ChannelID = channelID
             };
-            using (var uow = dbService.UnitOfWork)
-            {
-                await uow.Feeds.AddOrUpdateAsync(feed).ConfigureAwait(false);
-                await uow.CompleteAsync().ConfigureAwait(false);
-            }
+            dbContext.Feeds.Add(feed);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
             await GetFeedUpdateAsync(feed, true).ConfigureAwait(false);
         }
 
-        public async Task RemoveFeedAsync(string url, ulong guildId, ulong channelId)
+        public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID, ulong channelID)
         {
-            var feed = new FeedDTO
+            Models.Feed feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID).ConfigureAwait(false);
+            if (feed != null)
             {
-                URL = url,
-                GuildId = guildId,
-                ChannelId = channelId
-            };
-            using (var uow = dbService.UnitOfWork)
-            {
-                await uow.Feeds.RemoveAsync(feed).ConfigureAwait(false);
-                await uow.CompleteAsync().ConfigureAwait(false);
+                dbContext.Feeds.Remove(feed);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
-        public async Task RemoveAllFeedsAsync(ulong guildId, ulong? channelId)
+        public async Task RemoveAllFeedsAsync(ulong guildID, ulong? channelID)
         {
-            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID).ConfigureAwait(false);
             if (allFeeds == null)
                 return;
-            using (var uow = dbService.UnitOfWork)
-            {
-                foreach (var feed in allFeeds)
-                {
-                    await uow.Feeds.RemoveAsync(feed).ConfigureAwait(false);
-                }
-                await uow.CompleteAsync().ConfigureAwait(false);
-            }
+            dbContext.Feeds.RemoveRange(allFeeds);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task<List<(ulong feedChannelId, string feedUrl)>> GetFeedUrlsForGuildAsync(ulong guildId, ulong? channelId = null)
+        public async Task<List<(string name, string feedUrl, ulong feedChannelId)>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
         {
-            List<FeedDTO> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
-            return allFeeds?.Select(x => (x.ChannelId, x.URL)).ToList();
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
+            return allFeeds?.Select(x => (x.Name, x.URL, x.ChannelID)).ToList();
         }
 
-        private async Task<List<FeedDTO>> GetAllFeedsInternalAsync(ulong guildId, ulong? channelId = null)
+        private async Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
-            List<FeedDTO> allFeeds = null;
-            using (var uow = dbService.UnitOfWork)
-            {
-                if (channelId.HasValue)
-                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId, x => x.ChannelId == channelId).ConfigureAwait(false);
-                else
-                    allFeeds = await uow.Feeds.GetAllForGuildAsync(guildId).ConfigureAwait(false);
-            }
-            return allFeeds;
+            if (channelID.HasValue)
+                return await dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync().ConfigureAwait(false);
+            else
+                return await dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
         }
 
         private async Task GetAllFeedUpdatesAsync()
@@ -117,10 +101,10 @@ namespace MonkeyBot.Services
             }
         }
 
-        private async Task GetFeedUpdateAsync(FeedDTO guildFeed, bool getLatest = false)
+        private async Task GetFeedUpdateAsync(Models.Feed guildFeed, bool getLatest = false)
         {
-            var guild = discordClient.GetGuild(guildFeed.GuildId);
-            var channel = guild?.GetTextChannel(guildFeed.ChannelId);
+            var guild = discordClient.GetGuild(guildFeed.GuildID);
+            var channel = guild?.GetTextChannel(guildFeed.ChannelID);
             if (guild == null || channel == null || guildFeed.URL.IsEmpty())
                 return;
             Feed feed;
@@ -152,7 +136,7 @@ namespace MonkeyBot.Services
                     builder.WithImageUrl(feed.ImageUrl);
                 string feedTitle = ParseHtml(feed.Title);
                 if (feedTitle.IsEmpty().OrWhiteSpace())
-                    feedTitle = guildFeed.URL;
+                    feedTitle = guildFeed.Name;
                 string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255) + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdateUTC = DateTime.MinValue;
@@ -185,11 +169,8 @@ namespace MonkeyBot.Services
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
-                    using (var uow = dbService.UnitOfWork)
-                    {
-                        await uow.Feeds.AddOrUpdateAsync(guildFeed).ConfigureAwait(false);
-                        await uow.CompleteAsync().ConfigureAwait(false);
-                    }
+                    dbContext.Feeds.Update(guildFeed);
+                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }

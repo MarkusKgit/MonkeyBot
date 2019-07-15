@@ -110,8 +110,7 @@ namespace MonkeyBot
 
         private static void InitializeMapper()
         {
-            var cfg = new MapperConfigurationExpression();
-            cfg.CreateMap<FeedEntity, FeedDTO>();
+            var cfg = new MapperConfigurationExpression();            
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();
             cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();

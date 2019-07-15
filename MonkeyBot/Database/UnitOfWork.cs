@@ -12,9 +12,6 @@ namespace MonkeyBot.Database
         private IAnnouncementRepository announcements;
         public IAnnouncementRepository Announcements => announcements ?? (announcements = new AnnouncementRepository(context));
 
-        private IFeedsRepository feeds;
-        public IFeedsRepository Feeds => feeds ?? (feeds = new FeedsRepository(context));
-
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 
