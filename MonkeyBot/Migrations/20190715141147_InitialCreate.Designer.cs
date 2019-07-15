@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190715131129_InitialCreate")]
+    [Migration("20190715141147_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,33 +42,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.GameServerEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<ulong>("ChannelId");
-
-                    b.Property<string>("GameServerType")
-                        .IsRequired();
-
-                    b.Property<string>("GameVersion");
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<string>("IPAsString")
-                        .IsRequired()
-                        .HasColumnName("IP");
-
-                    b.Property<DateTime?>("LastVersionUpdate");
-
-                    b.Property<ulong?>("MessageId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GameServers");
                 });
 
             modelBuilder.Entity("MonkeyBot.Database.Entities.GameSubscriptionEntity", b =>
@@ -156,6 +129,32 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Feeds");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.GameServer", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<ulong>("ChannelID");
+
+                    b.Property<string>("GameServerType")
+                        .IsRequired();
+
+                    b.Property<string>("GameVersion");
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<DateTime?>("LastVersionUpdate");
+
+                    b.Property<ulong?>("MessageID");
+
+                    b.Property<string>("ServerIP")
+                        .IsRequired();
+
+                    b.HasKey("ID");
+
+                    b.ToTable("GameServers");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.GuildConfig", b =>

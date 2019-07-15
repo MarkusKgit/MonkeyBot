@@ -1,8 +1,10 @@
 ﻿using Discord.WebSocket;
 using FluentScheduler;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Database;
+using MonkeyBot.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -12,14 +14,14 @@ namespace MonkeyBot.Services
     public abstract class BaseGameServerService : IGameServerService
     {
         private readonly GameServerType gameServerType;
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
         private readonly ILogger<IGameServerService> logger;
 
-        protected BaseGameServerService(GameServerType gameServerType, DbService dbService, DiscordSocketClient discordClient, ILogger<IGameServerService> logger)
+        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordSocketClient discordClient, ILogger<IGameServerService> logger)
         {
             this.gameServerType = gameServerType;
-            this.dbService = dbService;
+            this.dbContext = dbContext;
             this.discordClient = discordClient;
             this.logger = logger;
         }
@@ -31,24 +33,21 @@ namespace MonkeyBot.Services
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
-            var server = new DiscordGameServerInfo(gameServerType, endpoint, guildID, channelID);
+            var server = new GameServer { GameServerType = gameServerType, ServerIP = endpoint, GuildID = guildID, ChannelID = channelID };
             bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
             if (success)
             {
-                using (var uow = dbService.UnitOfWork)
-                {
-                    await uow.GameServers.AddOrUpdateAsync(server).ConfigureAwait(false);
-                    await uow.CompleteAsync().ConfigureAwait(false);
-                }
+                dbContext.Add(server);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
             return success;
         }
 
-        protected abstract Task<bool> PostServerInfoAsync(DiscordGameServerInfo discordGameServer);
+        protected abstract Task<bool> PostServerInfoAsync(GameServer discordGameServer);
 
         private async Task PostAllServerInfoAsync()
         {
-            var servers = (await GetServersAsync().ConfigureAwait(false)).Where(x => x.GameServerType == gameServerType);
+            var servers = await dbContext.GameServers.Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
             foreach (var server in servers)
             {
                 try
@@ -64,39 +63,27 @@ namespace MonkeyBot.Services
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            var servers = await GetServersAsync().ConfigureAwait(false);
-            var serverToRemove = servers.FirstOrDefault(x => x.IP.Address.ToString() == endPoint.Address.ToString() && x.IP.Port == endPoint.Port && x.GuildId == guildID);
+            var serverToRemove = await dbContext.GameServers.FirstOrDefaultAsync(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID).ConfigureAwait(false);
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
-            if (serverToRemove.MessageId != null)
+            if (serverToRemove.MessageID != null)
             {
                 try
                 {
-                    var guild = discordClient.GetGuild(serverToRemove.GuildId);
-                    var channel = guild?.GetTextChannel(serverToRemove.ChannelId);
-                    var msg = await (channel?.GetMessageAsync(serverToRemove.MessageId.Value)).ConfigureAwait(false) as Discord.Rest.RestUserMessage;
-                    if (msg != null)
+                    var guild = discordClient.GetGuild(serverToRemove.GuildID);
+                    var channel = guild?.GetTextChannel(serverToRemove.ChannelID);
+                    if (await (channel?.GetMessageAsync(serverToRemove.MessageID.Value)).ConfigureAwait(false) is Discord.Rest.RestUserMessage msg)
+                    {
                         await msg.DeleteAsync().ConfigureAwait(false);
+                    }
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error trying to remove message from game server");
+                    logger.LogError(e, $"Error trying to remove message for game server {endPoint.Address}");
                 }
             }
-
-            using (var uow = dbService.UnitOfWork)
-            {
-                await uow.GameServers.RemoveAsync(serverToRemove).ConfigureAwait(false);
-                await uow.CompleteAsync().ConfigureAwait(false);
-            }
-        }
-
-        private async Task<List<DiscordGameServerInfo>> GetServersAsync()
-        {
-            using (var uow = dbService.UnitOfWork)
-            {
-                return await uow.GameServers.GetAllAsync().ConfigureAwait(false);
-            }
+            dbContext.GameServers.Remove(serverToRemove);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace MonkeyBot.Database
         public DbSet<TriviaScoreEntity> TriviaScores { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<Feed> Feeds { get; set; }
-        public DbSet<GameServerEntity> GameServers { get; set; }
+        public DbSet<GameServer> GameServers { get; set; }
         public DbSet<GameSubscriptionEntity> GameSubscriptions { get; set; }
         public DbSet<RoleButtonLinkEntity> RoleButtonLinks { get; set; }
 
@@ -58,6 +58,16 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<Feed>().Property(x => x.ChannelID).IsRequired();
             modelBuilder.Entity<Feed>().Property(x => x.Name).IsRequired();
             modelBuilder.Entity<Feed>().Property(x => x.URL).IsRequired();
+
+            //GameServers
+            modelBuilder.Entity<GameServer>().HasKey(x => x.ID);
+            modelBuilder.Entity<GameServer>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<GameServer>().Property(x => x.ChannelID).IsRequired();
+            modelBuilder.Entity<GameServer>().Property(x => x.GameServerType).IsRequired().HasConversion<string>();
+            modelBuilder.Entity<GameServer>().Property(x => x.ServerIP).IsRequired()
+                .HasConversion(
+                    x => JsonConvert.SerializeObject(x),
+                    x => JsonConvert.DeserializeObject<System.Net.IPEndPoint>(x));
         }
     }
 }

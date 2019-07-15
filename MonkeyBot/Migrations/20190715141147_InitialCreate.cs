@@ -60,19 +60,19 @@ namespace MonkeyBot.Migrations
                 name: "GameServers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
+                    GuildID = table.Column<ulong>(nullable: false),
+                    ChannelID = table.Column<ulong>(nullable: false),
+                    MessageID = table.Column<ulong>(nullable: true),
                     GameServerType = table.Column<string>(nullable: false),
-                    IP = table.Column<string>(nullable: false),
-                    ChannelId = table.Column<ulong>(nullable: false),
-                    MessageId = table.Column<ulong>(nullable: true),
+                    ServerIP = table.Column<string>(nullable: false),
                     GameVersion = table.Column<string>(nullable: true),
                     LastVersionUpdate = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameServers", x => x.Id);
+                    table.PrimaryKey("PK_GameServers", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(

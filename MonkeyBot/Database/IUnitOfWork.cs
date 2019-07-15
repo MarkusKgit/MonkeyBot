@@ -10,8 +10,6 @@ namespace MonkeyBot.Database
 
         IAnnouncementRepository Announcements { get; }
 
-        IGameServersRepository GameServers { get; }
-
         IGameSubscriptionRepository GameSubscriptions { get; }
 
         IRoleButtonLinksRepository RoleButtonLinks { get; }

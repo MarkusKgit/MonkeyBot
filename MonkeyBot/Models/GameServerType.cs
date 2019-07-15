@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Services
+﻿namespace MonkeyBot.Models
 {
     public enum GameServerType
     {

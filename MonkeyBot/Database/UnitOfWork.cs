@@ -15,9 +15,6 @@ namespace MonkeyBot.Database
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 
-        private IGameServersRepository gameServers;
-        public IGameServersRepository GameServers => gameServers ?? (gameServers = new GameServersRepository(context));
-
         private IGameSubscriptionRepository gameSubscriptions;
         public IGameSubscriptionRepository GameSubscriptions => gameSubscriptions ?? (gameSubscriptions = new GameSubscriptionRepository(context));
 
