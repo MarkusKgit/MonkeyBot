@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using dokas.FluentStrings;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
-using MonkeyBot.Services;
+using MonkeyBot.Database;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,11 +13,11 @@ namespace MonkeyBot.Modules
     [Name("Info")]
     public class InfoModule : MonkeyModuleBase
     {
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
 
-        public InfoModule(DbService db)
+        public InfoModule(MonkeyDBContext dbContext)
         {
-            dbService = db;
+            this.dbContext = dbContext;
         }
 
         [Command("Rules")]
@@ -24,22 +25,20 @@ namespace MonkeyBot.Modules
         [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
-            using (var uow = dbService.UnitOfWork)
+            var rules = (await dbContext.GuildConfigs.SingleOrDefaultAsync(x => x.GuildID == Context.Guild.Id).ConfigureAwait(false))?.Rules;
+            if (rules == null || rules.Count < 1)
             {
-                var rules = (await uow.GuildConfigs.GetAsync(Context.Guild.Id).ConfigureAwait(false))?.Rules;
-                if (rules == null || rules.Count < 1)
-                {
-                    await ReplyAsync("No rules set!").ConfigureAwait(false);
-                    return;
-                }
-                var builder = new EmbedBuilder
-                {
-                    Color = new Color(255, 0, 0)
-                };
-                builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
-                await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
-                await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
+                await ReplyAsync("No rules set!").ConfigureAwait(false);
+                return;
             }
+            var builder = new EmbedBuilder
+            {
+                Color = new Color(255, 0, 0)
+            };
+            builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
+            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
+
         }
 
         [Command("FindMessageID")]

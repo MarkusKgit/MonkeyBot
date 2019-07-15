@@ -93,9 +93,9 @@ namespace MonkeyBot.Migrations
                 name: "GuildConfigs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
+                    GuildID = table.Column<ulong>(nullable: false),
                     CommandPrefix = table.Column<string>(nullable: false),
                     WelcomeMessageText = table.Column<string>(nullable: true),
                     WelcomeMessageChannelId = table.Column<ulong>(nullable: false),
@@ -105,7 +105,7 @@ namespace MonkeyBot.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GuildConfigs", x => x.Id);
+                    table.PrimaryKey("PK_GuildConfigs", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(

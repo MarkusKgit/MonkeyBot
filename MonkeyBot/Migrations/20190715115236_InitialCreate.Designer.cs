@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190715095528_InitialCreate")]
+    [Migration("20190715115236_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,19 +42,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.BenzenFact", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Fact")
-                        .IsRequired();
-
-                    b.HasKey("ID");
-
-                    b.ToTable("BenzenFacts");
                 });
 
             modelBuilder.Entity("MonkeyBot.Database.Entities.FeedEntity", b =>
@@ -120,32 +107,6 @@ namespace MonkeyBot.Migrations
                     b.ToTable("GameSubscriptions");
                 });
 
-            modelBuilder.Entity("MonkeyBot.Database.Entities.GuildConfigEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("CommandPrefix")
-                        .IsRequired();
-
-                    b.Property<ulong>("GoodbyeMessageChannelId");
-
-                    b.Property<string>("GoodbyeMessageText");
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<string>("RulesAsString")
-                        .HasColumnName("Rules");
-
-                    b.Property<ulong>("WelcomeMessageChannelId");
-
-                    b.Property<string>("WelcomeMessageText");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GuildConfigs");
-                });
-
             modelBuilder.Entity("MonkeyBot.Database.Entities.RoleButtonLinkEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -179,6 +140,44 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TriviaScores");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Fact")
+                        .IsRequired();
+
+                    b.HasKey("ID");
+
+                    b.ToTable("BenzenFacts");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.GuildConfig", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("CommandPrefix")
+                        .IsRequired();
+
+                    b.Property<ulong>("GoodbyeMessageChannelId");
+
+                    b.Property<string>("GoodbyeMessageText");
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<string>("Rules");
+
+                    b.Property<ulong>("WelcomeMessageChannelId");
+
+                    b.Property<string>("WelcomeMessageText");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("GuildConfigs");
                 });
 #pragma warning restore 612, 618
         }

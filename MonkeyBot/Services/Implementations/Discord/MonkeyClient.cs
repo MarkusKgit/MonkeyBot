@@ -1,7 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using dokas.FluentStrings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Database;
+using MonkeyBot.Models;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +13,7 @@ namespace MonkeyBot.Services
     public class MonkeyClient : DiscordSocketClient
     {
         private readonly ILogger<MonkeyClient> logger;
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
 
         private static readonly DiscordSocketConfig discordConfig = new DiscordSocketConfig
         {
@@ -18,16 +21,18 @@ namespace MonkeyBot.Services
             MessageCacheSize = 1000
         };
 
-        public MonkeyClient(ILogger<MonkeyClient> logger, DbService dbService) : base(discordConfig)
+        public MonkeyClient(ILogger<MonkeyClient> logger, MonkeyDBContext dbContext) : base(discordConfig)
         {
             this.logger = logger;
-            this.dbService = dbService;
-            this.Log += MonkeyClient_LogAsync;
+            this.dbContext = dbContext;
+            this.Connected += Client_ConnectedAsync;            
             this.UserJoined += Client_UserJoinedAsync;
-            this.UserLeft += Client_UserLeftAsync;
-            this.Connected += Client_ConnectedAsync;
+            this.UserLeft += Client_UserLeftAsync;            
+            this.JoinedGuild += Client_JoinedGuildAsync;
+            this.LeftGuild += Client_LeftGuildAsync;
+            this.Log += MonkeyClient_LogAsync;
         }
-
+        
         private Task Client_ConnectedAsync()
         {
             logger.LogInformation("Connected");
@@ -38,15 +43,12 @@ namespace MonkeyBot.Services
         {
             if (arg.Guild == null)
                 return;
+            
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == arg.Guild.Id).ConfigureAwait(false);
+            string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
             ITextChannel channel = arg.Guild.DefaultChannel;
-            string welcomeMessage = string.Empty;
-            using (var uow = dbService?.UnitOfWork)
-            {
-                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id).ConfigureAwait(false);
-                welcomeMessage = guildConfig?.WelcomeMessageText;
-                if (guildConfig?.WelcomeMessageChannelId != null)
-                    channel = arg.Guild.GetTextChannel(guildConfig.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;
-            }
+            if (config?.WelcomeMessageChannelId != null)
+                channel = arg.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;            
             if (!welcomeMessage.IsEmpty())
             {
                 welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Mention);
@@ -58,19 +60,40 @@ namespace MonkeyBot.Services
         {
             if (arg.Guild == null)
                 return;
+
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == arg.Guild.Id).ConfigureAwait(false);
+            string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
             ITextChannel channel = arg.Guild.DefaultChannel;
-            string goodbyeMessage = string.Empty;
-            using (var uow = dbService?.UnitOfWork)
-            {
-                var guildConfig = await uow.GuildConfigs.GetAsync(arg.Guild.Id).ConfigureAwait(false);
-                goodbyeMessage = guildConfig?.GoodbyeMessageText;
-                if (guildConfig?.GoodbyeMessageChannelId != null)
-                    channel = arg.Guild.GetTextChannel(guildConfig.GoodbyeMessageChannelId) ?? arg.Guild.DefaultChannel;
-            }
+            if (config?.GoodbyeMessageChannelId != null)
+                channel = arg.Guild.GetTextChannel(config.GoodbyeMessageChannelId) ?? arg.Guild.DefaultChannel;
+
             if (!goodbyeMessage.IsEmpty())
             {
                 goodbyeMessage = goodbyeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Username);
                 await (channel?.SendMessageAsync(goodbyeMessage)).ConfigureAwait(false);
+            }
+        }
+
+        private async Task Client_JoinedGuildAsync(SocketGuild arg)
+        {
+            logger.LogInformation($"Joined guild {arg.Name}");
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == arg.Id).ConfigureAwait(false);
+            if (config == null)
+            {
+                config = new GuildConfig();
+                dbContext.GuildConfigs.Add(config);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        private async Task Client_LeftGuildAsync(SocketGuild arg)
+        {
+            logger.LogInformation($"Left guild {arg.Name}");
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == arg.Id).ConfigureAwait(false);
+            if (config != null)
+            {
+                dbContext.GuildConfigs.Remove(config);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 

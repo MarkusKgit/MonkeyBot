@@ -3,6 +3,7 @@ using Discord.Commands;
 using dokas.FluentStrings;
 using Humanizer;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using System;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace MonkeyBot.Documentation
 
         private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
         {
-            string prefix = DiscordClientConfiguration.DefaultPrefix;
+            string prefix = GuildConfig.DefaultPrefix;
             StringBuilder builder = new StringBuilder();
 
             foreach (var module in commandService.Modules)

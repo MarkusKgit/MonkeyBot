@@ -8,8 +8,6 @@ namespace MonkeyBot.Database
     {
         private readonly MonkeyDBContext context;
 
-        private IGuildConfigRepository guildConfigs;
-        public IGuildConfigRepository GuildConfigs => guildConfigs ?? (guildConfigs = new GuildConfigRepository(context));
 
         private IAnnouncementRepository announcements;
         public IAnnouncementRepository Announcements => announcements ?? (announcements = new AnnouncementRepository(context));

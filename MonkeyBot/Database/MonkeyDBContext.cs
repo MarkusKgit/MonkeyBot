@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database.Entities;
+using MonkeyBot.Models;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace MonkeyBot.Database
 {
@@ -10,7 +12,7 @@ namespace MonkeyBot.Database
     {
         public DbSet<BenzenFact> BenzenFacts { get; set; }
 
-        public DbSet<GuildConfigEntity> GuildConfigs { get; set; }
+        public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScoreEntity> TriviaScores { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<FeedEntity> Feeds { get; set; }
@@ -32,13 +34,21 @@ namespace MonkeyBot.Database
             if (!Directory.Exists(databasePath))
                 Directory.CreateDirectory(databasePath);
             string datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
-            optionsBuilder.UseSqlite($"Filename={datadir}");            
+            optionsBuilder.UseSqlite($"Filename={datadir}");
         }
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BenzenFact>().HasKey(x => x.ID);
-            modelBuilder.Entity<BenzenFact>().Property(x => x.Fact).IsRequired();            
+            modelBuilder.Entity<BenzenFact>().Property(x => x.Fact).IsRequired();
+
+            modelBuilder.Entity<GuildConfig>().HasKey(x => x.ID);
+            modelBuilder.Entity<GuildConfig>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<GuildConfig>().Property(x => x.CommandPrefix).IsRequired();            
+            modelBuilder.Entity<GuildConfig>().Property(x => x.Rules)
+                .HasConversion(
+                    x => JsonConvert.SerializeObject(x),
+                    x => JsonConvert.DeserializeObject <List<string>>(x));
         }
     }
 }

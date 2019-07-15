@@ -2,7 +2,7 @@
 using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
-using MonkeyBot.Database.Entities;
+using MonkeyBot.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace MonkeyBot.Modules
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            string fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault().Fact;
+            string fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
                 await ReplyAsync(fact).ConfigureAwait(false);
         }

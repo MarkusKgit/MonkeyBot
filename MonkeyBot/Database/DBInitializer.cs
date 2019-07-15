@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MonkeyBot.Database.Entities;
+using MonkeyBot.Models;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,7 +8,7 @@ namespace MonkeyBot.Database
     public static class DBInitializer
     {
         public static async Task InitializeAsync(MonkeyDBContext context)
-        {
+        {            
             if ((await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false)).Any())
             {
                 await context.Database.MigrateAsync().ConfigureAwait(false);

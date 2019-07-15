@@ -91,13 +91,26 @@ namespace MonkeyBot
             var debugLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, debugTarget);
             logConfig.LoggingRules.Add(debugLoggingRule);
 
+            var fileTarget = new NLog.Targets.FileTarget
+            {
+                Name = "logFile",
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}",
+                FileName = "${basedir}\\Logs\\${level}.log",
+                ArchiveFileName = "${basedir}\\Logs\\Archive\\${level}.{##}.log",
+                ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+                ArchiveAboveSize = 1_000_000,
+                ConcurrentWrites = false,
+                MaxArchiveFiles = 20
+            };
+            var fileLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, fileTarget);
+            logConfig.LoggingRules.Add(fileLoggingRule);
+
             return logConfig;
         }
 
         private static void InitializeMapper()
         {
             var cfg = new MapperConfigurationExpression();
-            cfg.CreateMap<GuildConfigEntity, GuildConfig>();
             cfg.CreateMap<FeedEntity, FeedDTO>();
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
             cfg.CreateMap<GameServerEntity, DiscordGameServerInfo>();

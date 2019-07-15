@@ -11,9 +11,6 @@ namespace MonkeyBot.Common
     /// </summary>
     public class DiscordClientConfiguration
     {
-        [JsonIgnore]
-        public const string DefaultPrefix = "!";
-
         /// <summary> The location and name of the bot's configuration file. </summary>
         private const string fileName = "config/configuration.json";
 

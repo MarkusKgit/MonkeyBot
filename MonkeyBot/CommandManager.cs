@@ -2,9 +2,12 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
+using MonkeyBot.Database;
 using MonkeyBot.Documentation;
+using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
@@ -19,19 +22,19 @@ namespace MonkeyBot
     public class CommandManager
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly DiscordSocketClient discordClient;
-        private readonly DbService dbService;
+        private readonly DiscordSocketClient discordClient;        
         private readonly CommandService commandService;
+        private readonly MonkeyDBContext dbContext;
 
         /// <summary>
         /// Create a new CommandManager instance with DI. Use <see cref="StartAsync"/> afterwards to actually start the CommandManager/>
         /// </summary>
-        public CommandManager(IServiceProvider provider)
+        public CommandManager(IServiceProvider serviceProvider)
         {
-            serviceProvider = provider;
-            discordClient = provider.GetService<DiscordSocketClient>();
-            dbService = provider.GetService<DbService>();
-            commandService = provider.GetService<CommandService>();
+            this.serviceProvider = serviceProvider;
+            this.discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
+            this.commandService = serviceProvider.GetRequiredService<CommandService>();
+            this.dbContext = serviceProvider.GetRequiredService<MonkeyDBContext>();
         }
 
         public async Task StartAsync()
@@ -46,15 +49,9 @@ namespace MonkeyBot
         public async Task<string> GetPrefixAsync(ulong? guildId)
         {
             if (guildId == null)
-                return DiscordClientConfiguration.DefaultPrefix;
-            using (var uow = dbService.UnitOfWork)
-            {
-                var prefix = (await uow.GuildConfigs.GetAsync(guildId.Value).ConfigureAwait(false))?.CommandPrefix;
-                if (prefix != null)
-                    return prefix;
-                else
-                    return DiscordClientConfiguration.DefaultPrefix;
-            }
+                return GuildConfig.DefaultPrefix;
+            return (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix 
+                ?? GuildConfig.DefaultPrefix;
         }
 
         private async Task HandleCommandAsync(SocketMessage socketMsg)

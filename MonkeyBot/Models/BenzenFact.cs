@@ -1,4 +1,4 @@
-﻿namespace MonkeyBot.Database.Entities
+﻿namespace MonkeyBot.Models
 {
     public class BenzenFact
     {
