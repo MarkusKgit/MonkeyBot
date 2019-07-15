@@ -1,8 +1,10 @@
 ﻿using Discord.Commands;
 using dokas.FluentStrings;
 using MonkeyBot.Common;
-using MonkeyBot.Services;
+using MonkeyBot.Database;
+using MonkeyBot.Database.Entities;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -11,23 +13,20 @@ namespace MonkeyBot.Modules
     public class BenzenFactModule : MonkeyModuleBase
     {
         private const string name = "benzen";
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
 
-        public BenzenFactModule(DbService db)
+        public BenzenFactModule(MonkeyDBContext dbContext)
         {
-            dbService = db;
+            this.dbContext = dbContext;
         }
 
         [Command("Benzen")]
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            using (var uow = dbService.UnitOfWork)
-            {
-                var fact = await uow.BenzenFacts.GetRandomFactAsync().ConfigureAwait(false);
-                if (!fact.IsEmpty())
-                    await ReplyAsync(fact).ConfigureAwait(false);
-            }
+            string fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault().Fact;
+            if (!fact.IsEmpty())
+                await ReplyAsync(fact).ConfigureAwait(false);
         }
 
         [Command("AddBenzenFact")]
@@ -45,11 +44,13 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("The fact must include Benzen!").ConfigureAwait(false);
                 return;
             }
-            using (var uow = dbService.UnitOfWork)
+            if (dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
-                await uow.BenzenFacts.AddOrUpdateAsync(fact).ConfigureAwait(false);
-                await uow.CompleteAsync().ConfigureAwait(false);
+                await ReplyAsync("I already know this fact!").ConfigureAwait(false);
+                return;
             }
+            dbContext.BenzenFacts.Add(new BenzenFact(fact));
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
             await ReplyAsync("Fact added").ConfigureAwait(false);
         }
     }

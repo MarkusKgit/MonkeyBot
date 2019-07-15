@@ -14,8 +14,6 @@ namespace MonkeyBot.Database
 
         IFeedsRepository Feeds { get; }
 
-        IBenzenFactsRespository BenzenFacts { get; }
-
         IGameServersRepository GameServers { get; }
 
         IGameSubscriptionRepository GameSubscriptions { get; }

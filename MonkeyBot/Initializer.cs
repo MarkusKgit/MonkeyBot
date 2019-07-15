@@ -9,6 +9,7 @@ using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Database;
 using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
 using NLog.Extensions.Logging;
@@ -40,6 +41,9 @@ namespace MonkeyBot
 
             var registry = services.GetService<Registry>();
             JobManager.Initialize(registry);
+
+            var dbContext = services.GetRequiredService<MonkeyDBContext>();
+            await DBInitializer.InitializeAsync(dbContext).ConfigureAwait(false);
 
             var announcements = services.GetService<IAnnouncementService>();
             await announcements.InitializeAsync().ConfigureAwait(false);
@@ -76,8 +80,17 @@ namespace MonkeyBot
                 Name = "logconsole",
                 Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
             };
-            var infoLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, coloredConsoleTarget);
-            logConfig.LoggingRules.Add(infoLoggingRule);
+            var productionLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Warn, coloredConsoleTarget);
+            logConfig.LoggingRules.Add(productionLoggingRule);
+
+            var debugTarget = new NLog.Targets.DebuggerTarget
+            {
+                Name = "debugConsole",
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
+            };
+            var debugLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, debugTarget);
+            logConfig.LoggingRules.Add(debugLoggingRule);
+
             return logConfig;
         }
 
@@ -111,6 +124,7 @@ namespace MonkeyBot
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
             services.AddSingleton(new DbService());
+            services.AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient);
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
             services.AddSingleton<InteractiveService>();
             services.AddSingleton<CommandService, MonkeyCommandService>();

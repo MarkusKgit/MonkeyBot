@@ -20,9 +20,6 @@ namespace MonkeyBot.Database
         private ITriviaScoresRepository triviaScores;
         public ITriviaScoresRepository TriviaScores => triviaScores ?? (triviaScores = new TriviaScoresRepository(context));
 
-        private IBenzenFactsRespository benzenFacts;
-        public IBenzenFactsRespository BenzenFacts => benzenFacts ?? (benzenFacts = new BenzenFactsRespository(context));
-
         private IGameServersRepository gameServers;
         public IGameServersRepository GameServers => gameServers ?? (gameServers = new GameServersRepository(context));
 

@@ -14,7 +14,7 @@ namespace MonkeyBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028");
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
 
             modelBuilder.Entity("MonkeyBot.Database.Entities.AnnouncementEntity", b =>
                 {
@@ -42,14 +42,15 @@ namespace MonkeyBot.Migrations
                     b.ToTable("Announcements");
                 });
 
-            modelBuilder.Entity("MonkeyBot.Database.Entities.BenzenFactEntity", b =>
+            modelBuilder.Entity("MonkeyBot.Database.Entities.BenzenFact", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Fact");
+                    b.Property<string>("Fact")
+                        .IsRequired();
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
                     b.ToTable("BenzenFacts");
                 });
