@@ -111,7 +111,6 @@ namespace MonkeyBot
         private static void InitializeMapper()
         {
             var cfg = new MapperConfigurationExpression();
-            cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
             cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(x => GetAnnouncement(x));
 
             Mapper.Initialize(cfg);

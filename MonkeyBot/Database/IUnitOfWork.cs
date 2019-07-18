@@ -7,9 +7,7 @@ namespace MonkeyBot.Database
     public interface IUnitOfWork : IDisposable
     {        
         IAnnouncementRepository Announcements { get; }
-
-        IRoleButtonLinksRepository RoleButtonLinks { get; }
-
+                
         Task<int> CompleteAsync();
     }
 }

@@ -42,25 +42,6 @@ namespace MonkeyBot.Migrations
                     b.ToTable("Announcements");
                 });
 
-            modelBuilder.Entity("MonkeyBot.Database.Entities.RoleButtonLinkEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("EmoteString")
-                        .IsRequired();
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<ulong>("MessageId");
-
-                    b.Property<ulong>("RoleId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RoleButtonLinks");
-                });
-
             modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
                 {
                     b.Property<int>("ID")
@@ -162,6 +143,25 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("GuildConfigs");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.RoleButtonLink", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("EmoteString")
+                        .IsRequired();
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<ulong>("MessageID");
+
+                    b.Property<ulong>("RoleID");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("RoleButtonLinks");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.TriviaScore", b =>

@@ -113,16 +113,16 @@ namespace MonkeyBot.Migrations
                 name: "RoleButtonLinks",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
-                    MessageId = table.Column<ulong>(nullable: false),
-                    RoleId = table.Column<ulong>(nullable: false),
+                    GuildID = table.Column<ulong>(nullable: false),
+                    MessageID = table.Column<ulong>(nullable: false),
+                    RoleID = table.Column<ulong>(nullable: false),
                     EmoteString = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleButtonLinks", x => x.Id);
+                    table.PrimaryKey("PK_RoleButtonLinks", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(

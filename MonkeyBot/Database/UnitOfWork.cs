@@ -11,9 +11,7 @@ namespace MonkeyBot.Database
 
         private IAnnouncementRepository announcements;
         public IAnnouncementRepository Announcements => announcements ?? (announcements = new AnnouncementRepository(context));
-              
-        private IRoleButtonLinksRepository roleButtonLinks;
-        public IRoleButtonLinksRepository RoleButtonLinks => roleButtonLinks ?? (roleButtonLinks = new RoleButtonLinksRepository(context));
+
 
         public UnitOfWork(MonkeyDBContext context)
         {

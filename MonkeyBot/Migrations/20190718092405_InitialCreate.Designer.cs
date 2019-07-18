@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190718081455_InitialCreate")]
+    [Migration("20190718092405_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,25 +42,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.RoleButtonLinkEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("EmoteString")
-                        .IsRequired();
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<ulong>("MessageId");
-
-                    b.Property<ulong>("RoleId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RoleButtonLinks");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
@@ -164,6 +145,25 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("GuildConfigs");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.RoleButtonLink", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("EmoteString")
+                        .IsRequired();
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<ulong>("MessageID");
+
+                    b.Property<ulong>("RoleID");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("RoleButtonLinks");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.TriviaScore", b =>
