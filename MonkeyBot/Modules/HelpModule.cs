@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using System;
@@ -51,7 +50,7 @@ namespace MonkeyBot.Modules
                 }
                 var description = builder.ToString();
 
-                if (!description.IsEmpty().OrWhiteSpace())
+                if (!description.IsEmptyOrWhiteSpace())
                 {
                     embedBuilder.AddField(x =>
                     {
@@ -61,7 +60,7 @@ namespace MonkeyBot.Modules
                     });
                 }
             }
-            await Context.User.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);           
+            await Context.User.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
             if (Context.Channel is IGuildChannel)
                 await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
         }
@@ -94,7 +93,7 @@ namespace MonkeyBot.Modules
                 foreach (var param in cmd.Parameters)
                 {
                     paramBuilder.Append(param.Name);
-                    if (!param.Summary.IsEmpty().OrWhiteSpace())
+                    if (!param.Summary.IsEmptyOrWhiteSpace())
                         paramBuilder.Append($" **({param.Summary})**");
                     paramBuilder.Append(separator);
                 }

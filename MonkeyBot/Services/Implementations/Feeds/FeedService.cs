@@ -2,7 +2,6 @@
 using CodeHollow.FeedReader.Feeds;
 using Discord;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using FluentScheduler;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
@@ -135,9 +134,9 @@ namespace MonkeyBot.Services
                 if (!feed.ImageUrl.IsEmpty())
                     builder.WithImageUrl(feed.ImageUrl);
                 string feedTitle = ParseHtml(feed.Title);
-                if (feedTitle.IsEmpty().OrWhiteSpace())
+                if (feedTitle.IsEmptyOrWhiteSpace())
                     feedTitle = guildFeed.Name;
-                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255) + "\"";
+                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
@@ -153,16 +152,16 @@ namespace MonkeyBot.Services
                         else if (feed.Type == FeedType.Rss_2_0)
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
                     }
-                    author = !author.IsEmpty().OrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
+                    author = !author.IsEmptyOrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
                     string content = ParseHtml(feedItem.Description).Trim();
-                    if (content.IsEmpty().OrWhiteSpace())
+                    if (content.IsEmptyOrWhiteSpace())
                         content = ParseHtml(feedItem.Content).Trim();
-                    if (content.IsEmpty().OrWhiteSpace())
+                    if (content.IsEmptyOrWhiteSpace())
                         content = "[...]";
                     else
-                        content = content.TruncateTo(250).WithEllipsis();
-                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023) + "*"; // Embed field value must be <= 1024 characters
+                        content = content.TruncateTo(250, "");
+                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
                     builder.AddField(fieldName, fieldContent, true);
                 }
                 await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
@@ -177,7 +176,7 @@ namespace MonkeyBot.Services
 
         private string ParseHtml(string html)
         {
-            if (html.IsEmpty().OrWhiteSpace())
+            if (html.IsEmptyOrWhiteSpace())
                 return string.Empty;
 
             var htmlDoc = new HtmlDocument();
@@ -201,7 +200,7 @@ namespace MonkeyBot.Services
             {
                 foreach (HtmlNode node in textNodes)
                 {
-                    if (!node.InnerText.IsEmpty().OrWhiteSpace())
+                    if (!node.InnerText.IsEmptyOrWhiteSpace())
                         sb.Append(node.InnerText.Trim() + "|");
                 }
             }
@@ -211,7 +210,7 @@ namespace MonkeyBot.Services
                 {
                     if (node.HasAttributes &&
                         node.Attributes.Contains("src") &&
-                        !node.Attributes["src"].Value.IsEmpty().OrWhiteSpace())
+                        !node.Attributes["src"].Value.IsEmptyOrWhiteSpace())
                     {
                         sb.Append(node.Attributes["src"].Value);
                     }

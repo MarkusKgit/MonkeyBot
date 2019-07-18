@@ -1,11 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,13 +44,13 @@ namespace MonkeyBot.Modules
 
             await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
-                
+
 
         [Command("SetWelcomeChannel")]
         [Remarks("Sets the channel where the welcome message will be posted")]
         [Example("!SetWelcomeChannel general")]
         public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][Remainder] string channelName)
-        {            
+        {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageChannelId = channel.Id;
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
 
             await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
-                        
+
         [Command("AddRule")]
         [Remarks("Adds a rule to the server.")]
         [Example("!AddRule \"You shall not pass!\"")]
@@ -105,7 +105,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a rule").ConfigureAwait(false);
                 return;
             }
-            
+
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             if (config.Rules == null)
                 config.Rules = new List<string>();

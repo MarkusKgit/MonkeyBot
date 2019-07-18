@@ -2,7 +2,6 @@
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Humanizer;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
@@ -81,7 +80,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             question = question.Trim('\"');
-            if (question.IsEmpty().OrWhiteSpace())
+            if (question.IsEmptyOrWhiteSpace())
             {
                 await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;

@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
@@ -46,7 +45,7 @@ namespace MonkeyBot.Modules
         [RequireContext(ContextType.Guild)]
         public async Task FindMessageIDAsync([Summary("The content of the message to search for")][Remainder] string messageContent)
         {
-            if (messageContent.IsEmpty().OrWhiteSpace())
+            if (messageContent.IsEmptyOrWhiteSpace())
             {
                 await ReplyAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
                 return;

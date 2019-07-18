@@ -1,7 +1,6 @@
 ﻿using CodeHollow.FeedReader;
 using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;

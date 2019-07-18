@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -34,7 +33,7 @@ namespace MonkeyBot.Services
                 joinedGame = after.Activity.Name;
             if (before.Activity == null && after.Activity != null)
                 joinedGame = after.Activity.Name;
-            if (joinedGame.IsEmpty().OrWhiteSpace())
+            if (joinedGame.IsEmptyOrWhiteSpace())
                 return;
             var gameSubscriptions = await dbContext.GameSubscriptions.ToListAsync().ConfigureAwait(false);
             if (gameSubscriptions == null)

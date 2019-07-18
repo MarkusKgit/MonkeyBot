@@ -1,5 +1,4 @@
-﻿using dokas.FluentStrings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -45,7 +44,7 @@ namespace MonkeyBot.Common
 
         public void ExportChart(string filePath, IEnumerable<PointF> xyValues)
         {
-            if (filePath.IsEmpty().OrWhiteSpace())
+            if (filePath.IsEmptyOrWhiteSpace())
                 throw new ArgumentNullException(nameof(filePath));
             if (xyValues == null || !xyValues.Any())
                 throw new ArgumentException("Please provide some values");

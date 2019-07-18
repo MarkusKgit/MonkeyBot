@@ -40,9 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="dokas.FluentStrings">
-      <HintPath>Libs\dokas.FluentStrings.dll</HintPath>
-    </Reference>
     <Reference Include="Discord.Addons.Interactive">
       <HintPath>Libs\Discord.Addons.Interactive.dll</HintPath>
     </Reference>

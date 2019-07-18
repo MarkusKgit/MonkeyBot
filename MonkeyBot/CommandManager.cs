@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
@@ -10,7 +9,6 @@ using MonkeyBot.Documentation;
 using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +20,7 @@ namespace MonkeyBot
     public class CommandManager
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly DiscordSocketClient discordClient;        
+        private readonly DiscordSocketClient discordClient;
         private readonly CommandService commandService;
         private readonly MonkeyDBContext dbContext;
 
@@ -50,7 +48,7 @@ namespace MonkeyBot
         {
             if (guildId == null)
                 return GuildConfig.DefaultPrefix;
-            return (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix 
+            return (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix
                 ?? GuildConfig.DefaultPrefix;
         }
 

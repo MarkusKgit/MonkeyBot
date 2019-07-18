@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
@@ -95,7 +94,7 @@ namespace MonkeyBot.Services
                         serverInfo.Players.Online,
                         serverInfo.Players.Max).ConfigureAwait(false);
 
-                    if (!pictureUrl.IsEmpty().OrWhiteSpace())
+                    if (!pictureUrl.IsEmptyOrWhiteSpace())
                     {
                         builder.WithImageUrl(pictureUrl);
                     }
@@ -108,7 +107,7 @@ namespace MonkeyBot.Services
                         await existingMessage.ModifyAsync(x =>
                         {
                             //Reuse old image url if new one is not set
-                            if (pictureUrl.IsEmpty().OrWhiteSpace() && existingMessage.Embeds.FirstOrDefault() != null && existingMessage.Embeds.First().Image.HasValue)
+                            if (pictureUrl.IsEmptyOrWhiteSpace() && existingMessage.Embeds.FirstOrDefault() != null && existingMessage.Embeds.First().Image.HasValue)
                             {
                                 builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
                             }

@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace MonkeyBot.Common
 
         protected async Task<IGuildUser> GetUserInGuildAsync(string userName)
         {
-            if (userName.IsEmpty().OrWhiteSpace())
+            if (userName.IsEmptyOrWhiteSpace())
             {
                 await ReplyAsync("Please provide a name").ConfigureAwait(false);
                 return null;
@@ -47,7 +46,7 @@ namespace MonkeyBot.Common
 
         protected async Task<ITextChannel> GetTextChannelInGuildAsync(string channelName, bool defaultToCurrent)
         {
-            if (channelName.IsEmpty().OrWhiteSpace() && !defaultToCurrent)
+            if (channelName.IsEmptyOrWhiteSpace() && !defaultToCurrent)
             {
                 await ReplyAsync("Please provide the name of the channel").ConfigureAwait(false);
                 return null;
@@ -69,7 +68,7 @@ namespace MonkeyBot.Common
 
         protected async Task<IRole> GetRoleInGuildAsync(string roleName)
         {
-            if (roleName.IsEmpty().OrWhiteSpace())
+            if (roleName.IsEmptyOrWhiteSpace())
             {
                 await ReplyAsync("Please provide the name of the role").ConfigureAwait(false);
                 return null;

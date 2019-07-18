@@ -2,7 +2,6 @@
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
@@ -151,11 +150,11 @@ namespace MonkeyBot.Services
                     .WithTitle("The quiz has ended");
 
             var currentScores = GetCurrentHighScores();
-            if (!currentScores.IsEmpty().OrWhiteSpace())
+            if (!currentScores.IsEmptyOrWhiteSpace())
                 embedBuilder.AddField("Final scores:", currentScores, true);
 
             var globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildID).ConfigureAwait(false);
-            if (!globalScores.IsEmpty().OrWhiteSpace())
+            if (!globalScores.IsEmptyOrWhiteSpace())
                 embedBuilder.AddField("Global top scores:", globalScores);
 
             await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: embedBuilder.Build()).ConfigureAwait(false);
@@ -202,7 +201,7 @@ namespace MonkeyBot.Services
                 embedBuilder.AddField("Incorrect answers", msg, true);
 
                 var highScores = GetCurrentHighScores(3);
-                if (!highScores.IsEmpty().OrWhiteSpace())
+                if (!highScores.IsEmptyOrWhiteSpace())
                     embedBuilder.AddField("Top 3:", highScores, true);
 
                 await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, "", embed: embedBuilder.Build()).ConfigureAwait(false);

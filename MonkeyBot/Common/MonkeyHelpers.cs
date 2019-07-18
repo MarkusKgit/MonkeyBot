@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using System;
 using System.IO;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace MonkeyBot.Common
             if (!File.Exists(filePath))
             {
                 string strippedPath = Path.GetDirectoryName(filePath);
-                if (!strippedPath.IsEmpty().OrWhiteSpace() && !Directory.Exists(strippedPath))
+                if (!strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
                     Directory.CreateDirectory(strippedPath);
             }
 

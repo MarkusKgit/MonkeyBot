@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
@@ -25,14 +24,14 @@ namespace MonkeyBot.Services
         {
             this.logger = logger;
             this.dbContext = dbContext;
-            this.Connected += Client_ConnectedAsync;            
+            this.Connected += Client_ConnectedAsync;
             this.UserJoined += Client_UserJoinedAsync;
-            this.UserLeft += Client_UserLeftAsync;            
+            this.UserLeft += Client_UserLeftAsync;
             this.JoinedGuild += Client_JoinedGuildAsync;
             this.LeftGuild += Client_LeftGuildAsync;
             this.Log += MonkeyClient_LogAsync;
         }
-        
+
         private Task Client_ConnectedAsync()
         {
             logger.LogInformation("Connected");
@@ -43,12 +42,12 @@ namespace MonkeyBot.Services
         {
             if (arg.Guild == null)
                 return;
-            
+
             GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == arg.Guild.Id).ConfigureAwait(false);
             string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
             ITextChannel channel = arg.Guild.DefaultChannel;
             if (config?.WelcomeMessageChannelId != null)
-                channel = arg.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;            
+                channel = arg.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? arg.Guild.DefaultChannel;
             if (!welcomeMessage.IsEmpty())
             {
                 welcomeMessage = welcomeMessage.Replace("%server%", arg.Guild.Name).Replace("%user%", arg.Mention);

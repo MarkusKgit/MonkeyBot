@@ -1,5 +1,4 @@
-﻿using dokas.FluentStrings;
-using MonkeyBot.Common;
+﻿using MonkeyBot.Common;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;
@@ -33,7 +32,7 @@ namespace MonkeyBot.Services
             if (userName.IsEmpty())
                 return string.Empty;
             using (var httpClient = new HttpClient())
-            {                
+            {
                 var url = new UriBuilder(randomJokeApiUrl);
                 url.Query = $"firstName={userName}";
                 var json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);

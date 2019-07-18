@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
@@ -87,7 +86,7 @@ namespace MonkeyBot.Modules
         public async Task ListAsync()
         {
             string links = await roleButtonService.ListAllAsync(Context.Guild.Id).ConfigureAwait(false);
-            if (!links.IsEmpty().OrWhiteSpace())
+            if (!links.IsEmptyOrWhiteSpace())
                 await ReplyAsync(links).ConfigureAwait(false);
             else
                 await ReplyAsync("No role button links set up yet").ConfigureAwait(false);

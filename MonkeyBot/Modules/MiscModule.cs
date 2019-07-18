@@ -1,7 +1,6 @@
 ﻿using Discord.Commands;
-using dokas.FluentStrings;
 using MonkeyBot.Common;
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -17,7 +16,7 @@ namespace MonkeyBot.Modules
         [Example("!lmgtfy Monkey Gamers")]
         public async Task LmgtfyAsync([Remainder] string searchText)
         {
-            if (searchText.IsEmpty().OrWhiteSpace())
+            if (searchText.IsEmptyOrWhiteSpace())
             {
                 await ReplyAsync("You have to provide a search text").ConfigureAwait(false);
                 return;

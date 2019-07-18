@@ -1,5 +1,4 @@
 ﻿using Discord.Commands;
-using dokas.FluentStrings;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;

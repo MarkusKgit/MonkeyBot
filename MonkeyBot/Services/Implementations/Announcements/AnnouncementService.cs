@@ -1,5 +1,4 @@
 ﻿using Discord.WebSocket;
-using dokas.FluentStrings;
 using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;

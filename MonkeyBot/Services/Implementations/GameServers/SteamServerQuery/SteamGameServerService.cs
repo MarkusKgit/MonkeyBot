@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
