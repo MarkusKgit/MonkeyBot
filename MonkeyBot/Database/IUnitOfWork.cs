@@ -10,8 +10,6 @@ namespace MonkeyBot.Database
 
         IAnnouncementRepository Announcements { get; }
 
-        IGameSubscriptionRepository GameSubscriptions { get; }
-
         IRoleButtonLinksRepository RoleButtonLinks { get; }
 
         Task<int> CompleteAsync();

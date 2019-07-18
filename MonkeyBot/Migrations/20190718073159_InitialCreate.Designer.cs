@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190715141147_InitialCreate")]
+    [Migration("20190718073159_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,23 +42,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.GameSubscriptionEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("GameName")
-                        .IsRequired();
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<ulong>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GameSubscriptions");
                 });
 
             modelBuilder.Entity("MonkeyBot.Database.Entities.RoleButtonLinkEntity", b =>
@@ -155,6 +138,22 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("GameServers");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.GameSubscription", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("GameName");
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<ulong>("UserID");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("GameSubscriptions");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.GuildConfig", b =>

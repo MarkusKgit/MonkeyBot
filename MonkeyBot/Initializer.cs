@@ -112,7 +112,6 @@ namespace MonkeyBot
         {
             var cfg = new MapperConfigurationExpression();
             cfg.CreateMap<TriviaScoreEntity, TriviaScore>();
-            cfg.CreateMap<GameSubscriptionEntity, GameSubscription>();
             cfg.CreateMap<RoleButtonLinkEntity, RoleButtonLink>();
             cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(x => GetAnnouncement(x));
 

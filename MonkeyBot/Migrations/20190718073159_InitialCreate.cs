@@ -79,15 +79,15 @@ namespace MonkeyBot.Migrations
                 name: "GameSubscriptions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
-                    UserId = table.Column<ulong>(nullable: false),
-                    GameName = table.Column<string>(nullable: false)
+                    GuildID = table.Column<ulong>(nullable: false),
+                    UserID = table.Column<ulong>(nullable: false),
+                    GameName = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameSubscriptions", x => x.Id);
+                    table.PrimaryKey("PK_GameSubscriptions", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(

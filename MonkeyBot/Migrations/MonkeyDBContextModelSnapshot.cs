@@ -42,23 +42,6 @@ namespace MonkeyBot.Migrations
                     b.ToTable("Announcements");
                 });
 
-            modelBuilder.Entity("MonkeyBot.Database.Entities.GameSubscriptionEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("GameName")
-                        .IsRequired();
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<ulong>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GameSubscriptions");
-                });
-
             modelBuilder.Entity("MonkeyBot.Database.Entities.RoleButtonLinkEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -153,6 +136,22 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("GameServers");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.GameSubscription", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("GameName");
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<ulong>("UserID");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("GameSubscriptions");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.GuildConfig", b =>

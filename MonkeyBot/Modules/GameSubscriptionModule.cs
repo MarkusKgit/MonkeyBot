@@ -1,10 +1,12 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -65,8 +67,28 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a game subscription");
+                return;
             }
             await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
         }
+
+        [Command("Subscriptions")]
+        [Remarks("Lists all your game subscriptions")]
+        [Example("!Subscriptions")]
+        public async Task ListAllAsync()
+        {
+            var subscriptions = await gameSubscriptionService.GetSubscriptionsForUser(Context.User.Id).ConfigureAwait(false);
+            if (subscriptions == null || subscriptions.Count < 1)
+            {
+                await ReplyAsync("You are not subscribed to any game").ConfigureAwait(false);
+            }
+            else
+            {
+                string[] sSubscriptions = await Task.WhenAll(subscriptions.Select(async s => $"{s.GameName} in {(await Context.Client.GetGuildAsync(s.GuildID).ConfigureAwait(false)).Name}")).ConfigureAwait(false);
+                await Context.User.SendMessageAsync($"You are subscribed to the following games {string.Join(", ", sSubscriptions)}").ConfigureAwait(false);
+                await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
+            }
+        }
+
     }
 }

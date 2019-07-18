@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using MonkeyBot.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -16,7 +18,7 @@ namespace MonkeyBot.Services
         /// <param name="guildId">The guild to watch for game launches</param>
         /// <param name="userId">User that should receive the notification</param>
         /// <returns></returns>
-        Task AddSubscriptionAsync(string gameName, ulong guildId, ulong userId);
+        Task AddSubscriptionAsync(string gameName, ulong guildID, ulong userID);
 
         /// <summary>
         /// Remove a game subscription for the specified user
@@ -25,6 +27,13 @@ namespace MonkeyBot.Services
         /// <param name="guildId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task RemoveSubscriptionAsync(string gameName, ulong guildId, ulong userId);
+        Task RemoveSubscriptionAsync(string gameName, ulong guildID, ulong userID);
+
+        /// <summary>
+        /// Get all the game subscriptions for the specified user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID);
     }
 }
