@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
 using MonkeyBot.Common;
+using MonkeyBot.Database;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
@@ -12,14 +12,14 @@ namespace MonkeyBot.Services
     /// </summary>
     public class OTDBTriviaService : ITriviaService
     {
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
 
         // holds all trivia instances on a per guild and channel basis
         private readonly ConcurrentDictionary<DiscordId, OTDBTriviaInstance> trivias;
 
-        public OTDBTriviaService(DbService dbService)
+        public OTDBTriviaService(MonkeyDBContext dbContext)
         {
-            this.dbService = dbService;
+            this.dbContext = dbContext;
             trivias = new ConcurrentDictionary<DiscordId, OTDBTriviaInstance>();
         }
 
@@ -36,10 +36,13 @@ namespace MonkeyBot.Services
             DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-                trivias.TryAdd(id, new OTDBTriviaInstance(context, dbService));
+                trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
             }
-
-            return await trivias[id].StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
+            if (trivias.TryGetValue(id, out var instance))
+            {
+                return await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
+            }
+            return false;
         }
 
         /// <summary>
@@ -83,7 +86,7 @@ namespace MonkeyBot.Services
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (id.GuildId == null || !trivias.ContainsKey(id))
             {
-                using (var trivia = new OTDBTriviaInstance(context, dbService))
+                using (var trivia = new OTDBTriviaInstance(context, dbContext))
                 {
                     return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
                 }

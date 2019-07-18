@@ -83,7 +83,7 @@ namespace MonkeyBot.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     GuildID = table.Column<ulong>(nullable: false),
                     UserID = table.Column<ulong>(nullable: false),
-                    GameName = table.Column<string>(nullable: true)
+                    GameName = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -129,15 +129,15 @@ namespace MonkeyBot.Migrations
                 name: "TriviaScores",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
-                    UserId = table.Column<ulong>(nullable: false),
+                    GuildID = table.Column<ulong>(nullable: false),
+                    UserID = table.Column<ulong>(nullable: false),
                     Score = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TriviaScores", x => x.Id);
+                    table.PrimaryKey("PK_TriviaScores", x => x.ID);
                 });
         }
 

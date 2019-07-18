@@ -41,9 +41,5 @@ namespace MonkeyBot.Common
         }
 
         public override int GetHashCode() => (GuildId, ChannelId, UserId).GetHashCode();
-
-        public static bool operator ==(DiscordId lhs, DiscordId rhs) => lhs != null && lhs.Equals(rhs);
-
-        public static bool operator !=(DiscordId lhs, DiscordId rhs) => lhs != null && !lhs.Equals(rhs);
     }
 }

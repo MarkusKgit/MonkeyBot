@@ -13,7 +13,7 @@ namespace MonkeyBot.Database
         public DbSet<BenzenFact> BenzenFacts { get; set; }
 
         public DbSet<GuildConfig> GuildConfigs { get; set; }
-        public DbSet<TriviaScoreEntity> TriviaScores { get; set; }
+        public DbSet<TriviaScore> TriviaScores { get; set; }
         public DbSet<AnnouncementEntity> Announcements { get; set; }
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
@@ -68,6 +68,18 @@ namespace MonkeyBot.Database
                 .HasConversion(
                     x => JsonConvert.SerializeObject(x),
                     x => JsonConvert.DeserializeObject<System.Net.IPEndPoint>(x));
+
+            //GameSubscriptions
+            modelBuilder.Entity<GameSubscription>().HasKey(x => x.ID);
+            modelBuilder.Entity<GameSubscription>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<GameSubscription>().Property(x => x.UserID).IsRequired();
+            modelBuilder.Entity<GameSubscription>().Property(x => x.GameName).IsRequired();
+
+            //TriviaScores
+            modelBuilder.Entity<TriviaScore>().HasKey(x => x.ID);
+            modelBuilder.Entity<TriviaScore>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<TriviaScore>().Property(x => x.UserID).IsRequired();
+            modelBuilder.Entity<TriviaScore>().Property(x => x.Score).IsRequired();
         }
     }
 }

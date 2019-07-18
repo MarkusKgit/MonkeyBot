@@ -3,7 +3,10 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using dokas.FluentStrings;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
+using MonkeyBot.Database;
+using MonkeyBot.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,8 +28,9 @@ namespace MonkeyBot.Services
         // keeps track of the current retry count for loading questions
         private int loadingRetries;
 
+        private readonly SocketCommandContext commandContext;
         private readonly DiscordSocketClient discordClient;
-        private readonly DbService dbService;
+        private readonly MonkeyDBContext dbContext;
         private readonly InteractiveService interactiveService;
         private readonly HttpClientHandler httpClientHandler;
         private readonly HttpClient httpClient;
@@ -47,24 +51,23 @@ namespace MonkeyBot.Services
         private Dictionary<ulong, int> userScoresCurrent;
         private readonly ulong channelID;
         private readonly ulong guildID;
-        private readonly SocketCommandContext context;
 
         private readonly TimeSpan timeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Create a new instance of a trivia game in the specified guild's channel. Requires an established connection
         /// </summary>
-        /// <param name="context">Message context of the channel where the trivia should be hosted</param>
+        /// <param name="commandContext">Message context of the channel where the trivia should be hosted</param>
         /// <param name="db">DB Service instance</param>
-        public OTDBTriviaInstance(SocketCommandContext context, DbService db)
+        public OTDBTriviaInstance(SocketCommandContext commandContext, MonkeyDBContext dbContext)
         {
-            this.context = context;
-            discordClient = context.Client;
-            dbService = db;
+            this.commandContext = commandContext;
+            discordClient = commandContext.Client;
+            this.dbContext = dbContext;
             interactiveService = new InteractiveService(discordClient);
             questions = new List<OTDBQuestion>();
-            guildID = context.Guild.Id;
-            channelID = context.Channel.Id;
+            guildID = commandContext.Guild.Id;
+            channelID = commandContext.Channel.Id;
             httpClientHandler = new HttpClientHandler
             {
                 Proxy = null,
@@ -226,7 +229,7 @@ namespace MonkeyBot.Services
                     var falseEmoji = new Emoji("👎");
                     var correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
 
-                    currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
+                    currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(commandContext,
                         new ReactionCallbackData("", builder.Build(), false, true, true, timeout, _ => GetNextQuestionAsync())
                             .WithCallback(trueEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji))
                             .WithCallback(falseEmoji, (c, r) => CheckAnswer(r, correctAnswerEmoji)),
@@ -243,7 +246,7 @@ namespace MonkeyBot.Services
                     var correctAnswerEmoji = new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
                     builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
 
-                    currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(context,
+                    currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(commandContext,
                         new ReactionCallbackData("", builder.Build(), false, true, true, timeout, _ => GetNextQuestionAsync())
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(0)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
                             .WithCallback(new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(1)), (c, r) => CheckAnswer(r, correctAnswerEmoji))
@@ -299,21 +302,28 @@ namespace MonkeyBot.Services
         {
             // Add points to current scores and global scores
             AddPointsCurrent(user, userScoresCurrent, pointsToAdd);
-            using (var uow = dbService.UnitOfWork)
+
+            var currentScore = await dbContext.TriviaScores.FirstOrDefaultAsync(s => s.GuildID == guildID && s.UserID == user.Id).ConfigureAwait(false);
+            //pointsToAdd can be negative -> prevent less than zero points
+            if (currentScore == null && pointsToAdd < 0)
             {
-                var currentScore = await uow.TriviaScores.GetGuildUserScoreAsync(guildID, user.Id).ConfigureAwait(false);
-                //pointsToAdd can be negative -> prevent less than zero points
-                if (currentScore == null && pointsToAdd < 0)
-                {
-                    pointsToAdd = 0;
-                }
-                else if (currentScore != null && currentScore.Score + pointsToAdd < 0)
-                {
-                    pointsToAdd = -1 * currentScore.Score;
-                }
-                await uow.TriviaScores.IncreaseScoreAsync(guildID, user.Id, pointsToAdd).ConfigureAwait(false);
-                await uow.CompleteAsync().ConfigureAwait(false);
+                pointsToAdd = 0;
             }
+            else if (currentScore != null && currentScore.Score + pointsToAdd < 0)
+            {
+                pointsToAdd = -1 * currentScore.Score;
+            }
+            if (currentScore == null)
+            {
+                await dbContext.AddAsync(new TriviaScore { GuildID = guildID, UserID = user.Id, Score = pointsToAdd }).ConfigureAwait(false);
+            }
+            else
+            {
+                currentScore.Score += pointsToAdd;
+                dbContext.Update(currentScore);
+            }
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+
         }
 
         private static void AddPointsCurrent(IUser user, Dictionary<ulong, int> pointsDict, int pointsToAdd)
@@ -346,20 +356,17 @@ namespace MonkeyBot.Services
         /// Get the current global high scores for the guild
         /// </summary>
         /// <param name="amount">Amount of scores to get (from first place)</param>
-        /// <param name="guildId">Id of the guild to get the scores for</param>
+        /// <param name="guildID">Id of the guild to get the scores for</param>
         /// <returns></returns>
-        public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildId)
+        public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildID)
         {
-            List<TriviaScore> userScoresAllTime;
-            using (var uow = dbService.UnitOfWork)
-            {
-                userScoresAllTime = await uow.TriviaScores.GetAllForGuildAsync(guildId).ConfigureAwait(false);
-            }
-            int correctedCount = Math.Min(amount, userScoresAllTime.Count());
-            if (userScoresAllTime == null || correctedCount < 1)
+            List<TriviaScore> userScoresAllTime = await dbContext.TriviaScores.Where(s => s.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            if (userScoresAllTime == null)
                 return null;
-
-            var guild = discordClient.GetGuild(guildId);
+            int correctedCount = Math.Min(amount, userScoresAllTime.Count);
+            if (correctedCount < 1)
+                return null;
+            var guild = discordClient.GetGuild(guildID);
             var sortedScores = userScoresAllTime
                 .OrderByDescending(x => x.Score)
                 .Take(correctedCount)

@@ -6,8 +6,6 @@ namespace MonkeyBot.Database
 {
     public interface IUnitOfWork : IDisposable
     {        
-        ITriviaScoresRepository TriviaScores { get; }
-
         IAnnouncementRepository Announcements { get; }
 
         IRoleButtonLinksRepository RoleButtonLinks { get; }

@@ -9,7 +9,7 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20190718073159_InitialCreate")]
+    [Migration("20190718081455_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -61,22 +61,6 @@ namespace MonkeyBot.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RoleButtonLinks");
-                });
-
-            modelBuilder.Entity("MonkeyBot.Database.Entities.TriviaScoreEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<ulong>("GuildId");
-
-                    b.Property<int>("Score");
-
-                    b.Property<ulong>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TriviaScores");
                 });
 
             modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
@@ -145,7 +129,8 @@ namespace MonkeyBot.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("GameName");
+                    b.Property<string>("GameName")
+                        .IsRequired();
 
                     b.Property<ulong>("GuildID");
 
@@ -179,6 +164,22 @@ namespace MonkeyBot.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("GuildConfigs");
+                });
+
+            modelBuilder.Entity("MonkeyBot.Models.TriviaScore", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<ulong>("GuildID");
+
+                    b.Property<int>("Score");
+
+                    b.Property<ulong>("UserID");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("TriviaScores");
                 });
 #pragma warning restore 612, 618
         }
