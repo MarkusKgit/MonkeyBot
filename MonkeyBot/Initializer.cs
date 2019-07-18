@@ -2,7 +2,6 @@
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -32,9 +31,6 @@ namespace MonkeyBot
 
             var manager = services.GetService<CommandManager>();
             await manager.StartAsync().ConfigureAwait(false);
-
-            var registry = services.GetService<Registry>();
-            JobManager.Initialize(registry);
 
             var dbContext = services.GetRequiredService<MonkeyDBContext>();
             await DBInitializer.InitializeAsync(dbContext).ConfigureAwait(false);
@@ -113,6 +109,7 @@ namespace MonkeyBot
             services.AddSingleton<InteractiveService>();
             services.AddSingleton<CommandService, MonkeyCommandService>();
             services.AddSingleton<CommandManager>();
+            services.AddSingleton<ISchedulingService, SchedulingService>();
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<ITriviaService, OTDBTriviaService>();
             services.AddSingleton<IFeedService, FeedService>();
@@ -124,7 +121,6 @@ namespace MonkeyBot
             services.AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>();
             services.AddSingleton<IDogService, DogService>();
             services.AddSingleton<IXkcdService, XkcdService>();
-            services.AddSingleton(new Registry());
 
             var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;

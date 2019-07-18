@@ -2,7 +2,6 @@
 using CodeHollow.FeedReader.Feeds;
 using Discord;
 using Discord.WebSocket;
-using FluentScheduler;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,18 +21,21 @@ namespace MonkeyBot.Services
 
         private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
+        private readonly ISchedulingService schedulingService;
         private readonly ILogger<FeedService> logger;
 
-        public FeedService(MonkeyDBContext dbContext, DiscordSocketClient client, ILogger<FeedService> logger)
+        public FeedService(MonkeyDBContext dbContext, DiscordSocketClient discordClient, ISchedulingService schedulingService, ILogger<FeedService> logger)
         {
             this.dbContext = dbContext;
-            this.discordClient = client;
+            this.discordClient = discordClient;
+            this.schedulingService = schedulingService;
             this.logger = logger;
         }
 
         public void Start()
         {
-            JobManager.AddJob(async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
+            schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), 10);
+            //JobManager.AddJob(async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
         }
 
         public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)

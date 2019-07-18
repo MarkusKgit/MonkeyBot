@@ -1,14 +1,12 @@
 ﻿using Discord.WebSocket;
-using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
-using NCrontab;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -20,27 +18,21 @@ namespace MonkeyBot.Services
     {
         private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
+        private readonly ISchedulingService schedulingService;
+        private readonly ILogger<AnnouncementService> logger;
 
-        /// <summary>A List containing all announcements</summary>
-        //private List<Announcement> announcements;
-
-        public AnnouncementService(MonkeyDBContext dbContext, DiscordSocketClient client)
+        public AnnouncementService(MonkeyDBContext dbContext, DiscordSocketClient discordClient, ISchedulingService schedulingService, ILogger<AnnouncementService> logger)
         {
             this.dbContext = dbContext;
-            this.discordClient = client;
-            JobManager.JobEnd += JobManager_JobEndAsync;
+            this.discordClient = discordClient;
+            this.schedulingService = schedulingService;
+            this.logger = logger;
         }
 
         public async Task InitializeAsync()
         {
             await RemovePastJobsAsync().ConfigureAwait(false);
             await BuildJobsAsync().ConfigureAwait(false);
-        }
-
-        private async void JobManager_JobEndAsync(JobEndInfo obj)
-        {
-            // When a job is done check if old jobs exist and remove them
-            await RemovePastJobsAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -55,10 +47,6 @@ namespace MonkeyBot.Services
         {
             if (name.IsEmpty())
                 throw new ArgumentException("Please provide an ID");
-            // Try to parse the CronExpression -> if it fails the cron expression was not valid
-            var cnSchedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = false });
-            if (cnSchedule == null)
-                throw new ArgumentException("Cron expression is wrong!");
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Recurring, GuildID = guildID, ChannelID = channelID, CronExpression = cronExpression, Name = name, Message = message };
             AddRecurringJob(announcement);
@@ -69,24 +57,7 @@ namespace MonkeyBot.Services
         private void AddRecurringJob(Announcement announcement)
         {
             var id = GetUniqueId(announcement);
-            // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID).ConfigureAwait(false), (x) => x.WithName(id).ToRunEvery(5).Seconds());
-            // Retrieve the schedule from the newly created job
-            var schedule = JobManager.AllSchedules.FirstOrDefault(x => x.Name == id);
-            // Create a cronSchedule with the provided cronExpression
-            var cnSchedule = CrontabSchedule.Parse(announcement.CronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = false });
-            // Because FluentScheduler does not support cron expressions we have to override the default method that
-            // calculates the next run with the appropriate method from the CrontabSchedule scheduler
-            if (schedule != null)
-            {
-                var scheduleType = schedule.GetType();
-                scheduleType
-                  .GetProperty("CalculateNextRun", BindingFlags.NonPublic | BindingFlags.Instance)
-                  .SetValue(schedule, (Func<DateTime, DateTime>)cnSchedule.GetNextOccurrence, null);
-                scheduleType
-                  .GetProperty("NextRun", BindingFlags.Public | BindingFlags.Instance)
-                  .SetValue(schedule, cnSchedule.GetNextOccurrence(DateTime.Now));
-            }
+            schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -114,8 +85,12 @@ namespace MonkeyBot.Services
         {
             // The announcment's name must be unique on a per guild basis
             string uniqueName = GetUniqueId(announcement);
-            // Add a new RunOnce job with the provided ID to the Jobmanager
-            JobManager.AddJob(async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID).ConfigureAwait(false), (x) => x.WithName(uniqueName).ToRunOnceAt(announcement.ExecutionTime.Value));
+            // Add a new RunOnce job with the provided ID to the Scheduling Service
+            schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, async () =>
+                {
+                    await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID).ConfigureAwait(false);
+                    await RemovePastJobsAsync().ConfigureAwait(false);
+                });
         }
 
         /// <summary>
@@ -129,8 +104,17 @@ namespace MonkeyBot.Services
             var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
-            JobManager.RemoveJob(GetUniqueId(announcement));
-            dbContext.Announcements.Remove(announcement);
+            schedulingService.RemoveJob(GetUniqueId(announcement));
+            try
+            {
+                dbContext.Announcements.Remove(announcement);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error removing Announcement");
+            }
+
         }
 
         /// <summary>
@@ -145,8 +129,7 @@ namespace MonkeyBot.Services
             var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
-            var job = JobManager.GetSchedule(GetUniqueId(announcement));
-            return job.NextRun;
+            return schedulingService.GetNextRun(GetUniqueId(announcement));
         }
 
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>

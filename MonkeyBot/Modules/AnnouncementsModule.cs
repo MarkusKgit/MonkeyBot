@@ -145,7 +145,7 @@ namespace MonkeyBot.Modules
                 {
                     builder.AppendLine($"Recurring announcement with ID: \"{announcement.Name}\" will run next at {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
-                else if (announcement.Type == AnnouncementType.Recurring)
+                else if (announcement.Type == AnnouncementType.Once)
                 {
                     builder.AppendLine($"Single announcement with ID: \"{announcement.Name}\" will run once at {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
