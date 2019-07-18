@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MonkeyBot.Database.Entities;
 using MonkeyBot.Models;
 using Newtonsoft.Json;
 using System;
@@ -14,7 +13,7 @@ namespace MonkeyBot.Database
 
         public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
-        public DbSet<AnnouncementEntity> Announcements { get; set; }
+        public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
         public DbSet<GameSubscription> GameSubscriptions { get; set; }
@@ -87,6 +86,14 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.RoleID).IsRequired();
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.EmoteString).IsRequired();
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
+
+            //RoleButtonlinks
+            modelBuilder.Entity<Announcement>().HasKey(x => x.ID);
+            modelBuilder.Entity<Announcement>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.ChannelID).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.Type).IsRequired().HasConversion<string>();
+            modelBuilder.Entity<Announcement>().Property(x => x.Message).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.Name).IsRequired();
         }
     }
 }

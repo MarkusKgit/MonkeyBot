@@ -16,18 +16,18 @@ namespace MonkeyBot.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
 
-            modelBuilder.Entity("MonkeyBot.Database.Entities.AnnouncementEntity", b =>
+            modelBuilder.Entity("MonkeyBot.Models.Announcement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("ChannelId");
+                    b.Property<ulong>("ChannelID");
 
                     b.Property<string>("CronExpression");
 
                     b.Property<DateTime?>("ExecutionTime");
 
-                    b.Property<ulong>("GuildId");
+                    b.Property<ulong>("GuildID");
 
                     b.Property<string>("Message")
                         .IsRequired();
@@ -35,9 +35,10 @@ namespace MonkeyBot.Migrations
                     b.Property<string>("Name")
                         .IsRequired();
 
-                    b.Property<int>("Type");
+                    b.Property<string>("Type")
+                        .IsRequired();
 
-                    b.HasKey("Id");
+                    b.HasKey("ID");
 
                     b.ToTable("Announcements");
                 });

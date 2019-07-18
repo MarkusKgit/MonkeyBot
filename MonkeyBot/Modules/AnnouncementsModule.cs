@@ -3,6 +3,7 @@ using Discord.Commands;
 using dokas.FluentStrings;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
@@ -78,7 +79,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddSingle")]
         [Remarks("Adds the specified single announcement at the given time to the specified channel")]
-        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"general\" \"It is 19:00\"")]
+        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\" \"general\"")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement, [Summary("Optional: The name of the channel where the announcement should be posted")] string channelName = "")
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
@@ -137,17 +138,17 @@ namespace MonkeyBot.Modules
                 message = "The following upcoming announcements exist:";
             var builder = new System.Text.StringBuilder();
             builder.Append(message);
-            foreach (var announcement in announcements)
+            foreach (Announcement announcement in announcements)
             {
                 var nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id).ConfigureAwait(false);
-                var channel = await Context.Guild.GetChannelAsync(announcement.ChannelId).ConfigureAwait(false);
-                if (announcement is RecurringAnnouncement)
+                var channel = await Context.Guild.GetChannelAsync(announcement.ChannelID).ConfigureAwait(false);
+                if (announcement.Type == AnnouncementType.Recurring)
                 {
-                    builder.AppendLine($"Recurring announcement with ID: \"{announcement.Name}\" will run next on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
+                    builder.AppendLine($"Recurring announcement with ID: \"{announcement.Name}\" will run next at {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
-                else if (announcement is SingleAnnouncement)
+                else if (announcement.Type == AnnouncementType.Recurring)
                 {
-                    builder.AppendLine($"Single announcement with ID: \"{announcement.Name}\" will run on {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
+                    builder.AppendLine($"Single announcement with ID: \"{announcement.Name}\" will run once at {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
             }
             message = builder.ToString();

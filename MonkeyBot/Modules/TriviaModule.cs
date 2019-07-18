@@ -1,10 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
-using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -18,13 +16,11 @@ namespace MonkeyBot.Modules
     {
         private readonly ITriviaService triviaService;
         private readonly CommandManager commandManager;
-        private readonly DbService dbService;
 
-        public TriviaModule(IServiceProvider provider)
+        public TriviaModule(ITriviaService triviaService, CommandManager commandManager)
         {
-            triviaService = provider.GetService<ITriviaService>();
-            commandManager = provider.GetService<CommandManager>();
-            dbService = provider.GetService<DbService>();
+            this.triviaService = triviaService;
+            this.commandManager = commandManager;
         }
 
         [Command("Start", RunMode = RunMode.Async)]

@@ -21,4 +21,10 @@ namespace MonkeyBot.Models
 
         public DateTime? LastVersionUpdate { get; set; }
     }
+
+    public enum GameServerType
+    {
+        Steam,
+        Minecraft
+    }
 }

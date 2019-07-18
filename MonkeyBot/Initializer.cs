@@ -1,16 +1,12 @@
-﻿using AutoMapper;
-using AutoMapper.Configuration;
-using Discord;
+﻿using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using dokas.FluentStrings;
 using FluentScheduler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
-using MonkeyBot.Database.Entities;
 using MonkeyBot.Services;
 using NLog.Extensions.Logging;
 using System;
@@ -22,8 +18,6 @@ namespace MonkeyBot
     {
         public static async Task<IServiceProvider> InitializeAsync(ApplicationArguments args)
         {
-            InitializeMapper();
-
             var services = ConfigureServices();
 
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
@@ -108,30 +102,12 @@ namespace MonkeyBot
             return logConfig;
         }
 
-        private static void InitializeMapper()
-        {
-            var cfg = new MapperConfigurationExpression();
-            cfg.CreateMap<AnnouncementEntity, Announcement>().ConstructUsing(x => GetAnnouncement(x));
-
-            Mapper.Initialize(cfg);
-        }
-
-        private static Announcement GetAnnouncement(AnnouncementEntity item)
-        {
-            if (item.Type == AnnouncementType.Recurring && !item.CronExpression.IsEmpty())
-                return new RecurringAnnouncement(item.Name, item.CronExpression, item.Message, item.GuildId, item.ChannelId);
-            if (item.Type == AnnouncementType.Single && item.ExecutionTime.HasValue)
-                return new SingleAnnouncement(item.Name, item.ExecutionTime.Value, item.Message, item.GuildId, item.ChannelId);
-            return null;
-        }
-
         private static IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
             services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
-            services.AddSingleton(new DbService());
             services.AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient);
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
             services.AddSingleton<InteractiveService>();

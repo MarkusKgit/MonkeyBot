@@ -11,19 +11,19 @@ namespace MonkeyBot.Migrations
                 name: "Announcements",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    ID = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GuildId = table.Column<ulong>(nullable: false),
-                    ChannelId = table.Column<ulong>(nullable: false),
-                    Type = table.Column<int>(nullable: false),
+                    GuildID = table.Column<ulong>(nullable: false),
+                    ChannelID = table.Column<ulong>(nullable: false),
+                    Type = table.Column<string>(nullable: false),
                     Name = table.Column<string>(nullable: false),
+                    Message = table.Column<string>(nullable: false),
                     ExecutionTime = table.Column<DateTime>(nullable: true),
-                    CronExpression = table.Column<string>(nullable: true),
-                    Message = table.Column<string>(nullable: false)
+                    CronExpression = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Announcements", x => x.Id);
+                    table.PrimaryKey("PK_Announcements", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
