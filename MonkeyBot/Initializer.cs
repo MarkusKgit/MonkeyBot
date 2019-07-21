@@ -7,7 +7,10 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Services;
+using NLog;
+using NLog.Config;
 using NLog.Extensions.Logging;
+using NLog.Targets;
 using System;
 using System.Threading.Tasks;
 
@@ -21,7 +24,7 @@ namespace MonkeyBot
 
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
-            NLog.LogManager.Configuration = SetupNLogConfig();
+            LogManager.Configuration = SetupNLogConfig();
 
             var logger = services.GetService<ILogger<MonkeyClient>>();
 
@@ -62,48 +65,52 @@ namespace MonkeyBot
             return services;
         }
 
-        private static NLog.Config.LoggingConfiguration SetupNLogConfig()
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        private static LoggingConfiguration SetupNLogConfig()
         {
-            var logConfig = new NLog.Config.LoggingConfiguration();
-            var coloredConsoleTarget = new NLog.Targets.ColoredConsoleTarget
+            var logConfig = new LoggingConfiguration();
+
+            var coloredConsoleTarget = new ColoredConsoleTarget("logconsole")
             {
-                Name = "logconsole",
                 Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
             };
-            var productionLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Warn, coloredConsoleTarget);
-            logConfig.LoggingRules.Add(productionLoggingRule);
 
-            var debugTarget = new NLog.Targets.DebuggerTarget
+            logConfig.AddTarget(coloredConsoleTarget);
+
+            var debugTarget = new DebuggerTarget
             {
                 Name = "debugConsole",
                 Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
             };
-            var debugLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, debugTarget);
-            logConfig.LoggingRules.Add(debugLoggingRule);
+            logConfig.AddTarget(debugTarget);
 
-            var fileTarget = new NLog.Targets.FileTarget
+            var fileTarget = new FileTarget
             {
                 Name = "logFile",
                 Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}",
-                FileName = "${basedir}{Path.DirectorySeparatorChar}Logs{Path.DirectorySeparatorChar}${level}.log",
-                ArchiveFileName = "${basedir}{Path.DirectorySeparatorChar}Logs{Path.DirectorySeparatorChar}Archive{Path.DirectorySeparatorChar}${level}.{##}.log",
-                ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
+                FileName = "${basedir}/Logs/${level}.log",
+                ArchiveFileName = "${basedir}/Logs/Archive/${level}.{##}.log",
+                ArchiveNumbering = ArchiveNumberingMode.Sequence,
                 ArchiveAboveSize = 1_000_000,
                 ConcurrentWrites = false,
                 MaxArchiveFiles = 20
             };
-            var fileLoggingRule = new NLog.Config.LoggingRule("*", NLog.LogLevel.Info, fileTarget);
-            logConfig.LoggingRules.Add(fileLoggingRule);
+            logConfig.AddTarget(fileTarget);
+
+            logConfig.AddRule(NLog.LogLevel.Warn, NLog.LogLevel.Fatal, coloredConsoleTarget);
+            logConfig.AddRuleForAllLevels(debugTarget);
+            logConfig.AddRuleForAllLevels(fileTarget);
 
             return logConfig;
         }
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         private static IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILoggerFactory, LoggerFactory>();
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-            services.AddLogging((builder) => builder.SetMinimumLevel(LogLevel.Trace));
+            services.AddLogging((builder) => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace));
             services.AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient);
             services.AddSingleton<DiscordSocketClient, MonkeyClient>();
             services.AddSingleton<InteractiveService>();
