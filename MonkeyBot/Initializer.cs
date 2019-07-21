@@ -85,8 +85,8 @@ namespace MonkeyBot
             {
                 Name = "logFile",
                 Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}",
-                FileName = "${basedir}\\Logs\\${level}.log",
-                ArchiveFileName = "${basedir}\\Logs\\Archive\\${level}.{##}.log",
+                FileName = "${basedir}{Path.DirectorySeparatorChar}Logs{Path.DirectorySeparatorChar}${level}.log",
+                ArchiveFileName = "${basedir}{Path.DirectorySeparatorChar}Logs{Path.DirectorySeparatorChar}Archive{Path.DirectorySeparatorChar}${level}.{##}.log",
                 ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Sequence,
                 ArchiveAboveSize = 1_000_000,
                 ConcurrentWrites = false,
