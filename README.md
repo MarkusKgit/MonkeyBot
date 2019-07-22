@@ -24,6 +24,7 @@
     <a href="https://github.com/MarkusKgit/MonkeyBot/issues">Request Feature</a>
   </p>
 </p>
+
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
 
