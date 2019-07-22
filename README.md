@@ -3,6 +3,7 @@
 [![Contributors][contributors-shield]][contributors-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
+[![Discord][discord-shield]][discord-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -34,6 +35,7 @@
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
 * [Usage](#usage)
+* [Troubleshooting](#troubleshooting)
 * [Roadmap](#roadmap)
 * [Contributing](#contributing)
 * [License](#license)
@@ -57,9 +59,8 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 ### Built With
 
 * [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)
-* [Discord.Net](https://github.com/RogueException/Discord.Net)
-* [SQLite](https://www.sqlite.org/index.html)
 * [CloudinaryDotNet](https://github.com/cloudinary/CloudinaryDotNet)
+* [Discord.Net](https://github.com/RogueException/Discord.Net)
 * [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
 * [Fluent Command Line Parser](https://github.com/PingmanTools/fluent-command-line-parser/tree/netstandard)
 * [FluentScheduler](https://github.com/fluentscheduler/FluentScheduler)
@@ -68,6 +69,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 * [Microsoft.EntityFrameworkCore](https://github.com/aspnet/EntityFrameworkCore)
 * [NCrontab](https://github.com/atifaziz/NCrontab)
 * [NLog](https://github.com/NLog/NLog)
+* [SQLite](https://www.sqlite.org/index.html)
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -75,25 +77,76 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Prerequisites
 
-TODO
+* Latest .NET core SDK for your platform (2.2 or later) - you can download it [here](https://dotnet.microsoft.com/download)
+* A registered Discord application with a bot access token. If you don't have one, you can create one with your existing Discord account [here](https://discordapp.com/developers/applications/). There you have to add a Bot and need to copy both **Bot Token** and **Client ID**. To then add the bot to your Discord server go to `https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID]`, replacing *[ID]* with the **Client ID** of your bot (not the token)
+* Optional: A cloudinary API key (only required for the Minecraft server status image). You can register one [here](https://cloudinary.com/users/register/free)
+* Optional: An IDE of your choice (Visual Studio 2019 recommended)
 
 ### Installation
 
-TODO
+1. Clone the repo
+
+   ```sh
+   git clone https://github.com/MarkusKgit/MonkeyBot.git
+   ```
+   or download it from GitHub and unzip it
+
+2. Build
+
+   ```sh
+   cd MonkeyBot
+   dotnet build
+   ```
+   or open the solution in Visual Studio and build
+
+3. Run
+
+   ```sh   
+   dotnet run
+   ```
+
+   On the first run of the Bot the configuration file will automatically be created by prompts on the command line. For a first test you only need to provide the Bot access token. The configuration will be stored in `/config/configuration.json`. Look at [exampleconfig.json](exampleconfig.json) to see the structure of the config file if you wish to create it manually.
+
+4. Publish 
+
+   To permanently run the bot you should publish it first:
+   ```sh
+   dotnet publish -c Release --output published
+   ```
+   Then you can create a daemon/service that automatically runs `dotnet published/MonkeyBot.dll`
+   Here is an example for a system.d config file (tested on Ubuntu server):
+   ```sh
+    [Unit]
+    Description=MonkeyBot service
+  
+    [Service]
+    WorkingDirectory=/home/markus/MonkeyBot/MonkeyBot/published
+    ExecStart=/usr/bin/dotnet /home/markus/MonkeyBot/MonkeyBot/published/MonkeyBot.dll
+    Restart=on-failure
+    RestartSec=10
+    SyslogIdentifier=monkeybot-service
+  
+    [Install]
+    WantedBy=multi-user.target
+   ```
+   Then it can be started with `sudo systemctl start MonkeyBot.service`
 
 
-
-<!-- USAGE EXAMPLES -->
 ## Usage
 
-TODO
+Once the bot is running and connected it will respond to [commands](commands.md). 
+Try !help to get you started.
 
 
+## Troubleshooting
+
+Logfiles are stored in `Logs` directory and fatal errors will also appear in the command line output. The SQLite database is located in the `Data` directory.
+If you have any questions or found a bug you can open an [issue](https://github.com/MarkusKgit/MonkeyBot/issues) or get in touch on [Discord][discord-url]
 
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/MarkusKgit/MonkeyBot/issues) for a list of proposed features (and known issues).
 
 
 
@@ -113,7 +166,7 @@ Contributions are what make the open source community such an amazing place to b
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 
 
@@ -122,7 +175,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Project Link: [https://github.com/MarkusKgit/MonkeyBot](https://github.com/MarkusKgit/MonkeyBot)
 
-Discord: [![Discord][discord-shield]][discord-url]
+Discord: [https://discord.gg/u43XvME](https://discord.gg/u43XvME)
 
 
 
@@ -146,5 +199,5 @@ For a full list of commands see [Commands](Commands.md)
 [issues-url]: https://github.com/MarkusKgit/MonkeyBot/issues
 [license-shield]: https://img.shields.io/badge/license-MIT-green.svg?style=flat-square
 [license-url]: LICENSE
-[discord-shield]: https://img.shields.io/badge/Join-MonkeyBot-7289DA.svg?longCache=true&style=flat-square&logo=discord
+[discord-shield]: https://img.shields.io/discord/333960047761817601.svg?style=flat-square
 [discord-url]: https://discord.gg/u43XvME
