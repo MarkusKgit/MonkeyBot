@@ -116,6 +116,10 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
    Then you can create a daemon/service that automatically runs `dotnet published/MonkeyBot.dll`
    Here is an example for a system.d config file (tested on Ubuntu server):
    ```sh
+    # /etc/systemd/system/MonkeyBot.service
+    # To enable: sudo systemctl enable MonkeyBot.service
+    # To start: sudo systemctl start MonkeyBot.service
+    
     [Unit]
     Description=MonkeyBot service
   
@@ -129,8 +133,14 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
     [Install]
     WantedBy=multi-user.target
    ```
-   Then it can be started with `sudo systemctl start MonkeyBot.service`
-
+   Updates to new versions are then as easy as:
+   ```sh
+   sudo systemctl stop MonkeyBot.service
+   cd /home/markus/MonkeyBot
+   git pull
+   dotnet publish -c Release --output published
+   sudo systemctl start MonkeyBot.service
+   ```
 
 ## Usage
 
