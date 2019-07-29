@@ -147,6 +147,13 @@
 `!removerules `  
 *Remarks:* Removes all rules from a server.  
   
+`!enablebattlefieldupdates _channel`  
+*Example:* `!EnableBattlefieldUpdates #general`  
+*Remarks:* Enables automated posting of Battlefield update news in provided channel  
+  
+`!disablebattlefieldupdates `  
+*Remarks:* Disables automated posting of Battlefield update news  
+  
 ---  
 ### Help
 **Preconditions:** Minimum permission: *User*  
@@ -305,4 +312,4 @@
 *Preconditions:* Bot requires channel permission: *Embed Links*  
 *Remarks:* Gets the xkcd comic with the specified number  
   
----  
+---

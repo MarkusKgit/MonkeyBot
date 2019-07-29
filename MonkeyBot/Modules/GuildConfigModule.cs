@@ -134,6 +134,7 @@ namespace MonkeyBot.Modules
 
         [Command("EnableBattlefieldUpdates")]
         [Remarks("Enables automated posting of Battlefield update news in provided channel")]
+        [Example("!EnableBattlefieldUpdates #general")]
         public async Task EnableBattlefieldUpdatesAsync(ITextChannel channel)
         {
             if (channel == null)
