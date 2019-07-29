@@ -50,6 +50,7 @@ namespace MonkeyBot.Database
                 .HasConversion(
                     x => JsonConvert.SerializeObject(x),
                     x => JsonConvert.DeserializeObject<List<string>>(x));
+            modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
 
             //Feeds
             modelBuilder.Entity<Feed>().HasKey(x => x.ID);

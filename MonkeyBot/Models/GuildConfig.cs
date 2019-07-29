@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MonkeyBot.Models
 {
@@ -21,5 +22,11 @@ namespace MonkeyBot.Models
         public ulong GoodbyeMessageChannelId { get; set; }
 
         public List<string> Rules { get; set; }
+
+        public bool BattlefieldUpdatesEnabled { get; set; }
+
+        public ulong BattlefieldUpdatesChannel { get; set; }
+
+        public DateTime? LastBattlefieldUpdate { get; set; }
     }
 }

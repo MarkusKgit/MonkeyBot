@@ -5,6 +5,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
+using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,10 +19,12 @@ namespace MonkeyBot.Modules
     public class GuildConfigModule : MonkeyModuleBase
     {
         private readonly MonkeyDBContext dbContext;
+        private readonly IBattlefieldNewsService bfService;
 
-        public GuildConfigModule(MonkeyDBContext dbContext)
+        public GuildConfigModule(MonkeyDBContext dbContext, IBattlefieldNewsService bfService)
         {
             this.dbContext = dbContext;
+            this.bfService = bfService;
         }
 
 
@@ -127,6 +130,27 @@ namespace MonkeyBot.Modules
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await ReplyAndDeleteAsync("Rules removed").ConfigureAwait(false);
+        }
+
+        [Command("EnableBattlefieldUpdates")]
+        [Remarks("Enables automated posting of Battlefield update news in provided channel")]
+        public async Task EnableBattlefieldUpdatesAsync(ITextChannel channel)
+        {
+            if (channel == null)
+            {
+                await ReplyAsync("Please provide a valid channel").ConfigureAwait(false);
+                return;
+            }
+            await bfService.EnableForGuildAsync(Context.Guild.Id, channel.Id).ConfigureAwait(false);
+            await ReplyAndDeleteAsync("Battlefield Updates enabled!").ConfigureAwait(false);
+        }
+
+        [Command("DisableBattlefieldUpdates")]
+        [Remarks("Disables automated posting of Battlefield update news")]
+        public async Task DisableBattlefieldUpdatesAsync()
+        {
+            await bfService.DisableForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
+            await ReplyAndDeleteAsync("Battlefield Updates disabled!").ConfigureAwait(false);
         }
 
         private async Task<GuildConfig> GetOrCreatConfigAsync(ulong guildId)

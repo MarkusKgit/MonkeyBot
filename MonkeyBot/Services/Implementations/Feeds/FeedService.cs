@@ -35,7 +35,6 @@ namespace MonkeyBot.Services
         public void Start()
         {
             schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), 10);
-            //JobManager.AddJob(async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(updateIntervallMinutes).Minutes().DelayFor(10).Seconds());
         }
 
         public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)

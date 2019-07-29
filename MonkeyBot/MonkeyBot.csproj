@@ -16,6 +16,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20190729063336_BattlefieldUpdates.cs" />
+    <Compile Remove="Migrations\20190729063336_BattlefieldUpdates.Designer.cs" />
+    <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.cs" />
+    <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.Designer.cs" />
+    <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.cs" />
+    <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.8.0" />
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="Discord.Net" Version="2.1.1" />

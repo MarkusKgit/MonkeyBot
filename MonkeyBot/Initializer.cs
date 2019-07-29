@@ -56,6 +56,9 @@ namespace MonkeyBot
             var feedService = services.GetService<IFeedService>();
             feedService.Start();
 
+            var battlefieldNewsService = services.GetService<IBattlefieldNewsService>();
+            battlefieldNewsService.Start();
+
             if (args != null && args.BuildDocumentation)
             {
                 await manager.BuildDocumentationAsync().ConfigureAwait(false); // Write the documentation
@@ -120,6 +123,7 @@ namespace MonkeyBot
             services.AddSingleton<IAnnouncementService, AnnouncementService>();
             services.AddSingleton<ITriviaService, OTDBTriviaService>();
             services.AddSingleton<IFeedService, FeedService>();
+            services.AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>();
             services.AddSingleton<SteamGameServerService>();
             services.AddSingleton<MineCraftGameServerService>();
             services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();

@@ -3,6 +3,7 @@ using NCrontab;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -24,9 +25,10 @@ namespace MonkeyBot.Services
             JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunOnceAt(time));
         }
 
-        public void ScheduleJobRecurring(string jobID, int intervalSeconds, Action job, int delaySeconds)
+        public async void ScheduleJobRecurring(string jobID, int intervalSeconds, Action job, int delaySeconds)
         {
-            JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunEvery(intervalSeconds).Seconds().DelayFor(delaySeconds));
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds)).ConfigureAwait(false);
+            JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunNow().AndEvery(intervalSeconds).Seconds());
         }
 
         public void ScheduleJobRecurring(string jobID, string cronExpression, Action job)
