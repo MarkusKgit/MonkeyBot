@@ -41,7 +41,7 @@ namespace MonkeyBot.Services
             MineQuery query = null;
             try
             {
-                query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port);
+                query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, logger);
                 var serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
                 if (serverInfo == null)
                     return false;

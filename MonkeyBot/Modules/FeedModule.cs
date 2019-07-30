@@ -48,7 +48,7 @@ namespace MonkeyBot.Modules
             }
             var urls = await FeedReader.GetFeedUrlsFromUrlAsync(url).ConfigureAwait(false);
             string feedUrl;
-            if (urls.Count() < 1) // no url - probably the url is already the right feed url
+            if (!urls.Any()) // no url - probably the url is already the right feed url
                 feedUrl = url;
             else if (urls.Count() == 1)
                 feedUrl = urls.First().Url;

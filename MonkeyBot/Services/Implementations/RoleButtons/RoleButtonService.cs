@@ -39,7 +39,7 @@ namespace MonkeyBot.Services
             IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.Ordinal)) ?? new Emoji(emoteString) as IEmote;
             if (emote == null)
                 return;
-            if (msg.Reactions.Count(x => x.Key == emote) < 1)
+            if (!msg.Reactions.Any(x => x.Key == emote))
                 await msg.AddReactionAsync(emote).ConfigureAwait(false);
 
             bool exists = await dbContext.RoleButtonLinks.AnyAsync(x => x.GuildID == guildID && x.MessageID == messageID && x.RoleID == roleID && x.EmoteString == emoteString).ConfigureAwait(false);

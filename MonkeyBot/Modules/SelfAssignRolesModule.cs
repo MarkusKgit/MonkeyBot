@@ -106,7 +106,7 @@ namespace MonkeyBot.Modules
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
                 {
                     var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
-                    if (roleUsers != null && roleUsers.Count() > 0)
+                    if (roleUsers != null && roleUsers.Any())
                     {
                         builder.AddField(x =>
                         {
@@ -131,7 +131,7 @@ namespace MonkeyBot.Modules
                 return;
             var guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
             var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
-            if (roleUsers == null || roleUsers.Count() < 1)
+            if (roleUsers == null || !roleUsers.Any())
                 return;
             var builder = new EmbedBuilder
             {

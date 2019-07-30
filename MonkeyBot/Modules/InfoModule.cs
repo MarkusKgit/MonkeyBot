@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             const int searchDepth = 100;
             var messages = await Context.Channel.GetMessagesAsync(searchDepth).FlattenAsync().ConfigureAwait(false);
             var matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (matches == null || matches.Count() < 1)
+            if (matches == null || !matches.Any())
             {
                 await ReplyAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
                 return;

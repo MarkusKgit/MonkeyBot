@@ -13,14 +13,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MonkeyBot.Services
 {
     /// <summary>
     /// Manages a single instance of a trivia game in a Discord channel. Uses Open trivia database https://opentdb.com
     /// </summary>
-    public class OTDBTriviaInstance : IDisposable
+    internal sealed class OTDBTriviaInstance : IDisposable
     {
+        private readonly Uri tokenUri = new Uri("https://opentdb.com/api_token.php?command=request");
+        private readonly Uri baseApiUri = new Uri("https://opentdb.com/api.php");
+        
         // The api token enables us to use a session with opentdb so that we don't get the same question twice during a session
         private string apiToken = string.Empty;
 
@@ -384,8 +388,13 @@ namespace MonkeyBot.Services
             // Amount of questions per request is limited to 50 by the API
             if (count > 50)
                 count = 50;
-
-            var json = await httpClient.GetStringAsync($"https://opentdb.com/api.php?amount={count}&token={apiToken}").ConfigureAwait(false);
+                        
+            var builder = new UriBuilder(baseApiUri);
+            var query = HttpUtility.ParseQueryString(builder.Query);
+            query["amount"] = count.ToString();
+            query["token"] = apiToken;
+            builder.Query = query.ToString();            
+            var json = await httpClient.GetStringAsync(builder.Uri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
@@ -404,7 +413,7 @@ namespace MonkeyBot.Services
         // Requests a token from the api. With the token a session is managed. During a session it is ensured that no question is received twice
         private async Task GetTokenAsync()
         {
-            var json = await httpClient.GetStringAsync("https://opentdb.com/api_token.php?command=request").ConfigureAwait(false);
+            var json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {
                 var jobject = JObject.Parse(json);

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class SteamGameServer : IDisposable
+    internal sealed class SteamGameServer : IDisposable
     {
         public IPEndPoint EndPoint
         {

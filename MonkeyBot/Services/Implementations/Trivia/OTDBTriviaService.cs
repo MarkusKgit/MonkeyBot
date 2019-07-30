@@ -23,6 +23,7 @@ namespace MonkeyBot.Services
             trivias = new ConcurrentDictionary<DiscordId, OTDBTriviaInstance>();
         }
 
+
         /// <summary>
         /// Start a new trivia with the specified amount of questions in the specified Discord Channel
         /// Returns boolean success
@@ -30,6 +31,7 @@ namespace MonkeyBot.Services
         /// <param name="questionsToPlay">Amount of questions to play</param>
         /// <param name="context">Message context of the channel where the trivia should be hosted</param>
         /// <returns>success</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         public async Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context)
         {
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance

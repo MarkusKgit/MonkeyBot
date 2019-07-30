@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,19 +11,21 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class MineQuery : IDisposable
+    internal sealed class MineQuery : IDisposable
     {
         private readonly TcpClient client;
         private List<byte> writeBuffer;
         private int offset;
+        private readonly ILogger logger;
 
         public IPAddress Address { get; }
         public int Port { get; }
 
-        public MineQuery(IPAddress address, int port)
+        public MineQuery(IPAddress address, int port, ILogger logger)
         {
             Address = address;
             Port = port;
+            this.logger = logger;
             client = new TcpClient();
         }
 
@@ -75,7 +78,7 @@ namespace MonkeyBot.Services
             }
             catch (IOException ex)
             {
-                //TODO: Add logging
+                logger.LogError(ex, $"Couldn't get MineCraft server info for {Address}:{Port}");
                 return null;
             }
             finally
