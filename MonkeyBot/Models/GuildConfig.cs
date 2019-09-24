@@ -13,6 +13,8 @@ namespace MonkeyBot.Models
 
         public string CommandPrefix { get; set; } = DefaultPrefix;
 
+        public ulong DefaultChannelId { get; set; }
+
         public string WelcomeMessageText { get; set; }
 
         public ulong WelcomeMessageChannelId { get; set; }
@@ -28,5 +30,9 @@ namespace MonkeyBot.Models
         public ulong BattlefieldUpdatesChannel { get; set; }
 
         public DateTime? LastBattlefieldUpdate { get; set; }
+
+        public bool StreamAnnouncementsEnabled { get; set; }
+
+        public List<ulong> ConfirmedStreamerIds { get; set; }
     }
 }

@@ -48,6 +48,19 @@ namespace MonkeyBot.Modules
             await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
 
+        [Command("SetDefaultChannel")]
+        [Remarks("Sets the default channel for the guild where info will be posted")]
+        [Example("!SetDefaultChannel general")]
+        public async Task SetDefaultChannelAsync([Summary("The name of the default channel")][Remainder] string channelName)
+        {
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
+            GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            config.DefaultChannelId = channel.Id;
+            dbContext.GuildConfigs.Update(config);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
+        }
+
 
         [Command("SetWelcomeChannel")]
         [Remarks("Sets the channel where the welcome message will be posted")]
@@ -59,7 +72,6 @@ namespace MonkeyBot.Modules
             config.WelcomeMessageChannelId = channel.Id;
             dbContext.GuildConfigs.Update(config);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
             await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
 
@@ -152,6 +164,50 @@ namespace MonkeyBot.Modules
         {
             await bfService.DisableForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Battlefield Updates disabled!").ConfigureAwait(false);
+        }
+
+        [Command("EnableStreamingNotifications")]
+        [Remarks("Enables automated notifications of people that start streaming (if they have enabled it for themselves). Info will be posted in the default channel of the guild")]
+        [Example("!EnableStreamingNotifications")]
+        public async Task EnableStreamingNotificationsAsync()
+        {
+            await ToggleStreamingAnnouncementsAsync(true).ConfigureAwait(false);
+            await ReplyAndDeleteAsync($"Streaming Notifications enabled! {Environment.NewLine}Use !AnnounceMyStreams to automatically have your streams broadcasted when you start streaming").ConfigureAwait(false);
+        }
+        
+        [Command("DisableStreamingNotifications")]
+        [Remarks("Disables automated notifications of people that start streaming")]
+        public async Task DisableStreamingNotificationsAsync()
+        {
+            await ToggleStreamingAnnouncementsAsync(false).ConfigureAwait(false);
+            await ReplyAndDeleteAsync($"Streaming Notifications disabled!").ConfigureAwait(false);
+        }
+
+        [Command("AnnounceMyStreams")]
+        [Remarks("Enable automatic posting of your stream info when you start streaming")]
+        [MinPermissions(AccessLevel.User)]
+        public async Task AnnounceMyStreamsAsync()
+        {
+            GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            if (!config.StreamAnnouncementsEnabled)
+            {
+                await ReplyAndDeleteAsync($"Stream broadcasting is disabled in this guild. An admin has to enable it first with !EnableStreamingNotifications").ConfigureAwait(false);
+                return;
+            }
+            if (config.ConfirmedStreamerIds == null)
+                config.ConfirmedStreamerIds = new List<ulong>();
+            config.ConfirmedStreamerIds.Add(Context.User.Id);
+            dbContext.GuildConfigs.Update(config);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await ReplyAndDeleteAsync($"Your streams will now be broadcasted!").ConfigureAwait(false);
+        }
+
+        private async Task ToggleStreamingAnnouncementsAsync(bool enable)
+        {
+            GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            config.StreamAnnouncementsEnabled = enable;
+            dbContext.GuildConfigs.Update(config);
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private async Task<GuildConfig> GetOrCreatConfigAsync(ulong guildId)
