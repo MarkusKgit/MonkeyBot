@@ -67,14 +67,14 @@ namespace MonkeyBot.Modules
             if (comic == null)
                 return;
             var builder = new EmbedBuilder();
-            var comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
+            string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
             builder.WithImageUrl(comic.ImgUrl.ToString());
             builder.WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", comicUrl);
             builder.WithTitle(comic.SafeTitle);
             builder.WithDescription(comic.Alt);
-            if (int.TryParse(comic.Year, out var year) && int.TryParse(comic.Month, out var month) && int.TryParse(comic.Day, out var day))
+            if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
             {
-                var date = new DateTime(year, month, day);
+                DateTime date = new DateTime(year, month, day);
                 builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
             await channel.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);

@@ -36,7 +36,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
         public async Task GetChuckFactAsync([Remainder][Summary("The name of the person to chuck")] string username)
         {
-            var user = await GetUserInGuildAsync(username).ConfigureAwait(false);
+            IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
             var fact = await (chuckService?.GetChuckFactAsync(username)).ConfigureAwait(false);

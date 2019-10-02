@@ -175,14 +175,14 @@ namespace MonkeyBot.Services
             if (currentQuestionMessage != null)
             {
                 interactiveService.RemoveReactionCallback(currentQuestionMessage);
-                var points = QuestionToPoints(currentQuestion);
+                int points = QuestionToPoints(currentQuestion);
 
                 var embedBuilder = new EmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("Time is up")
                     .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
 
-                var msg = "";
+                string msg = "";
                 if (correctAnswerUsers.Count > 0)
                 {
                     correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points).ConfigureAwait(false));
@@ -223,7 +223,7 @@ namespace MonkeyBot.Services
                     Color = new Color(26, 137, 185),
                     Title = $"Question {currentIndex + 1}"
                 };
-                var points = QuestionToPoints(currentQuestion);
+                int points = QuestionToPoints(currentQuestion);
                 builder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
@@ -243,7 +243,7 @@ namespace MonkeyBot.Services
                 {
                     // add the correct answer to the list of correct answers to form the list of possible answers
                     var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
-                    var rand = new Random();
+                    Random rand = new Random();
                     // randomize the order of the answers
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next()).ToList();
                     var correctAnswerEmoji = new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
@@ -363,10 +363,10 @@ namespace MonkeyBot.Services
         /// <returns></returns>
         public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildID)
         {
-            var userScoresAllTime = await dbContext.TriviaScores.Where(s => s.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            List<TriviaScore> userScoresAllTime = await dbContext.TriviaScores.Where(s => s.GuildID == guildID).ToListAsync().ConfigureAwait(false);
             if (userScoresAllTime == null)
                 return null;
-            var correctedCount = Math.Min(amount, userScoresAllTime.Count);
+            int correctedCount = Math.Min(amount, userScoresAllTime.Count);
             if (correctedCount < 1)
                 return null;
             var guild = discordClient.GetGuild(guildID);

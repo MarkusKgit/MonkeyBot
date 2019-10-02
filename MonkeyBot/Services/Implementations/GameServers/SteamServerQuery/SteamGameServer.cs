@@ -48,18 +48,18 @@ namespace MonkeyBot.Services
                 }
                 if (isPlayerChallengeId)
                 {
-                    var combinedArray = new byte[QueryMsg.PlayerQuery.Length + playerChallengeId.Length];
+                    byte[] combinedArray = new byte[QueryMsg.PlayerQuery.Length + playerChallengeId.Length];
                     Buffer.BlockCopy(QueryMsg.PlayerQuery, 0, combinedArray, 0, QueryMsg.PlayerQuery.Length);
                     Buffer.BlockCopy(playerChallengeId, 0, combinedArray, QueryMsg.PlayerQuery.Length, playerChallengeId.Length);
                     recvData = await GetServerResponseAsync(combinedArray).ConfigureAwait(false);
                 }
 
-                var parser = new Parser(null);
+                Parser parser = new Parser(null);
                 if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_PLAYER)
                     throw new Exception("A2S_PLAYER message header is not valid");
                 int playerCount = parser.ReadByte();
                 players = new List<PlayerInfo>(playerCount);
-                for (var i = 0; i < playerCount; i++)
+                for (int i = 0; i < playerCount; i++)
                 {
                     parser.ReadByte();
                     players.Add(new PlayerInfo()
@@ -82,11 +82,11 @@ namespace MonkeyBot.Services
 
         private async Task<byte[]> GetPlayerChallengeIdAsync()
         {
-            var recvBytes = await GetServerResponseAsync(QueryMsg.PlayerChallengeQuery).ConfigureAwait(false);
+            byte[] recvBytes = await GetServerResponseAsync(QueryMsg.PlayerChallengeQuery).ConfigureAwait(false);
             try
             {
-                var parser = new Parser(recvBytes);
-                var header = parser.ReadByte();
+                Parser parser = new Parser(recvBytes);
+                byte header = parser.ReadByte();
                 switch (header)
                 {
                     case (byte)ResponseMsgHeader.A2S_SERVERQUERY_GETCHALLENGE: isPlayerChallengeId = true; return parser.GetUnParsedBytes();
@@ -112,7 +112,7 @@ namespace MonkeyBot.Services
                 cts.CancelAfter(2000);
 
                 var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
-                var result = new byte[response.Buffer.Length - 4];
+                byte[] result = new byte[response.Buffer.Length - 4];
                 response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
                 return result;
             }

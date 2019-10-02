@@ -18,7 +18,7 @@ namespace MonkeyBot.Modules
         [MinPermissions(AccessLevel.BotOwner)]
         public async Task AddOwnerAsync([Summary("The name of the user to add")] string username)
         {            
-            var user = await GetUserInGuildAsync(username).ConfigureAwait(false);
+            IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
             var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);           
@@ -39,7 +39,7 @@ namespace MonkeyBot.Modules
         [MinPermissions(AccessLevel.BotOwner)]
         public async Task RemoveOwnerAsync([Summary("The name of the user to remove")] string username)
         {
-            var user = await GetUserInGuildAsync(username).ConfigureAwait(false);
+            IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
             var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);            

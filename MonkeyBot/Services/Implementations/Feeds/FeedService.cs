@@ -53,7 +53,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID, ulong channelID)
         {
-            var feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID).ConfigureAwait(false);
+            Models.Feed feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID).ConfigureAwait(false);
             if (feed != null)
             {
                 dbContext.Feeds.Remove(feed);
@@ -63,7 +63,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveAllFeedsAsync(ulong guildID, ulong? channelID)
         {
-            var allFeeds = await GetAllFeedsInternalAsync(guildID, channelID).ConfigureAwait(false);
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID).ConfigureAwait(false);
             if (allFeeds == null)
                 return;
             dbContext.Feeds.RemoveRange(allFeeds);
@@ -72,7 +72,7 @@ namespace MonkeyBot.Services
 
         public async Task<List<(string name, string feedUrl, ulong feedChannelId)>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
         {
-            var allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
             return allFeeds?.Select(x => (x.Name, x.URL, x.ChannelID)).ToList();
         }
 
@@ -134,18 +134,18 @@ namespace MonkeyBot.Services
                 builder.WithColor(new Color(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                     builder.WithImageUrl(feed.ImageUrl);
-                var feedTitle = ParseHtml(feed.Title);
+                string feedTitle = ParseHtml(feed.Title);
                 if (feedTitle.IsEmptyOrWhiteSpace())
                     feedTitle = guildFeed.Name;
-                var title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"";
+                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"";
                 builder.WithTitle(title);
-                var latestUpdateUTC = DateTime.MinValue;
+                DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (var feedItem in updatedFeeds)
                 {
                     if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value.ToUniversalTime() > latestUpdateUTC)
                         latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
-                    var fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : DateTime.Now.ToString();
-                    var author = feedItem.Author;
+                    string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : DateTime.Now.ToString();
+                    string author = feedItem.Author;
                     if (author.IsEmpty())
                     {
                         if (feed.Type == FeedType.Rss_1_0)
@@ -154,15 +154,15 @@ namespace MonkeyBot.Services
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
                     }
                     author = !author.IsEmptyOrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
-                    var maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
-                    var content = ParseHtml(feedItem.Description).Trim();
+                    string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
+                    string content = ParseHtml(feedItem.Description).Trim();
                     if (content.IsEmptyOrWhiteSpace())
                         content = ParseHtml(feedItem.Content).Trim();
                     if (content.IsEmptyOrWhiteSpace())
                         content = "[...]";
                     else
                         content = content.TruncateTo(250, "");
-                    var fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
+                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
                     builder.AddField(fieldName, fieldContent, true);
                 }
                 await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
@@ -199,7 +199,7 @@ namespace MonkeyBot.Services
             var iframes = htmlDoc?.DocumentNode?.SelectNodes("//iframe[@src]");
             if (textNodes != null)
             {
-                foreach (var node in textNodes)
+                foreach (HtmlNode node in textNodes)
                 {
                     if (!node.InnerText.IsEmptyOrWhiteSpace())
                         sb.Append(node.InnerText.Trim() + "|");
@@ -207,7 +207,7 @@ namespace MonkeyBot.Services
             }
             if (iframes != null)
             {
-                foreach (var node in iframes)
+                foreach (HtmlNode node in iframes)
                 {
                     if (node.HasAttributes &&
                         node.Attributes.Contains("src") &&

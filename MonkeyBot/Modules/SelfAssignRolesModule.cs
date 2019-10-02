@@ -23,7 +23,7 @@ namespace MonkeyBot.Modules
         public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName)
         {
             // Get the role with the specified name
-            var role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
+            IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
             // Get the role of the bot with permission manage roles
@@ -49,7 +49,7 @@ namespace MonkeyBot.Modules
         [Example("!roles remove bf")]
         public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
         {
-            var role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
+            IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
             var guser = (IGuildUser)Context.User;
@@ -71,9 +71,9 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync()
         {
-            var allRoles = new List<string>();
+            List<string> allRoles = new List<string>();
             // Get the role of the bot with permission manage roles
-            var botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
+            IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             foreach (var role in Context.Guild.Roles)
             {
@@ -98,7 +98,7 @@ namespace MonkeyBot.Modules
                 Description = "These are the are all the assignable roles and the users assigned to them:"
             };
             // Get the role of the bot with permission manage roles
-            var botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
+            IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             var guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
             foreach (var role in Context.Guild.Roles)
@@ -126,7 +126,7 @@ namespace MonkeyBot.Modules
         [Example("!roles listmembers bf")]
         public async Task ListMembersAsync(string roleName)
         {
-            var role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
+            IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
             var guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);

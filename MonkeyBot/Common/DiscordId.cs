@@ -34,9 +34,9 @@ namespace MonkeyBot.Common
             if (other == null)
                 return false;
             //if both IDs have a value then the values must be equal or either one has no value (is null) then this id part can be ignored
-            var guild = (GuildId.HasValue && other.GuildId.HasValue && (GuildId == other.GuildId)) || (!GuildId.HasValue || !other.GuildId.HasValue);
-            var channel = (ChannelId.HasValue && other.ChannelId.HasValue && (ChannelId == other.ChannelId)) || (!ChannelId.HasValue || !other.ChannelId.HasValue);
-            var user = (UserId.HasValue && other.UserId.HasValue && (UserId == other.UserId)) || (!UserId.HasValue || !other.UserId.HasValue);
+            bool guild = (GuildId.HasValue && other.GuildId.HasValue && (GuildId == other.GuildId)) || (!GuildId.HasValue || !other.GuildId.HasValue);
+            bool channel = (ChannelId.HasValue && other.ChannelId.HasValue && (ChannelId == other.ChannelId)) || (!ChannelId.HasValue || !other.ChannelId.HasValue);
+            bool user = (UserId.HasValue && other.UserId.HasValue && (UserId == other.UserId)) || (!UserId.HasValue || !other.UserId.HasValue);
             return (guild && channel && user);
         }
 

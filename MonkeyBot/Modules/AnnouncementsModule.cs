@@ -32,7 +32,7 @@ namespace MonkeyBot.Modules
         [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\" \"general\"")]
         public async Task AddRecurringAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The cron expression to use.")] string cronExpression, [Summary("The message to announce.")] string announcement, [Summary("Optional: The name of the channel where the announcement should be posted")] string channelName = "")
         {
-            var channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel != null)
                 await AddRecurringAsync(announcementId, cronExpression, channel.Id, announcement).ConfigureAwait(false);
         }
@@ -81,7 +81,7 @@ namespace MonkeyBot.Modules
         [Example("!announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\" \"general\"")]
         public async Task AddSingleAsync([Summary("The id of the announcement.")] string announcementId, [Summary("The time when the message should be announced.")] string time, [Summary("The message to announce.")] string announcement, [Summary("Optional: The name of the channel where the announcement should be posted")] string channelName = "")
         {
-            var channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
+            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel != null)
                 await AddSingleAsync(announcementId, time, channel.Id, announcement).ConfigureAwait(false);
         }
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify an ID for the Announcement!").ConfigureAwait(false);
                 return;
             }
-            if (time.IsEmpty() || !DateTime.TryParse(time, out var parsedTime) || parsedTime < DateTime.Now)
+            if (time.IsEmpty() || !DateTime.TryParse(time, out DateTime parsedTime) || parsedTime < DateTime.Now)
             {
                 await ReplyAsync("You need to specify a date and time for the Announcement that lies in the future!").ConfigureAwait(false);
                 return;
@@ -137,7 +137,7 @@ namespace MonkeyBot.Modules
                 message = "The following upcoming announcements exist:";
             var builder = new System.Text.StringBuilder();
             builder.Append(message);
-            foreach (var announcement in announcements)
+            foreach (Announcement announcement in announcements)
             {
                 var nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id).ConfigureAwait(false);
                 var channel = await Context.Guild.GetChannelAsync(announcement.ChannelID).ConfigureAwait(false);

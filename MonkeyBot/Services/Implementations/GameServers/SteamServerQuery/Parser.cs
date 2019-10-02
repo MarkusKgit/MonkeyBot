@@ -37,7 +37,7 @@ namespace MonkeyBot.Services
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(data, currentPosition, 2);
 
-            var num = BitConverter.ToUInt16(data, currentPosition);
+            ushort num = BitConverter.ToUInt16(data, currentPosition);
             currentPosition++;
 
             return num;
@@ -52,7 +52,7 @@ namespace MonkeyBot.Services
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(data, currentPosition, 4);
 
-            var num = BitConverter.ToInt32(data, currentPosition);
+            int num = BitConverter.ToInt32(data, currentPosition);
             currentPosition += 3;
 
             return num;
@@ -67,7 +67,7 @@ namespace MonkeyBot.Services
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(data, currentPosition, 8);
 
-            var num = BitConverter.ToUInt64(data, currentPosition);
+            ulong num = BitConverter.ToUInt64(data, currentPosition);
             currentPosition += 7;
 
             return num;
@@ -82,7 +82,7 @@ namespace MonkeyBot.Services
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(data, currentPosition, 4);
 
-            var num = BitConverter.ToSingle(data, currentPosition);
+            float num = BitConverter.ToSingle(data, currentPosition);
             currentPosition += 3;
 
             return num;
@@ -91,7 +91,7 @@ namespace MonkeyBot.Services
         internal string ReadString()
         {
             currentPosition++;
-            var temp = currentPosition;
+            int temp = currentPosition;
             while (data[currentPosition] != 0x00)
             {
                 currentPosition++;
@@ -99,7 +99,7 @@ namespace MonkeyBot.Services
                     throw new ParseException("Unable to parse bytes to string.");
             }
 
-            var str = Encoding.UTF8.GetString(data, temp, currentPosition - temp);
+            string str = Encoding.UTF8.GetString(data, temp, currentPosition - temp);
 
             return str;
         }

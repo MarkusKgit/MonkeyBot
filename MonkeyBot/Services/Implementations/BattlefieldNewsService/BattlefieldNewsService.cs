@@ -36,7 +36,7 @@ namespace MonkeyBot.Services
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {
-            var cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false) ?? new GuildConfig { GuildID = guildID };
+            GuildConfig cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false) ?? new GuildConfig { GuildID = guildID };
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;
             dbContext.GuildConfigs.Update(cfg);
@@ -47,7 +47,7 @@ namespace MonkeyBot.Services
 
         public async Task DisableForGuildAsync(ulong guildID)
         {
-            var cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false);
+            GuildConfig cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false);
             if (cfg != null)
             {
                 cfg.BattlefieldUpdatesEnabled = false;
@@ -58,7 +58,7 @@ namespace MonkeyBot.Services
 
         private async Task GetUpdatesAsync()
         {
-            var latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false);
+            BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false);
 
             foreach (var guild in discordClient?.Guilds)
             {
@@ -68,7 +68,7 @@ namespace MonkeyBot.Services
 
         private async Task GetUpdateForGuildAsync(BattlefieldVUpdate latestBattlefieldVUpdate, SocketGuild guild)
         {
-            var cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guild.Id).ConfigureAwait(false);
+            GuildConfig cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guild.Id).ConfigureAwait(false);
             if (cfg == null || !cfg.BattlefieldUpdatesEnabled)
             {
                 return;
@@ -98,12 +98,12 @@ namespace MonkeyBot.Services
 
         private static async Task<BattlefieldVUpdate> GetLatestBattlefieldVUpdateAsync()
         {
-            var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news").ConfigureAwait(false);
-            var latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
-            var title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml;
-            var sUpdateDate = latestUpdate?.SelectNodes(".//div")?.LastOrDefault()?.InnerHtml;
-            var link = latestUpdate?.SelectNodes(".//ea-cta")?.FirstOrDefault()?.Attributes["link-url"]?.Value;
+            HtmlWeb web = new HtmlWeb();
+            HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news").ConfigureAwait(false);
+            HtmlNode latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
+            string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml;
+            string sUpdateDate = latestUpdate?.SelectNodes(".//div")?.LastOrDefault()?.InnerHtml;
+            string link = latestUpdate?.SelectNodes(".//ea-cta")?.FirstOrDefault()?.Attributes["link-url"]?.Value;
             if (!string.IsNullOrEmpty(title)
                 && !string.IsNullOrEmpty(sUpdateDate)
                 && !string.IsNullOrEmpty(link)

@@ -24,7 +24,7 @@ namespace MonkeyBot.Services
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var difficulty = (TriviaQuestionDifficulty)value;
+            TriviaQuestionDifficulty difficulty = (TriviaQuestionDifficulty)value;
             switch (difficulty)
             {
                 case TriviaQuestionDifficulty.Easy:

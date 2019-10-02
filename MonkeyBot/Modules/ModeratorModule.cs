@@ -43,7 +43,7 @@ namespace MonkeyBot.Modules
         [Example("!Prune JohnDoe 10")]
         public async Task PruneAsync(string userName, int count = 10)
         {
-            var user = await GetUserInGuildAsync(userName).ConfigureAwait(false);
+            IGuildUser user = await GetUserInGuildAsync(userName).ConfigureAwait(false);
             if (user == null)
             {
                 return;

@@ -21,14 +21,14 @@ namespace MonkeyBot.Common
         {
             if (!File.Exists(filePath))
             {
-                var strippedPath = Path.GetDirectoryName(filePath);
+                string strippedPath = Path.GetDirectoryName(filePath);
                 if (!strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
                     Directory.CreateDirectory(strippedPath);
             }
 
-            var encodedText = Encoding.UTF8.GetBytes(text);
+            byte[] encodedText = Encoding.UTF8.GetBytes(text);
 
-            using (var sourceStream = new FileStream(
+            using (FileStream sourceStream = new FileStream(
                 filePath,
                 append ? FileMode.Append : FileMode.Create,
                 FileAccess.Write,
@@ -48,17 +48,17 @@ namespace MonkeyBot.Common
         /// <returns>Contents of the text file</returns>
         public static async Task<string> ReadTextAsync(string filePath)
         {
-            using (var sourceStream = new FileStream(filePath,
+            using (FileStream sourceStream = new FileStream(filePath,
                 FileMode.Open, FileAccess.Read, FileShare.Read,
                 bufferSize: 4096, useAsync: true))
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 
-                var buffer = new byte[0x1000];
+                byte[] buffer = new byte[0x1000];
                 int numRead;
                 while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
                 {
-                    var text = Encoding.UTF8.GetString(buffer, 0, numRead);
+                    string text = Encoding.UTF8.GetString(buffer, 0, numRead);
                     sb.Append(text);
                 }
                 return sb.ToString();

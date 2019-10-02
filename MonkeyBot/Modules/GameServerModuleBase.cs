@@ -25,7 +25,7 @@ namespace MonkeyBot.Modules
             var endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
             if (endPoint == null)
                 return;
-            var success = false;
+            bool success = false;
             try
             {
                 // Add the Server to the Service to activate it
@@ -75,17 +75,17 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
-            if (!IPAddress.TryParse(splitIP[0], out var parsedIP))
+            if (!IPAddress.TryParse(splitIP[0], out IPAddress parsedIP))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
-            if (!int.TryParse(splitIP[1], out var port))
+            if (!int.TryParse(splitIP[1], out int port))
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
-            var endPoint = new IPEndPoint(parsedIP, port);
+            IPEndPoint endPoint = new IPEndPoint(parsedIP, port);
             return endPoint;
         }
     }
