@@ -32,10 +32,10 @@ namespace MonkeyBot.Common
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
         public static async Task EnsureExistsAsync()
         {
-            string file = Path.Combine(AppContext.BaseDirectory, fileName);
+            var file = Path.Combine(AppContext.BaseDirectory, fileName);
             if (!File.Exists(file))
             {
-                string path = Path.GetDirectoryName(file);
+                var path = Path.GetDirectoryName(file);
                 if (!Directory.Exists(path))
                     Directory.CreateDirectory(path);
 
@@ -47,18 +47,18 @@ namespace MonkeyBot.Common
 
                 // Get owner
                 await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ").ConfigureAwait(false);
-                string sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                if (ulong.TryParse(sOwnerId, out ulong ownerId) && ownerId > 0)
+                var sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                if (ulong.TryParse(sOwnerId, out var ownerId) && ownerId > 0)
                     config.AddOwner(ownerId);
                 else
                     config.AddOwner(327885109560737793);
 
                 // Get cloudinary credentials
                 await Console.Out.WriteLineAsync("Do you want to setup cloudinary? (y/n)").ConfigureAwait(false);
-                string ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                var ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                 if (ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
                 {
-                    CloudinaryCredentials creds = new CloudinaryCredentials();
+                    var creds = new CloudinaryCredentials();
                     await Console.Out.WriteLineAsync("Enter your cloud id").ConfigureAwait(false);
                     ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                     creds.Cloud = ans;
@@ -91,16 +91,16 @@ namespace MonkeyBot.Common
         /// <summary> Save the configuration to the path specified in FileName. </summary>
         public async Task SaveAsync()
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
+            var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
             await MonkeyHelpers.WriteTextAsync(filePath, ToJson()).ConfigureAwait(false);
         }
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<DiscordClientConfiguration> LoadAsync()
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            string json = await MonkeyHelpers.ReadTextAsync(filePath).ConfigureAwait(false);
-            DiscordClientConfiguration config = JsonConvert.DeserializeObject<DiscordClientConfiguration>(json);
+            var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
+            var json = await MonkeyHelpers.ReadTextAsync(filePath).ConfigureAwait(false);
+            var config = JsonConvert.DeserializeObject<DiscordClientConfiguration>(json);
             return config;
         }
 

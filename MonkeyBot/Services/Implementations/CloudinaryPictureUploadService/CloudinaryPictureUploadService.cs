@@ -15,7 +15,7 @@ namespace MonkeyBot.Services
 
             if (config.CloudinaryCredentials == null)
                 return;
-            Account account = new Account(
+            var account = new Account(
                 config.CloudinaryCredentials.Cloud,
                 config.CloudinaryCredentials.ApiKey,
                 config.CloudinaryCredentials.ApiSecret);

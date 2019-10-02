@@ -59,11 +59,11 @@ namespace MonkeyBot
             var context = new SocketCommandContext(discordClient, msg);
             var guild = (msg.Channel as SocketTextChannel)?.Guild;
             var prefix = await GetPrefixAsync(guild?.Id).ConfigureAwait(false);
-            int argPos = 0;
+            var argPos = 0;
 
             if (msg.HasStringPrefix(prefix, ref argPos))
             {
-                string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
+                var commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
                 if (!commandText.IsEmpty())
                 {
                     var result = await commandService.ExecuteAsync(context, argPos, serviceProvider).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace MonkeyBot
                             .Where(alias => alias.Contains(commandText, StringComparison.OrdinalIgnoreCase))
                             .ToList();
 
-                        string message = "";
+                        string message;
                         if (possibleCommands == null || possibleCommands.Count < 1)
                         {
                             message = $"Command *{commandText}* was not found. Type {prefix}help to get a list of commands";
@@ -155,12 +155,12 @@ namespace MonkeyBot
 
         public async Task BuildDocumentationAsync()
         {
-            string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.HTML);
-            string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
+            var docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.HTML);
+            var fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
             await MonkeyHelpers.WriteTextAsync(fileHTML, docuHTML).ConfigureAwait(false);
 
-            string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.MarkDown);
-            string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
+            var docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.MarkDown);
+            var fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
             await MonkeyHelpers.WriteTextAsync(fileMD, docuMD).ConfigureAwait(false);
         }
     }

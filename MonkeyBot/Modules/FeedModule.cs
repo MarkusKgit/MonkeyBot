@@ -40,7 +40,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url!").ConfigureAwait(false);
                 return;
             }
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
+            var channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel == null)
             {
                 await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
@@ -77,7 +77,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a feed url").ConfigureAwait(false);
                 return;
             }
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
+            var channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel == null)
             {
                 await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
@@ -98,7 +98,7 @@ namespace MonkeyBot.Modules
         [Remarks("List all current feed urls")]
         public async Task ListFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
+            var channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
             var feeds = await feedService.GetFeedsForGuildAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);
             if (feeds == null || feeds.Count < 1)
             {
@@ -128,7 +128,7 @@ namespace MonkeyBot.Modules
         [Remarks("Removes all feed urls")]
         public async Task RemoveFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
+            var channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
             await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);
         }
     }

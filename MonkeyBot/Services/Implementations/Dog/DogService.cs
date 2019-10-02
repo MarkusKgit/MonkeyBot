@@ -17,7 +17,7 @@ namespace MonkeyBot.Services
 
         public async Task<string> GetDogPictureUrlAsync(string breed = "")
         {
-            Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
+            var apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
             using (var httpClient = new HttpClient())
             {

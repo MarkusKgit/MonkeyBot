@@ -18,7 +18,7 @@ namespace MonkeyBot.Services
 
         public async Task<XkcdResponse> GetComicAsync(int number)
         {
-            int maxNumer = await GetLatestComicNumberAsync().ConfigureAwait(false);
+            var maxNumer = await GetLatestComicNumberAsync().ConfigureAwait(false);
             if (number < 1 || number > maxNumer || number == 404)
             {
                 throw new ArgumentOutOfRangeException(nameof(number), "The specified comic does not exist!");
@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
 
         public async Task<XkcdResponse> GetRandomComicAsync()
         {
-            int max = await GetLatestComicNumberAsync().ConfigureAwait(false);
+            var max = await GetLatestComicNumberAsync().ConfigureAwait(false);
             var rnd = new Random();
             int rndNumber;
             while ((rndNumber = rnd.Next(1, max)) == 404) { } // xkcd 404 does not exist  
@@ -45,7 +45,7 @@ namespace MonkeyBot.Services
             {                
                 try
                 {
-                    string response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
+                    var response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
                     return JsonConvert.DeserializeObject<XkcdResponse>(response);
                 }
                 catch

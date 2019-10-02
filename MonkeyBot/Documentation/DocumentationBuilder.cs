@@ -45,8 +45,8 @@ namespace MonkeyBot.Documentation
 
         private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
         {
-            string prefix = GuildConfig.DefaultPrefix;
-            StringBuilder builder = new StringBuilder();
+            var prefix = GuildConfig.DefaultPrefix;
+            var builder = new StringBuilder();
 
             foreach (var module in commandService.Modules)
             {
@@ -59,7 +59,7 @@ namespace MonkeyBot.Documentation
                 builder.AppendLine(f.NewLine(""));
                 foreach (var cmd in module.Commands)
                 {
-                    string parameters = string.Empty;
+                    var parameters = string.Empty;
                     if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                     {
                         parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
@@ -98,8 +98,8 @@ namespace MonkeyBot.Documentation
             }
             else if (precondition is RequireBotPermissionAttribute || precondition is RequireUserPermissionAttribute)
             {
-                string permission = "";
-                string prefix = "";
+                var permission = "";
+                var prefix = "";
                 GuildPermission? guildPermission;
                 ChannelPermission? channelPermission;
                 if (precondition is RequireBotPermissionAttribute)

@@ -83,7 +83,7 @@ namespace MonkeyBot.Modules
             }
             else
             {
-                string[] sSubscriptions = await Task.WhenAll(subscriptions.Select(async s => $"{s.GameName} in {(await Context.Client.GetGuildAsync(s.GuildID).ConfigureAwait(false)).Name}")).ConfigureAwait(false);
+                var sSubscriptions = await Task.WhenAll(subscriptions.Select(async s => $"{s.GameName} in {(await Context.Client.GetGuildAsync(s.GuildID).ConfigureAwait(false)).Name}")).ConfigureAwait(false);
                 await Context.User.SendMessageAsync($"You are subscribed to the following games {string.Join(", ", sSubscriptions)}").ConfigureAwait(false);
                 await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
             }

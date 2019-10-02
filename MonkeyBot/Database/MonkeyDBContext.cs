@@ -29,10 +29,10 @@ namespace MonkeyBot.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string databasePath = Path.Combine(AppContext.BaseDirectory, "Data");
+            var databasePath = Path.Combine(AppContext.BaseDirectory, "Data");
             if (!Directory.Exists(databasePath))
                 Directory.CreateDirectory(databasePath);
-            string datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
+            var datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
             optionsBuilder.UseSqlite($"Filename={datadir}");
         }
 

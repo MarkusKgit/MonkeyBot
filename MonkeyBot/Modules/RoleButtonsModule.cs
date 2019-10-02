@@ -35,10 +35,10 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Message not found. Make sure the message Id is correct").ConfigureAwait(false);
                 return;
             }
-            IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
+            var role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
-            IEmote emote = Context.Guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.OrdinalIgnoreCase)) ?? new Emoji(emoteString) as IEmote;
+            var emote = Context.Guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.OrdinalIgnoreCase)) ?? new Emoji(emoteString) as IEmote;
             if (emote == null)
             {
                 await ReplyAsync("Emote not found.").ConfigureAwait(false);
@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Message not found. Make sure the message Id is correct").ConfigureAwait(false);
                 return;
             }
-            IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
+            var role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
             if (!(await roleButtonService.ExistsAsync(Context.Guild.Id, messageId, role.Id).ConfigureAwait(false)))
@@ -85,7 +85,7 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all Role Button Links")]
         public async Task ListAsync()
         {
-            string links = await roleButtonService.ListAllAsync(Context.Guild.Id).ConfigureAwait(false);
+            var links = await roleButtonService.ListAllAsync(Context.Guild.Id).ConfigureAwait(false);
             if (!links.IsEmptyOrWhiteSpace())
                 await ReplyAsync(links).ConfigureAwait(false);
             else

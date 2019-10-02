@@ -34,7 +34,7 @@ namespace MonkeyBot.Services
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
             var server = new GameServer { GameServerType = gameServerType, ServerIP = endpoint, GuildID = guildID, ChannelID = channelID };
-            bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
+            var success = await PostServerInfoAsync(server).ConfigureAwait(false);
             if (success)
             {
                 dbContext.Add(server);

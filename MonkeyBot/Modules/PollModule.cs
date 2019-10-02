@@ -41,7 +41,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
-            Poll poll = new Poll
+            var poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -86,7 +86,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            Poll poll = new Poll
+            var poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -98,7 +98,7 @@ namespace MonkeyBot.Modules
 
         private static ReactionCallbackData GeneratePoll(Poll poll)
         {
-            string answers = string.Join(Environment.NewLine, poll.Answers.Select(x => $"{x.AnswerEmoji} {x.Answer}"));
+            var answers = string.Join(Environment.NewLine, poll.Answers.Select(x => $"{x.AnswerEmoji} {x.Answer}"));
 
             var embedBuilder = new EmbedBuilder()
                 .WithTitle($"New Poll: {poll.Question}")
@@ -137,7 +137,7 @@ namespace MonkeyBot.Modules
                 return;
             var answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
             var participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
-            string participantsString = "-";
+            var participantsString = "-";
             if (participants != null && participants.Count > 0)
                 participantsString = string.Join(", ", participants?.Select(x => x.Mention));
 

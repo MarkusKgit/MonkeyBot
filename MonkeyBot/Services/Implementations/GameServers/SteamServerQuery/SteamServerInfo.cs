@@ -119,7 +119,7 @@ namespace MonkeyBot.Services
         public static SteamServerInfo Parse(byte[] data)
         {
             SteamServerInfo serverInfo = null;
-            Parser parser = new Parser(data);
+            var parser = new Parser(data);
             if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_INFO)
                 throw new Exception("A2S_INFO message header is not valid");
             serverInfo = new SteamServerInfo
@@ -162,7 +162,7 @@ namespace MonkeyBot.Services
 
             if (parser.HasUnParsedBytes)
             {
-                byte edf = parser.ReadByte();
+                var edf = parser.ReadByte();
                 serverInfo.Port = (edf & 0x80) > 0 ? parser.ReadUShort() : (ushort)0;
                 serverInfo.SteamId = (edf & 0x10) > 0 ? parser.ReadULong() : 0;
                 if ((edf & 0x40) > 0)

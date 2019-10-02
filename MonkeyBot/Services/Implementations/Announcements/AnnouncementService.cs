@@ -84,7 +84,7 @@ namespace MonkeyBot.Services
         private void AddSingleJob(Announcement announcement)
         {
             // The announcment's name must be unique on a per guild basis
-            string uniqueName = GetUniqueId(announcement);
+            var uniqueName = GetUniqueId(announcement);
             // Add a new RunOnce job with the provided ID to the Scheduling Service
             schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, async () =>
                 {

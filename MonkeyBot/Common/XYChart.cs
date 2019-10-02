@@ -50,9 +50,9 @@ namespace MonkeyBot.Common
                 throw new ArgumentException("Please provide some values");
 
             using (Image image = new Bitmap(chartWidth, chartHeight))
-            using (Graphics graphics = Graphics.FromImage(image))
-            using (AdjustableArrowCap arrowCap = new AdjustableArrowCap(5, 5))
-            using (Pen axisPen = new Pen(Brushes.Black, 5.0f) { CustomEndCap = arrowCap, StartCap = LineCap.Square })
+            using (var graphics = Graphics.FromImage(image))
+            using (var arrowCap = new AdjustableArrowCap(5, 5))
+            using (var axisPen = new Pen(Brushes.Black, 5.0f) { CustomEndCap = arrowCap, StartCap = LineCap.Square })
             {
                 graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 graphics.Clear(Color.Transparent);
@@ -70,10 +70,10 @@ namespace MonkeyBot.Common
 
         private void DrawPoints(Graphics graphics, IEnumerable<PointF> xyValues)
         {
-            using (Pen linePen = new Pen(Brushes.Blue, 3.0f))
+            using (var linePen = new Pen(Brushes.Blue, 3.0f))
             {
-                float factorX = (AxisRect.Width - AxisRect.Width / AxisX.NumTicks) / (AxisX.Max - AxisX.Min);
-                float factorY = (AxisRect.Height - AxisRect.Height / AxisY.NumTicks) / (AxisY.Max - AxisY.Min);
+                var factorX = (AxisRect.Width - AxisRect.Width / AxisX.NumTicks) / (AxisX.Max - AxisX.Min);
+                var factorY = (AxisRect.Height - AxisRect.Height / AxisY.NumTicks) / (AxisY.Max - AxisY.Min);
 
                 var translatedPoints = xyValues
                     .Select(p => new PointF(
@@ -90,30 +90,30 @@ namespace MonkeyBot.Common
 
         private void DrawAxes(Graphics graphics)
         {
-            using (Pen tickPen = new Pen(Brushes.Black, 3.0f))
-            using (Pen linesPen = new Pen(Brushes.Gray, 1.0f) { DashStyle = DashStyle.Dot })
-            using (StringFormat yFormat = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Far })
-            using (StringFormat xFormat = new StringFormat { Alignment = StringAlignment.Center })
-            using (Font font = new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold))
+            using (var tickPen = new Pen(Brushes.Black, 3.0f))
+            using (var linesPen = new Pen(Brushes.Gray, 1.0f) { DashStyle = DashStyle.Dot })
+            using (var yFormat = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Far })
+            using (var xFormat = new StringFormat { Alignment = StringAlignment.Center })
+            using (var font = new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold))
             {
-                float deltaXChart = AxisRect.Width / AxisX.NumTicks;
-                float deltaXValues = (AxisX.Max - AxisX.Min) / (AxisX.NumTicks - 1);
-                for (int i = 0; i < AxisX.NumTicks; i++)
+                var deltaXChart = AxisRect.Width / AxisX.NumTicks;
+                var deltaXValues = (AxisX.Max - AxisX.Min) / (AxisX.NumTicks - 1);
+                for (var i = 0; i < AxisX.NumTicks; i++)
                 {
-                    float x = AxisRect.Left + i * deltaXChart;
+                    var x = AxisRect.Left + i * deltaXChart;
                     graphics.DrawLine(tickPen, x, AxisRect.Bottom, x, AxisRect.Bottom + 10);
-                    string label = AxisX.LabelFunc?.Invoke(i) ?? $"{i * deltaXValues}";
+                    var label = AxisX.LabelFunc?.Invoke(i) ?? $"{i * deltaXValues}";
                     graphics.DrawString(label, font, Brushes.Black, x, AxisRect.Bottom + 30 - font.Height / 2, xFormat);
                 }
 
-                float deltaYChart = AxisRect.Height / AxisY.NumTicks;
-                float deltaYValues = (AxisY.Max - AxisY.Min) / (AxisY.NumTicks - 1);
-                for (int i = 0; i < AxisY.NumTicks; i++)
+                var deltaYChart = AxisRect.Height / AxisY.NumTicks;
+                var deltaYValues = (AxisY.Max - AxisY.Min) / (AxisY.NumTicks - 1);
+                for (var i = 0; i < AxisY.NumTicks; i++)
                 {
-                    float y = AxisRect.Bottom - i * deltaYChart;
+                    var y = AxisRect.Bottom - i * deltaYChart;
                     graphics.DrawLine(tickPen, AxisRect.Left - 10, y, AxisRect.Left, y);
                     graphics.DrawLine(linesPen, AxisRect.Left, y, AxisRect.Right, y);
-                    string label = AxisY.LabelFunc?.Invoke(i) ?? $"{i * deltaYValues}";
+                    var label = AxisY.LabelFunc?.Invoke(i) ?? $"{i * deltaYValues}";
                     graphics.DrawString(label, font, Brushes.Black, AxisRect.Left - 10, y, yFormat);
                 }
             }

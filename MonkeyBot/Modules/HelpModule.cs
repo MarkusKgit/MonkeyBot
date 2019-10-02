@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
         [Remarks("List all usable commands.")]
         public async Task HelpAsync()
         {
-            string prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
+            var prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
             var embedBuilder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
@@ -42,7 +42,7 @@ namespace MonkeyBot.Modules
                     var result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(false);
                     if (result.IsSuccess)
                     {
-                        string parameters = string.Empty;
+                        var parameters = string.Empty;
                         if (cmd.Parameters != null && cmd.Parameters.Count > 0)
                             parameters = $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*";
                         builder.AppendLine($"{prefix}{cmd.Aliases[0]}  {parameters}");
@@ -78,7 +78,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            string prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
+            var prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
@@ -99,7 +99,7 @@ namespace MonkeyBot.Modules
                 }
 
                 var cmdParameters = paramBuilder.ToString().TrimEnd(separator.ToArray());
-                string description =
+                var description =
                     $"Parameters: {cmdParameters}\n" +
                     $"Remarks: {cmd.Remarks}";
                 var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();

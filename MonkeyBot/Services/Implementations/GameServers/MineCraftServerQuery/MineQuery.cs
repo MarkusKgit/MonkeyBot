@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
             if (!client.Connected)
                 return null;
             writeBuffer = new List<byte>();
-            NetworkStream stream = client.GetStream();
+            var stream = client.GetStream();
 
             //Send a "Handshake" packet http://wiki.vg/Server_List_Ping#Ping_Process
 

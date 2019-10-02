@@ -23,7 +23,7 @@ namespace MonkeyBot.Modules
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            string fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault()?.Fact;
+            var fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
                 await ReplyAsync(fact).ConfigureAwait(false);
         }

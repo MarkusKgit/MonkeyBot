@@ -22,7 +22,7 @@ namespace MonkeyBot.Services
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            TriviaQuestionType type = (TriviaQuestionType)value;
+            var type = (TriviaQuestionType)value;
             switch (type)
             {
                 case TriviaQuestionType.TrueFalse:

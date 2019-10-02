@@ -47,7 +47,7 @@ namespace MonkeyBot.Services
                 builder.AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null && playerInfo.Count > 0)
                     builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)));
-                string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
+                var connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
                 builder.AddField("Connect", $"[Click to connect]({connectLink})");
 
                 if (discordGameServer.GameVersion.IsEmpty())
@@ -68,7 +68,7 @@ namespace MonkeyBot.Services
                 }
 
 
-                string lastServerUpdate = "";
+                var lastServerUpdate = "";
                 if (discordGameServer.LastVersionUpdate.HasValue)
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 builder.AddField("Server version", $"{serverInfo.GameVersion}{lastServerUpdate}");

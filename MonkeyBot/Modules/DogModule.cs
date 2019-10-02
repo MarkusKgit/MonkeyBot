@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random Dog picture.")]
         public async Task GetDogPicAsync()
         {
-            string pictureURL = await (dogService?.GetDogPictureUrlAsync()).ConfigureAwait(false);
+            var pictureURL = await (dogService?.GetDogPictureUrlAsync()).ConfigureAwait(false);
             if (pictureURL.IsEmpty())
             {
                 await ReplyAsync("Could not get a doggo pic :(").ConfigureAwait(false);
@@ -48,7 +48,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            string pictureURL = await (dogService?.GetDogPictureUrlAsync(breed.ToLowerInvariant())).ConfigureAwait(false);
+            var pictureURL = await (dogService?.GetDogPictureUrlAsync(breed.ToLowerInvariant())).ConfigureAwait(false);
             if (pictureURL.IsEmpty())
             {
                 await ReplyAsync("Could not get a doggo pic :(. Try using !dogbreeds to get a list of dog breeds I can show you").ConfigureAwait(false);
@@ -63,7 +63,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a list of available dog breeds.")]
         public async Task GetDogBreedsAsync()
         {
-            List<string> breeds = await (dogService?.GetDogBreedsAsync()).ConfigureAwait(false);
+            var breeds = await (dogService?.GetDogBreedsAsync()).ConfigureAwait(false);
             if (breeds == null || !breeds.Any())
             {
                 await ReplyAsync("Could not get a the dog breeds :(").ConfigureAwait(false);

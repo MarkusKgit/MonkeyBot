@@ -79,14 +79,14 @@ namespace MonkeyBot.Services
                         await dbContext.SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
-                string lastServerUpdate = "";
+                var lastServerUpdate = "";
                 if (discordGameServer.LastVersionUpdate.HasValue)
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
 
                 builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
                 // Generate chart every full 5 minutes (limit picture upload API calls)
-                string pictureUrl = "";
+                var pictureUrl = "";
                 if (DateTime.Now.Minute % 5 == 0)
                 {
                     pictureUrl = await GenerateAndUploadChartAsync(
@@ -145,13 +145,13 @@ namespace MonkeyBot.Services
 
         private async Task<string> GenerateAndUploadChartAsync(string id, int currentPlayers, int maxPlayers)
         {
-            TimeSpan historyPeriod = TimeSpan.FromHours(12);
+            var historyPeriod = TimeSpan.FromHours(12);
             const string folder = "Gameservers";
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
-            string baseFilePath = Path.Combine(folder, id);
-            string storedValuesPath = $"{baseFilePath}.txt";
+            var baseFilePath = Path.Combine(folder, id);
+            var storedValuesPath = $"{baseFilePath}.txt";
 
             var now = DateTime.Now;
             var minTime = now.Subtract(historyPeriod);
@@ -159,8 +159,8 @@ namespace MonkeyBot.Services
             var historicData = new List<HistoricData<int>>();
             if (File.Exists(storedValuesPath))
             {
-                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
-                List<HistoricData<int>> loadedData = JsonConvert.DeserializeObject<List<HistoricData<int>>>(json);
+                var json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
+                var loadedData = JsonConvert.DeserializeObject<List<HistoricData<int>>>(json);
                 historicData = loadedData
                     .Where(x => x.Time > minTime)
                     .ToList();
@@ -190,19 +190,19 @@ namespace MonkeyBot.Services
                     NumTicks = 11
                 }
             };
-            double tickSpan = historyPeriod.TotalHours;
+            var tickSpan = historyPeriod.TotalHours;
 
-            List<PointF> transformedValues = historicData
+            var transformedValues = historicData
                 .Select(d => new PointF(
                     (float)d.Time.Subtract(minTime).TotalHours,
                     d.Value))
                 .ToList();
 
-            string pictureFilePath = $"{baseFilePath}.png";
+            var pictureFilePath = $"{baseFilePath}.png";
 
             chart.ExportChart(pictureFilePath, transformedValues);
 
-            string pictureUrl = await pictureUploadService.UploadPictureAsync(pictureFilePath, id).ConfigureAwait(false);
+            var pictureUrl = await pictureUploadService.UploadPictureAsync(pictureFilePath, id).ConfigureAwait(false);
             return pictureUrl;
         }
     }

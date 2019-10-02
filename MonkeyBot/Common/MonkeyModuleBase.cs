@@ -73,7 +73,7 @@ namespace MonkeyBot.Common
                 await ReplyAsync("Please provide the name of the role").ConfigureAwait(false);
                 return null;
             }
-            IRole role = Context.Guild.Roles.FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (role == null)
             {
                 await ReplyAsync("The role you specified is invalid!").ConfigureAwait(false);

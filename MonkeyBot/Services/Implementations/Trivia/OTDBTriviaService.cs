@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
         public async Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context)
         {
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
-            DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
+            var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
                 trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
