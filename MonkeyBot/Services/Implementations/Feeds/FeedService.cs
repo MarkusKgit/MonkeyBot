@@ -76,12 +76,12 @@ namespace MonkeyBot.Services
             return allFeeds?.Select(x => (x.Name, x.URL, x.ChannelID)).ToList();
         }
 
-        private async Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
+        private Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
             if (channelID.HasValue)
-                return await dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync().ConfigureAwait(false);
+                return dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync();
             else
-                return await dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+                return dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync();
         }
 
         private async Task GetAllFeedUpdatesAsync()

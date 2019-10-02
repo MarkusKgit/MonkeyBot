@@ -56,13 +56,13 @@ namespace MonkeyBot.Services
             }
         }
 
-        public async Task AddSubscriptionAsync(string gameName, ulong guildID, ulong userID)
+        public Task AddSubscriptionAsync(string gameName, ulong guildID, ulong userID)
         {
             if (dbContext.GameSubscriptions.Any(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildID == guildID && x.UserID == userID))
                 throw new ArgumentException("The user is already subscribed to that game");
             var gameSubscription = new GameSubscription { GuildID = guildID, UserID = userID, GameName = gameName };
             dbContext.GameSubscriptions.Add(gameSubscription);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return dbContext.SaveChangesAsync();
         }
 
         public async Task RemoveSubscriptionAsync(string gameName, ulong guildID, ulong userID)

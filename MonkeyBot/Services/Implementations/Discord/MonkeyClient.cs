@@ -156,10 +156,10 @@ namespace MonkeyBot.Services
             return;
         }
 
-        public async Task NotifyAdminAsync(string adminMessage)
+        public Task NotifyAdminAsync(string adminMessage)
         {
             var adminuser = GetUser(327885109560737793);
-            await (adminuser?.SendMessageAsync(adminMessage)).ConfigureAwait(false);
+            return (adminuser?.SendMessageAsync(adminMessage));
         }
     }
 }

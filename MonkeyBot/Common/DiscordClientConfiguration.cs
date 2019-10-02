@@ -89,10 +89,10 @@ namespace MonkeyBot.Common
         }
 
         /// <summary> Save the configuration to the path specified in FileName. </summary>
-        public async Task SaveAsync()
+        public Task SaveAsync()
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            await MonkeyHelpers.WriteTextAsync(filePath, ToJson()).ConfigureAwait(false);
+            return MonkeyHelpers.WriteTextAsync(filePath, ToJson());
         }
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>

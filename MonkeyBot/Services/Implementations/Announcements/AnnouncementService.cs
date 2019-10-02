@@ -43,7 +43,7 @@ namespace MonkeyBot.Services
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="guildID">The ID of the Guild where the message will be broadcasted</param>
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
-        public async Task AddRecurringAnnouncementAsync(string name, string cronExpression, string message, ulong guildID, ulong channelID)
+        public Task AddRecurringAnnouncementAsync(string name, string cronExpression, string message, ulong guildID, ulong channelID)
         {
             if (name.IsEmpty())
                 throw new ArgumentException("Please provide an ID");
@@ -51,7 +51,7 @@ namespace MonkeyBot.Services
             var announcement = new Announcement { Type = AnnouncementType.Recurring, GuildID = guildID, ChannelID = channelID, CronExpression = cronExpression, Name = name, Message = message };
             AddRecurringJob(announcement);
             dbContext.Announcements.Add(announcement);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return dbContext.SaveChangesAsync();
         }
 
         private void AddRecurringJob(Announcement announcement)
@@ -68,7 +68,7 @@ namespace MonkeyBot.Services
         /// <param name="message">The message to be broadcasted</param>
         /// <param name="guildID">The ID of the Guild where the message will be broadcasted</param>
         /// <param name="channelID">The ID of the Channel where the message will be broadcasted</param>
-        public async Task AddSingleAnnouncementAsync(string name, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
+        public Task AddSingleAnnouncementAsync(string name, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
         {
             if (name.IsEmpty())
                 throw new ArgumentException("Please provide an ID");
@@ -78,7 +78,7 @@ namespace MonkeyBot.Services
             var announcement = new Announcement { Type = AnnouncementType.Once, GuildID = guildID, ChannelID = channelID, ExecutionTime = excecutionTime, Name = name, Message = message };
             AddSingleJob(announcement);
             dbContext.Announcements.Add(announcement);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return dbContext.SaveChangesAsync();
         }
 
         private void AddSingleJob(Announcement announcement)
@@ -154,24 +154,24 @@ namespace MonkeyBot.Services
             }
         }
 
-        private async Task AnnounceAsync(string message, ulong guildID, ulong channelID)
+        private Task AnnounceAsync(string message, ulong guildID, ulong channelID)
         {
-            await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message).ConfigureAwait(false);
+            return MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
         }
 
-        private async Task<List<Announcement>> GetAllAnnouncementsAsync()
+        private Task<List<Announcement>> GetAllAnnouncementsAsync()
         {
-            return await dbContext.Announcements.ToListAsync().ConfigureAwait(false);
+            return dbContext.Announcements.ToListAsync();
         }
 
-        public async Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
+        public Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
         {
-            return await dbContext.Announcements.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            return dbContext.Announcements.Where(x => x.GuildID == guildID).ToListAsync();
         }
 
-        private async Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName)
+        private Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName)
         {
-            return await dbContext.Announcements.SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName).ConfigureAwait(false);
+            return dbContext.Announcements.SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
         }
 
         // The announcment's name must be unique on a per guild basis

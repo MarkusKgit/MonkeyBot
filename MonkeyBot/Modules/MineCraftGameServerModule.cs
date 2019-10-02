@@ -23,9 +23,9 @@ namespace MonkeyBot.Modules
         [Command("Add")]
         [Remarks("Adds the specified game server and posts it's info info in the current channel")]
         [Example("!gameserver add 127.0.0.1:1234")]
-        public async Task AddGameServerAsync([Remainder][Summary("The ip adress and query port of the server")] string ip)
+        public Task AddGameServerAsync([Remainder][Summary("The ip adress and query port of the server")] string ip)
         {
-            await AddGameServerInternalAsync(ip, Context.Channel.Id).ConfigureAwait(false);
+            return AddGameServerInternalAsync(ip, Context.Channel.Id);
         }
 
         [Command("Add")]
@@ -42,9 +42,9 @@ namespace MonkeyBot.Modules
         [Command("Remove")]
         [Remarks("Removes the specified game server")]
         [Example("!gameserver remove 127.0.0.1:1234")]
-        public async Task RemoveGameServerAsync([Summary("The ip adress and query port of the server")] string ip)
+        public Task RemoveGameServerAsync([Summary("The ip adress and query port of the server")] string ip)
         {
-            await RemoveGameServerInternalAsync(ip).ConfigureAwait(false);
+            return RemoveGameServerInternalAsync(ip);
         }
     }
 }

@@ -108,7 +108,7 @@ namespace MonkeyBot
                             .ToList();
 
                         string message;
-                        if (possibleCommands == null || possibleCommands.Count < 1)
+                        if (possibleCommands.Count < 1)
                         {
                             message = $"Command *{commandText}* was not found. Type {prefix}help to get a list of commands";
                         }
@@ -146,9 +146,6 @@ namespace MonkeyBot
 
                 case CommandError.Unsuccessful:
                     return "The command excecution was unsuccessfull, I'm sorry :(";
-
-                default:
-                    break;
             }
             return "Can't execute the command!";
         }
