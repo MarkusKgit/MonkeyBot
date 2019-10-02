@@ -43,7 +43,7 @@ namespace MonkeyBot.Common
 
                 // Get the token
                 await Console.Out.WriteLineAsync("Please enter the bot's access token: ").ConfigureAwait(false);
-                config.Token = await Console.In.ReadLineAsync().ConfigureAwait(false); ;
+                config.Token = await Console.In.ReadLineAsync().ConfigureAwait(false);
 
                 // Get owner
                 await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ").ConfigureAwait(false);
