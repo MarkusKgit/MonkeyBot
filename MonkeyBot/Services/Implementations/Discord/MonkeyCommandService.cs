@@ -20,7 +20,7 @@ namespace MonkeyBot.Services
         public MonkeyCommandService(ILogger<MonkeyCommandService> logger) : base(cfg)
         {
             this.logger = logger;
-            this.Log += MonkeyCommandService_LogAsync;
+            Log += MonkeyCommandService_LogAsync;
         }
 
         private Task MonkeyCommandService_LogAsync(LogMessage logMessage)

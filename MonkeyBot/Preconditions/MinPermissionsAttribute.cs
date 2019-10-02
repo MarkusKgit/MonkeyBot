@@ -15,7 +15,7 @@ namespace MonkeyBot.Preconditions
     {
         public MinPermissionsAttribute(AccessLevel level)
         {
-            this.AccessLevel = level;
+            AccessLevel = level;
         }
 
         public AccessLevel AccessLevel { get; }

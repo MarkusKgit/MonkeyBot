@@ -24,13 +24,13 @@ namespace MonkeyBot.Services
         {
             this.logger = logger;
             this.dbContext = dbContext;
-            this.Connected += Client_ConnectedAsync;
-            this.UserJoined += Client_UserJoinedAsync;
-            this.UserLeft += Client_UserLeftAsync;
-            this.JoinedGuild += Client_JoinedGuildAsync;
-            this.LeftGuild += Client_LeftGuildAsync;
-            this.GuildMemberUpdated += Client_GuildMemberUpdateAsync;
-            this.Log += MonkeyClient_LogAsync;
+            Connected += Client_ConnectedAsync;
+            UserJoined += Client_UserJoinedAsync;
+            UserLeft += Client_UserLeftAsync;
+            JoinedGuild += Client_JoinedGuildAsync;
+            LeftGuild += Client_LeftGuildAsync;
+            GuildMemberUpdated += Client_GuildMemberUpdateAsync;
+            Log += MonkeyClient_LogAsync;
         }
 
         private Task Client_ConnectedAsync()

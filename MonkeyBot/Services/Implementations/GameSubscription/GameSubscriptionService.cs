@@ -18,7 +18,7 @@ namespace MonkeyBot.Services
         public GameSubscriptionService(MonkeyDBContext dbContext, DiscordSocketClient client)
         {
             this.dbContext = dbContext;
-            this.discordClient = client;
+            discordClient = client;
         }
 
         public void Initialize()
