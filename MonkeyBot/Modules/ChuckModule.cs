@@ -1,10 +1,8 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules

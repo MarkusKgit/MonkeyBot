@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
