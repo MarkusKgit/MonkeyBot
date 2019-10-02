@@ -15,7 +15,6 @@ namespace MonkeyBot.Services
         public IPEndPoint EndPoint
         {
             get;
-            private set;
         }
 
         private byte[] playerChallengeId = null;
