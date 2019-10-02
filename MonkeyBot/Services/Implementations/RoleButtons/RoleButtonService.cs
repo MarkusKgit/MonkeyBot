@@ -111,14 +111,14 @@ namespace MonkeyBot.Services
             return sb.ToString();
         }
 
-        private async Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await AddOrRemoveRoleAsync(AddOrRemove.Remove, cachedMessage, channel, reaction).ConfigureAwait(false);
+            return AddOrRemoveRoleAsync(AddOrRemove.Remove, cachedMessage, channel, reaction);
         }
 
-        private async Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await AddOrRemoveRoleAsync(AddOrRemove.Add, cachedMessage, channel, reaction).ConfigureAwait(false);
+            return AddOrRemoveRoleAsync(AddOrRemove.Add, cachedMessage, channel, reaction);
         }
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)

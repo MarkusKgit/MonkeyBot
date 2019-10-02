@@ -7,9 +7,9 @@ namespace MonkeyBot.Common
     /// </summary>
     public class DiscordId : IEquatable<DiscordId>
     {
-        public ulong? GuildId { get; set; }
-        public ulong? ChannelId { get; set; }
-        public ulong? UserId { get; set; }
+        public ulong? GuildId { get; }
+        public ulong? ChannelId { get; }
+        public ulong? UserId { get; }
 
         public DiscordId()
         {

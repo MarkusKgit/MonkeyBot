@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using MonkeyBot.Common;
 using System.Threading.Tasks;
 

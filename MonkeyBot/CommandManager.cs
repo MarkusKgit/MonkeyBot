@@ -30,9 +30,9 @@ namespace MonkeyBot
         public CommandManager(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            this.discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
-            this.commandService = serviceProvider.GetRequiredService<CommandService>();
-            this.dbContext = serviceProvider.GetRequiredService<MonkeyDBContext>();
+            discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
+            commandService = serviceProvider.GetRequiredService<CommandService>();
+            dbContext = serviceProvider.GetRequiredService<MonkeyDBContext>();
         }
 
         public async Task StartAsync()
@@ -146,9 +146,6 @@ namespace MonkeyBot
 
                 case CommandError.Unsuccessful:
                     return "The command excecution was unsuccessfull, I'm sorry :(";
-
-                default:
-                    break;
             }
             return "Can't execute the command!";
         }

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace MonkeyBot.Models
+﻿namespace MonkeyBot.Models
 {
     public class TriviaScore
     {
