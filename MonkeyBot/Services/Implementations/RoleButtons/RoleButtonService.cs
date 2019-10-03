@@ -93,7 +93,7 @@ namespace MonkeyBot.Services
             var links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID && x.MessageID == messageID && x.RoleID == roleID).ToListAsync().ConfigureAwait(false);
             if (!emoteString.IsEmptyOrWhiteSpace())
                 links = links?.Where(x => x.EmoteString == emoteString).ToList();
-            return links?.Count() > 0;
+            return links?.Count > 0;
         }
 
         public async Task<string> ListAllAsync(ulong guildID)

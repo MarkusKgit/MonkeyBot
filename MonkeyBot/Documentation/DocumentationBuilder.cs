@@ -20,13 +20,13 @@ namespace MonkeyBot.Documentation
         /// Returns a formatted string according to the outputType
         /// Currently HTML and markdown are supported
         /// </summary>
-        public static string BuildDocumentation(CommandService commandService, DocumentationOutputTypes outputType = DocumentationOutputTypes.HTML)
+        public static string BuildDocumentation(CommandService commandService, DocumentationOutputType outputType = DocumentationOutputType.HTML)
         {
             switch (outputType)
             {
-                case DocumentationOutputTypes.HTML:
+                case DocumentationOutputType.HTML:
                     return BuildHtmlDocumentation(commandService);
-                case DocumentationOutputTypes.MarkDown:
+                case DocumentationOutputType.MarkDown:
                     return BuildMarkdownDocumentation(commandService);
                 default:
                     return string.Empty;
@@ -117,12 +117,12 @@ namespace MonkeyBot.Documentation
                 if (guildPermission != null && guildPermission.HasValue)
                 {
                     var guildPermissions = guildPermission.Value.ToString().Split(',').Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag)).ToList();
-                    permission += $"{prefix} requires guild permission{(guildPermissions.Count() > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(gp => gp.Humanize(LetterCasing.Title))))} ";
+                    permission += $"{prefix} requires guild permission{(guildPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(gp => gp.Humanize(LetterCasing.Title))))} ";
                 }
                 if (channelPermission != null && channelPermission.HasValue)
                 {
                     var channelPermissions = channelPermission.Value.ToString().Split(',').Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag)).ToList();
-                    permission += $"{prefix} requires channel permission{(channelPermissions.Count() > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(cp => cp.Humanize(LetterCasing.Title))))} ";
+                    permission += $"{prefix} requires channel permission{(channelPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(cp => cp.Humanize(LetterCasing.Title))))} ";
                 }
                 return permission.Trim();
             }

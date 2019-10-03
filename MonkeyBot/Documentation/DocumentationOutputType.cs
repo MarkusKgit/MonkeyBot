@@ -1,6 +1,6 @@
 ﻿namespace MonkeyBot.Documentation
 {
-    public enum DocumentationOutputTypes
+    public enum DocumentationOutputType
     {
         HTML,
         MarkDown

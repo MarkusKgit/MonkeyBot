@@ -81,7 +81,7 @@ namespace MonkeyBot.Common
                         AxisRect.Bottom - p.Y * factorY))
                     .ToArray();
 
-                if (translatedPoints.Count() > 1)
+                if (translatedPoints.Length > 1)
                 {
                     graphics.DrawLines(linePen, translatedPoints);
                 }

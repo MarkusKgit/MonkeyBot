@@ -152,11 +152,11 @@ namespace MonkeyBot
 
         public async Task BuildDocumentationAsync()
         {
-            string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.HTML);
+            string docuHTML = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputType.HTML);
             string fileHTML = Path.Combine(AppContext.BaseDirectory, "documentation.html");
             await MonkeyHelpers.WriteTextAsync(fileHTML, docuHTML).ConfigureAwait(false);
 
-            string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputTypes.MarkDown);
+            string docuMD = DocumentationBuilder.BuildDocumentation(commandService, DocumentationOutputType.MarkDown);
             string fileMD = Path.Combine(AppContext.BaseDirectory, "documentation.md");
             await MonkeyHelpers.WriteTextAsync(fileMD, docuMD).ConfigureAwait(false);
         }
