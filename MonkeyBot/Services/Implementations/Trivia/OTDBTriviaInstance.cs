@@ -331,8 +331,7 @@ namespace MonkeyBot.Services
 
         private static void AddPointsCurrent(IUser user, Dictionary<ulong, int> pointsDict, int pointsToAdd)
         {
-            if (pointsDict == null)
-                pointsDict = new Dictionary<ulong, int>();
+            pointsDict ??= new Dictionary<ulong, int>();
             if (!pointsDict.ContainsKey(user.Id))
                 pointsDict.Add(user.Id, pointsToAdd);
             else

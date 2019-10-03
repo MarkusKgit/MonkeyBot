@@ -121,8 +121,7 @@ namespace MonkeyBot.Modules
             }
 
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
-            if (config.Rules == null)
-                config.Rules = new List<string>();
+            config.Rules ??= new List<string>();
             config.Rules.Add(rule);
             dbContext.GuildConfigs.Update(config);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -193,8 +192,7 @@ namespace MonkeyBot.Modules
                 await ReplyAndDeleteAsync($"Stream broadcasting is disabled in this guild. An admin has to enable it first with !EnableStreamingNotifications").ConfigureAwait(false);
                 return;
             }
-            if (config.ConfirmedStreamerIds == null)
-                config.ConfirmedStreamerIds = new List<ulong>();
+            config.ConfirmedStreamerIds ??= new List<ulong>();
             config.ConfirmedStreamerIds.Add(Context.User.Id);
             dbContext.GuildConfigs.Update(config);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
