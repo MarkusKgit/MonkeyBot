@@ -22,15 +22,12 @@ namespace MonkeyBot.Documentation
         /// </summary>
         public static string BuildDocumentation(CommandService commandService, DocumentationOutputType outputType = DocumentationOutputType.HTML)
         {
-            switch (outputType)
+            return outputType switch
             {
-                case DocumentationOutputType.HTML:
-                    return BuildHtmlDocumentation(commandService);
-                case DocumentationOutputType.MarkDown:
-                    return BuildMarkdownDocumentation(commandService);
-                default:
-                    return string.Empty;
-            }
+                DocumentationOutputType.HTML => BuildHtmlDocumentation(commandService),
+                DocumentationOutputType.MarkDown => BuildMarkdownDocumentation(commandService),
+                _ => string.Empty,
+            };
         }
 
         private static string BuildHtmlDocumentation(CommandService commandService)
@@ -132,20 +129,13 @@ namespace MonkeyBot.Documentation
 
         private static string TranslateContext(ContextType context)
         {
-            switch (context)
+            return context switch
             {
-                case ContextType.Guild:
-                    return "channel";
-
-                case ContextType.DM:
-                    return "private message";
-
-                case ContextType.Group:
-                    return "private group";
-
-                default:
-                    return "";
-            }
+                ContextType.Guild => "channel",
+                ContextType.DM => "private message",
+                ContextType.Group => "private group",
+                _ => "",
+            };
         }
     }
 }

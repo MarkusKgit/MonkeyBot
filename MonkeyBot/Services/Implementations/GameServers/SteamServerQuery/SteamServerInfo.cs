@@ -135,24 +135,24 @@ namespace MonkeyBot.Services
                 Bots = parser.ReadByte(),
                 ServerType = new Func<GameServertype>(() =>
                 {
-                    switch ((char)parser.ReadByte())
+                    return ((char)parser.ReadByte()) switch
                     {
-                        case 'l': return GameServertype.Listen;
-                        case 'd': return GameServertype.Dedicated;
-                        case 'p': return GameServertype.SourceTV;
-                    }
-                    return GameServertype.Invalid;
+                        'l' => GameServertype.Listen,
+                        'd' => GameServertype.Dedicated,
+                        'p' => GameServertype.SourceTV,
+                        _ => GameServertype.Invalid,
+                    };
                 })(),
                 Environment = new Func<GameEnvironment>(() =>
                 {
-                    switch ((char)parser.ReadByte())
+                    return ((char)parser.ReadByte()) switch
                     {
-                        case 'l': return GameEnvironment.Linux;
-                        case 'w': return GameEnvironment.Windows;
-                        case 'm': return GameEnvironment.Mac;
-                        case 'o': return GameEnvironment.Mac;
-                    }
-                    return GameEnvironment.Invalid;
+                        'l' => GameEnvironment.Linux,
+                        'w' => GameEnvironment.Windows,
+                        'm' => GameEnvironment.Mac,
+                        'o' => GameEnvironment.Mac,
+                        _ => GameEnvironment.Invalid,
+                    };
                 })(),
                 IsPrivate = parser.ReadByte() > 0,
                 IsSecure = parser.ReadByte() > 0,
