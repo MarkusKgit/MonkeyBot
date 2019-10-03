@@ -14,7 +14,7 @@ namespace MonkeyBot.Services
 {
     public class BattlefieldNewsService : IBattlefieldNewsService
     {
-        private const int updateIntervallSeconds = 24*60*60; //once per day
+        private const int updateIntervallSeconds = 24 * 60 * 60; //once per day
 
         private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
@@ -60,7 +60,7 @@ namespace MonkeyBot.Services
         {
             BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false);
 
-            foreach (var guild in discordClient?.Guilds)
+            foreach (SocketGuild guild in discordClient?.Guilds)
             {
                 await GetUpdateForGuildAsync(latestBattlefieldVUpdate, guild).ConfigureAwait(false);
             }
@@ -73,13 +73,13 @@ namespace MonkeyBot.Services
             {
                 return;
             }
-            var channel = guild.GetTextChannel(cfg.BattlefieldUpdatesChannel);
+            SocketTextChannel channel = guild.GetTextChannel(cfg.BattlefieldUpdatesChannel);
             if (channel == null)
             {
                 logger.LogError($"Battlefield Updates enabled for {guild.Name} but channel {cfg.BattlefieldUpdatesChannel} is invalid");
                 return;
             }
-            var lastUpdateUTC = cfg.LastBattlefieldUpdate ?? DateTime.MinValue;
+            DateTime lastUpdateUTC = cfg.LastBattlefieldUpdate ?? DateTime.MinValue;
             if (lastUpdateUTC >= latestBattlefieldVUpdate.UpdateDate)
             {
                 return;
@@ -98,7 +98,7 @@ namespace MonkeyBot.Services
 
         private static async Task<BattlefieldVUpdate> GetLatestBattlefieldVUpdateAsync()
         {
-            HtmlWeb web = new HtmlWeb();
+            var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news").ConfigureAwait(false);
             HtmlNode latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
             string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml;
@@ -107,9 +107,9 @@ namespace MonkeyBot.Services
             if (!string.IsNullOrEmpty(title)
                 && !string.IsNullOrEmpty(sUpdateDate)
                 && !string.IsNullOrEmpty(link)
-                && DateTime.TryParseExact(sUpdateDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
+                && DateTime.TryParseExact(sUpdateDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
             {
-                return new BattlefieldVUpdate { Title = title, UpdateUrl = $"https://www.battlefield.com{link}", UpdateDate = parsedDate.ToUniversalTime()};
+                return new BattlefieldVUpdate { Title = title, UpdateUrl = $"https://www.battlefield.com{link}", UpdateDate = parsedDate.ToUniversalTime() };
             }
             return null;
         }

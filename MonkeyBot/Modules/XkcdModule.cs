@@ -48,7 +48,7 @@ namespace MonkeyBot.Modules
         {
             try
             {
-                var comic = await xkcdService.GetComicAsync(number).ConfigureAwait(false);
+                XkcdResponse comic = await xkcdService.GetComicAsync(number).ConfigureAwait(false);
                 await EmbedComicAsync(comic, Context.Channel).ConfigureAwait(false);
             }
             catch (ArgumentOutOfRangeException)
@@ -74,7 +74,7 @@ namespace MonkeyBot.Modules
             builder.WithDescription(comic.Alt);
             if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
             {
-                DateTime date = new DateTime(year, month, day);
+                var date = new DateTime(year, month, day);
                 builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
             await channel.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);

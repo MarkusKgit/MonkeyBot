@@ -35,10 +35,10 @@ namespace MonkeyBot.Services
                 joinedGame = after.Activity.Name;
             if (joinedGame.IsEmptyOrWhiteSpace())
                 return;
-            var gameSubscriptions = await dbContext.GameSubscriptions.ToListAsync().ConfigureAwait(false);
+            List<GameSubscription> gameSubscriptions = await dbContext.GameSubscriptions.ToListAsync().ConfigureAwait(false);
             if (gameSubscriptions == null)
                 return;
-            foreach (var subscription in gameSubscriptions)
+            foreach (GameSubscription subscription in gameSubscriptions)
             {
                 if (subscription == null)
                     continue;
@@ -46,10 +46,10 @@ namespace MonkeyBot.Services
                     continue;
                 if (subscription.UserID == after.Id) // Don't message because of own game join
                     continue;
-                var subscribedGuild = discordClient.GetGuild(subscription.GuildID);
+                SocketGuild subscribedGuild = discordClient.GetGuild(subscription.GuildID);
                 if (subscribedGuild?.GetUser(after.Id) == null) // No message if in different Guild
                     continue;
-                var subscribedUser = discordClient.GetUser(subscription.UserID);
+                IUser subscribedUser = discordClient.GetUser(subscription.UserID);
                 if (subscribedUser == null)
                     continue;
                 await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!").ConfigureAwait(false);
@@ -67,7 +67,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveSubscriptionAsync(string gameName, ulong guildID, ulong userID)
         {
-            var subscriptionToRemove = await dbContext
+            GameSubscription subscriptionToRemove = await dbContext
                 .GameSubscriptions
                 .FirstOrDefaultAsync(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildID == guildID && x.UserID == userID)
                 .ConfigureAwait(false);

@@ -56,7 +56,7 @@ namespace MonkeyBot.Services
 
         private void AddRecurringJob(Announcement announcement)
         {
-            var id = GetUniqueId(announcement);
+            string id = GetUniqueId(announcement);
             schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID).ConfigureAwait(false));
         }
 
@@ -101,7 +101,7 @@ namespace MonkeyBot.Services
         public async Task RemoveAsync(string announcementName, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
+            Announcement announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             schedulingService.RemoveJob(GetUniqueId(announcement));
@@ -126,7 +126,7 @@ namespace MonkeyBot.Services
         public async Task<DateTime> GetNextOccurenceAsync(string announcementName, ulong guildID)
         {
             // Try to retrieve the announcement with the provided ID
-            var announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
+            Announcement announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             return schedulingService.GetNextRun(GetUniqueId(announcement));
@@ -135,7 +135,7 @@ namespace MonkeyBot.Services
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            var announcements = await dbContext.Announcements.Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now).ToListAsync().ConfigureAwait(false);
+            List<Announcement> announcements = await dbContext.Announcements.Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now).ToListAsync().ConfigureAwait(false);
             dbContext.RemoveRange(announcements);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
@@ -144,8 +144,8 @@ namespace MonkeyBot.Services
         /// <summary>Creates actual jobs from the announcements in the Announcements List to activate them</summary>
         private async Task BuildJobsAsync()
         {
-            var announcements = await GetAllAnnouncementsAsync().ConfigureAwait(false);
-            foreach (var announcement in announcements)
+            List<Announcement> announcements = await GetAllAnnouncementsAsync().ConfigureAwait(false);
+            foreach (Announcement announcement in announcements)
             {
                 if (announcement.Type == AnnouncementType.Recurring)
                     AddRecurringJob(announcement);

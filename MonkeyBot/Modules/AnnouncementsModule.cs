@@ -6,6 +6,7 @@ using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,7 +57,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
             if (announcements?.Where(x => x.Name == announcementId).Count() > 0)
             {
                 await ReplyAsync("The ID is already in use").ConfigureAwait(false);
@@ -66,7 +67,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, Context.Guild.Id, channelID).ConfigureAwait(false);
-                var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id).ConfigureAwait(false);
                 await ReplyAsync($"The announcement has been added. The next run is on {nextRun}").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -105,7 +106,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
             if (announcements.Any(x => x.Name == announcementId))
             {
                 await ReplyAsync("The ID is already in use").ConfigureAwait(false);
@@ -115,7 +116,7 @@ namespace MonkeyBot.Modules
             {
                 // Add the announcement to the Service to activate it
                 await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, Context.Guild.Id, channelID).ConfigureAwait(false);
-                var nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, Context.Guild.Id).ConfigureAwait(false);
                 await ReplyAsync($"The announcement has been added. It will be broadcasted on {nextRun}").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -130,7 +131,7 @@ namespace MonkeyBot.Modules
         public async Task ListAsync()
         {
             string message;
-            var announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
             if (announcements.Count == 0)
                 message = "No upcoming announcements";
             else
@@ -139,8 +140,8 @@ namespace MonkeyBot.Modules
             builder.Append(message);
             foreach (Announcement announcement in announcements)
             {
-                var nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id).ConfigureAwait(false);
-                var channel = await Context.Guild.GetChannelAsync(announcement.ChannelID).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, Context.Guild.Id).ConfigureAwait(false);
+                IGuildChannel channel = await Context.Guild.GetChannelAsync(announcement.ChannelID).ConfigureAwait(false);
                 if (announcement.Type == AnnouncementType.Recurring)
                 {
                     builder.AppendLine($"Recurring announcement with ID: \"{announcement.Name}\" will run next at {nextRun.ToString()} in channel {channel?.Name} with message: \"{announcement.Message}\"");
@@ -160,7 +161,7 @@ namespace MonkeyBot.Modules
         [Example("!announcements remove announcement1")]
         public async Task RemoveAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
-            var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
+            string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (cleanID.IsEmpty())
             {
                 await ReplyAsync("You need to specify the ID of the Announcement you wish to remove!").ConfigureAwait(false);
@@ -182,7 +183,7 @@ namespace MonkeyBot.Modules
         [Example("!announcements nextrun announcement1")]
         public async Task NextRunAsync([Summary("The id of the announcement.")] [Remainder] string id)
         {
-            var cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
+            string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (cleanID.IsEmpty())
             {
                 await ReplyAsync("You need to specify an ID for the Announcement!").ConfigureAwait(false);
@@ -190,7 +191,7 @@ namespace MonkeyBot.Modules
             }
             try
             {
-                var nextRun = await announcementService.GetNextOccurenceAsync(cleanID, Context.Guild.Id).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(cleanID, Context.Guild.Id).ConfigureAwait(false);
                 await ReplyAsync(nextRun.ToString()).ConfigureAwait(false);
             }
             catch (Exception ex)

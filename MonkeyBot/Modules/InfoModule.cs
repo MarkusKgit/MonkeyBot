@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,7 +25,7 @@ namespace MonkeyBot.Modules
         [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
-            var rules = (await dbContext.GuildConfigs.SingleOrDefaultAsync(x => x.GuildID == Context.Guild.Id).ConfigureAwait(false))?.Rules;
+            List<string> rules = (await dbContext.GuildConfigs.SingleOrDefaultAsync(x => x.GuildID == Context.Guild.Id).ConfigureAwait(false))?.Rules;
             if (rules == null || rules.Count < 1)
             {
                 await ReplyAsync("No rules set!").ConfigureAwait(false);
@@ -51,8 +52,8 @@ namespace MonkeyBot.Modules
                 return;
             }
             const int searchDepth = 100;
-            var messages = await Context.Channel.GetMessagesAsync(searchDepth).FlattenAsync().ConfigureAwait(false);
-            var matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
+            IEnumerable<IMessage> messages = await Context.Channel.GetMessagesAsync(searchDepth).FlattenAsync().ConfigureAwait(false);
+            IEnumerable<IMessage> matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
             if (matches == null || !matches.Any())
             {
                 await ReplyAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);

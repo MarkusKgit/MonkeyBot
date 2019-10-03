@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using MonkeyBot.Common;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace MonkeyBot.Preconditions
 
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var access = await GetPermissionAsync(context).ConfigureAwait(false); // Get the acccesslevel for this context
+            AccessLevel access = await GetPermissionAsync(context).ConfigureAwait(false); // Get the acccesslevel for this context
 
             if (access >= AccessLevel) // If the user's access level is greater than the required level, return success.
             {
@@ -39,8 +40,8 @@ namespace MonkeyBot.Preconditions
             if (c.User.IsBot) // Prevent other bots from executing commands.
                 return AccessLevel.Blocked;
 
-            var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
-            var owners = config.Owners;
+            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
+            IReadOnlyList<ulong> owners = config.Owners;
             if (owners != null && owners.Contains(c.User.Id)) // Give configured owners special access.
                 return AccessLevel.BotOwner;
 

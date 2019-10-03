@@ -50,9 +50,9 @@ namespace MonkeyBot.Common
                 throw new ArgumentException("Please provide some values");
 
             using Image image = new Bitmap(chartWidth, chartHeight);
-            using Graphics graphics = Graphics.FromImage(image);
-            using AdjustableArrowCap arrowCap = new AdjustableArrowCap(5, 5);
-            using Pen axisPen = new Pen(Brushes.Black, 5.0f) { CustomEndCap = arrowCap, StartCap = LineCap.Square };
+            using var graphics = Graphics.FromImage(image);
+            using var arrowCap = new AdjustableArrowCap(5, 5);
+            using var axisPen = new Pen(Brushes.Black, 5.0f) { CustomEndCap = arrowCap, StartCap = LineCap.Square };
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.Clear(Color.Transparent);
 
@@ -68,11 +68,11 @@ namespace MonkeyBot.Common
 
         private void DrawPoints(Graphics graphics, IEnumerable<PointF> xyValues)
         {
-            using Pen linePen = new Pen(Brushes.Blue, 3.0f);
+            using var linePen = new Pen(Brushes.Blue, 3.0f);
             float factorX = (AxisRect.Width - AxisRect.Width / AxisX.NumTicks) / (AxisX.Max - AxisX.Min);
             float factorY = (AxisRect.Height - AxisRect.Height / AxisY.NumTicks) / (AxisY.Max - AxisY.Min);
 
-            var translatedPoints = xyValues
+            PointF[] translatedPoints = xyValues
                 .Select(p => new PointF(
                     p.X * factorX + AxisRect.Left,
                     AxisRect.Bottom - p.Y * factorY))
@@ -86,11 +86,11 @@ namespace MonkeyBot.Common
 
         private void DrawAxes(Graphics graphics)
         {
-            using Pen tickPen = new Pen(Brushes.Black, 3.0f);
-            using Pen linesPen = new Pen(Brushes.Gray, 1.0f) { DashStyle = DashStyle.Dot };
-            using StringFormat yFormat = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Far };
-            using StringFormat xFormat = new StringFormat { Alignment = StringAlignment.Center };
-            using Font font = new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold);
+            using var tickPen = new Pen(Brushes.Black, 3.0f);
+            using var linesPen = new Pen(Brushes.Gray, 1.0f) { DashStyle = DashStyle.Dot };
+            using var yFormat = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Far };
+            using var xFormat = new StringFormat { Alignment = StringAlignment.Center };
+            using var font = new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold);
             float deltaXChart = AxisRect.Width / AxisX.NumTicks;
             float deltaXValues = (AxisX.Max - AxisX.Min) / (AxisX.NumTicks - 1);
             for (int i = 0; i < AxisX.NumTicks; i++)

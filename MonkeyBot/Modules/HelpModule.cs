@@ -34,12 +34,12 @@ namespace MonkeyBot.Modules
                 Description = "These are the commands you can use with your permission level"
             };
 
-            foreach (var module in commandService.Modules)
+            foreach (ModuleInfo module in commandService.Modules)
             {
                 var builder = new StringBuilder();
-                foreach (var cmd in module.Commands)
+                foreach (CommandInfo cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(false);
+                    PreconditionResult result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(false);
                     if (result.IsSuccess)
                     {
                         string parameters = string.Empty;
@@ -48,7 +48,7 @@ namespace MonkeyBot.Modules
                         builder.AppendLine($"{prefix}{cmd.Aliases[0]}  {parameters}");
                     }
                 }
-                var description = builder.ToString();
+                string description = builder.ToString();
 
                 if (!description.IsEmptyOrWhiteSpace())
                 {
@@ -70,7 +70,7 @@ namespace MonkeyBot.Modules
         [Example("!help Chuck")]
         public async Task HelpAsync([Summary("The command to get help for.")] [Remainder]string command)
         {
-            var result = commandService.Search(Context, command);
+            SearchResult result = commandService.Search(Context, command);
 
             if (!result.IsSuccess)
             {
@@ -85,12 +85,12 @@ namespace MonkeyBot.Modules
                 Description = $"These are commands like **{command}**:"
             };
 
-            foreach (var match in result.Commands)
+            foreach (CommandMatch match in result.Commands)
             {
-                var cmd = match.Command;
+                CommandInfo cmd = match.Command;
                 const string separator = ", ";
                 var paramBuilder = new StringBuilder();
-                foreach (var param in cmd.Parameters)
+                foreach (ParameterInfo param in cmd.Parameters)
                 {
                     paramBuilder.Append(param.Name);
                     if (!param.Summary.IsEmptyOrWhiteSpace())
@@ -98,11 +98,11 @@ namespace MonkeyBot.Modules
                     paramBuilder.Append(separator);
                 }
 
-                var cmdParameters = paramBuilder.ToString().TrimEnd(separator.ToArray());
+                string cmdParameters = paramBuilder.ToString().TrimEnd(separator.ToArray());
                 string description =
                     $"Parameters: {cmdParameters}\n" +
                     $"Remarks: {cmd.Remarks}";
-                var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
+                ExampleAttribute example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                 if (example != null && !example.ExampleText.IsEmpty())
                     description += $"\nExample: {example.ExampleText}";
                 builder.AddField(x =>

@@ -31,12 +31,12 @@ namespace MonkeyBot.Services
             try
             {
                 server = new SteamGameServer(discordGameServer.ServerIP);
-                var serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
+                SteamServerInfo serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
                 var playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
                     return false;
-                var guild = discordClient?.GetGuild(discordGameServer.GuildID);
-                var channel = guild?.GetTextChannel(discordGameServer.ChannelID);
+                SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
+                ITextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
                     return false;
                 var builder = new EmbedBuilder();

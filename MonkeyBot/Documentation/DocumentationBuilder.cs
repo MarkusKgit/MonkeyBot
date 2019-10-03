@@ -43,9 +43,9 @@ namespace MonkeyBot.Documentation
         private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
         {
             string prefix = GuildConfig.DefaultPrefix;
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
-            foreach (var module in commandService.Modules)
+            foreach (ModuleInfo module in commandService.Modules)
             {
                 builder.AppendLine(f.H3(module.Name));
                 var modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
@@ -54,7 +54,7 @@ namespace MonkeyBot.Documentation
                     builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
                 }
                 builder.AppendLine(f.NewLine(""));
-                foreach (var cmd in module.Commands)
+                foreach (CommandInfo cmd in module.Commands)
                 {
                     string parameters = string.Empty;
                     if (cmd.Parameters != null && cmd.Parameters.Count > 0)
@@ -62,7 +62,7 @@ namespace MonkeyBot.Documentation
                         parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
                     }
                     builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases[0]} {parameters}")));
-                    var example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
+                    ExampleAttribute example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                     if (example != null && !example.ExampleText.IsEmpty())
                     {
                         builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));

@@ -117,11 +117,11 @@ namespace MonkeyBot.Services
 
         private async Task MonkeyClient_LogAsync(LogMessage logMessage)
         {
-            var msg = $"{logMessage.Source}: {logMessage.Message}";
-            var ex = logMessage.Exception;
+            string msg = $"{logMessage.Source}: {logMessage.Message}";
+            Exception ex = logMessage.Exception;
             if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed", StringComparison.OrdinalIgnoreCase))
             {
-                var adminMessage = $"{msg} {ex?.Message}";
+                string adminMessage = $"{msg} {ex?.Message}";
                 await NotifyAdminAsync(adminMessage).ConfigureAwait(false);
             }
             switch (logMessage.Severity)
@@ -158,7 +158,7 @@ namespace MonkeyBot.Services
 
         public Task NotifyAdminAsync(string adminMessage)
         {
-            var adminuser = GetUser(327885109560737793);
+            SocketUser adminuser = GetUser(327885109560737793);
             return (adminuser?.SendMessageAsync(adminMessage));
         }
     }

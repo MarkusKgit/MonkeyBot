@@ -57,8 +57,8 @@ namespace MonkeyBot
             if (!(socketMsg is SocketUserMessage msg))
                 return;
             var context = new SocketCommandContext(discordClient, msg);
-            var guild = (msg.Channel as SocketTextChannel)?.Guild;
-            var prefix = await GetPrefixAsync(guild?.Id).ConfigureAwait(false);
+            SocketGuild guild = (msg.Channel as SocketTextChannel)?.Guild;
+            string prefix = await GetPrefixAsync(guild?.Id).ConfigureAwait(false);
             int argPos = 0;
 
             if (msg.HasStringPrefix(prefix, ref argPos))
@@ -66,14 +66,14 @@ namespace MonkeyBot
                 string commandText = msg.Content.Substring(argPos).ToLowerInvariant().Trim();
                 if (!commandText.IsEmpty())
                 {
-                    var result = await commandService.ExecuteAsync(context, argPos, serviceProvider).ConfigureAwait(false);
+                    IResult result = await commandService.ExecuteAsync(context, argPos, serviceProvider).ConfigureAwait(false);
 
                     if (!result.IsSuccess)
                     {
                         if (result.Error.HasValue)
                         {
-                            var error = result.Error.Value;
-                            var errorMessage = GetCommandErrorMessage(error, prefix, commandText);
+                            CommandError error = result.Error.Value;
+                            string errorMessage = GetCommandErrorMessage(error, prefix, commandText);
                             await context.Channel.SendMessageAsync(errorMessage).ConfigureAwait(false);
                             if (error == CommandError.Exception || error == CommandError.ParseFailed || error == CommandError.Unsuccessful)
                             {

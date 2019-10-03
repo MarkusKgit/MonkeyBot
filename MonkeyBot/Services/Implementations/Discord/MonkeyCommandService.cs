@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -25,8 +26,8 @@ namespace MonkeyBot.Services
 
         private Task MonkeyCommandService_LogAsync(LogMessage logMessage)
         {
-            var msg = $"{logMessage.Source}: {logMessage.Message}";
-            var ex = logMessage.Exception;
+            string msg = $"{logMessage.Source}: {logMessage.Message}";
+            Exception ex = logMessage.Exception;
             switch (logMessage.Severity)
             {
                 case LogSeverity.Critical:

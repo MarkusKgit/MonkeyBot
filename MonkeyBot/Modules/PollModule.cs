@@ -41,7 +41,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
-            Poll poll = new Poll
+            var poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -86,7 +86,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            Poll poll = new Poll
+            var poll = new Poll
             {
                 GuildId = Context.Guild.Id,
                 ChannelId = Context.Channel.Id,
@@ -111,7 +111,7 @@ namespace MonkeyBot.Modules
                 .AddField("Pick one", answers);
 
             var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll).ConfigureAwait(false));
-            foreach (var answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
+            foreach (Emoji answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
             {
                 rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(r, poll));
             }
@@ -120,7 +120,7 @@ namespace MonkeyBot.Modules
 
         private static Task AddVoteCount(SocketReaction reaction, Poll poll)
         {
-            var answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
+            PollAnswer answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
             if (answer != null && reaction.User.IsSpecified)
                 poll.ReactionUsers.AddOrUpdate(answer, new List<IUser> { reaction.User.Value }, (_, list) =>
                     {
@@ -135,7 +135,7 @@ namespace MonkeyBot.Modules
         {
             if (poll == null)
                 return;
-            var answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
+            IEnumerable<string> answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
             var participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
             string participantsString = "-";
             if (participants != null && participants.Count > 0)

@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
 
         public async Task<SteamServerInfo> GetServerInfoAsync()
         {
-            var response = await GetServerResponseAsync(QueryMsg.InfoQuery).ConfigureAwait(false);
+            byte[] response = await GetServerResponseAsync(QueryMsg.InfoQuery).ConfigureAwait(false);
             return SteamServerInfo.Parse(response); // Skip header
         }
 
@@ -54,7 +54,7 @@ namespace MonkeyBot.Services
                     recvData = await GetServerResponseAsync(combinedArray).ConfigureAwait(false);
                 }
 
-                Parser parser = new Parser(null);
+                var parser = new Parser(null);
                 if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_PLAYER)
                     throw new Exception("A2S_PLAYER message header is not valid");
                 int playerCount = parser.ReadByte();
@@ -85,7 +85,7 @@ namespace MonkeyBot.Services
             byte[] recvBytes = await GetServerResponseAsync(QueryMsg.PlayerChallengeQuery).ConfigureAwait(false);
             try
             {
-                Parser parser = new Parser(recvBytes);
+                var parser = new Parser(recvBytes);
                 byte header = parser.ReadByte();
                 switch (header)
                 {
@@ -110,7 +110,7 @@ namespace MonkeyBot.Services
             client.Client.ReceiveTimeout = 2000;
             cts.CancelAfter(2000);
 
-            var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
+            UdpReceiveResult response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
             byte[] result = new byte[response.Buffer.Length - 4];
             response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
             return result;

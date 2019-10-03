@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
             if (role == null)
                 return;
             // Get the role of the bot with permission manage roles
-            var botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
+            IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to assign it
             if (botRole?.Position <= role.Position)
             {
@@ -57,7 +57,7 @@ namespace MonkeyBot.Modules
             {
                 await ReplyAsync("You don't have that role").ConfigureAwait(false);
             }
-            var botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
+            IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole?.Position <= role.Position)
             {
@@ -71,11 +71,11 @@ namespace MonkeyBot.Modules
         [Remarks("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync()
         {
-            List<string> allRoles = new List<string>();
+            var allRoles = new List<string>();
             // Get the role of the bot with permission manage roles
             IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
-            foreach (var role in Context.Guild.Roles)
+            foreach (IRole role in Context.Guild.Roles)
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
                     allRoles.Add(role.Name);
@@ -100,12 +100,12 @@ namespace MonkeyBot.Modules
             // Get the role of the bot with permission manage roles
             IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // Get all roles that are lower than the bot's role (roles the bot can assign)
-            var guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
-            foreach (var role in Context.Guild.Roles)
+            IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
+            foreach (IRole role in Context.Guild.Roles)
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
                 {
-                    var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+                    IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
                     if (roleUsers != null && roleUsers.Any())
                     {
                         builder.AddField(x =>
@@ -129,8 +129,8 @@ namespace MonkeyBot.Modules
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
                 return;
-            var guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
-            var roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+            IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
+            IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
             if (roleUsers == null || !roleUsers.Any())
                 return;
             var builder = new EmbedBuilder

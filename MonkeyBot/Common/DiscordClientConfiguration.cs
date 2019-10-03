@@ -58,7 +58,7 @@ namespace MonkeyBot.Common
                 string ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                 if (ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
                 {
-                    CloudinaryCredentials creds = new CloudinaryCredentials();
+                    var creds = new CloudinaryCredentials();
                     await Console.Out.WriteLineAsync("Enter your cloud id").ConfigureAwait(false);
                     ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                     creds.Cloud = ans;

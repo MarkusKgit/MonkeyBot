@@ -86,7 +86,7 @@ namespace MonkeyBot.Services
 
         private async Task GetAllFeedUpdatesAsync()
         {
-            foreach (var guild in discordClient?.Guilds)
+            foreach (SocketGuild guild in discordClient?.Guilds)
             {
                 await GetGuildFeedUpdatesAsync(guild).ConfigureAwait(false);
             }
@@ -94,8 +94,8 @@ namespace MonkeyBot.Services
 
         private async Task GetGuildFeedUpdatesAsync(SocketGuild guild)
         {
-            var feeds = await GetAllFeedsInternalAsync(guild.Id).ConfigureAwait(false);
-            foreach (var feed in feeds)
+            List<Models.Feed> feeds = await GetAllFeedsInternalAsync(guild.Id).ConfigureAwait(false);
+            foreach (Models.Feed feed in feeds)
             {
                 await GetFeedUpdateAsync(feed).ConfigureAwait(false);
             }
@@ -103,8 +103,8 @@ namespace MonkeyBot.Services
 
         private async Task GetFeedUpdateAsync(Models.Feed guildFeed, bool getLatest = false)
         {
-            var guild = discordClient.GetGuild(guildFeed.GuildID);
-            var channel = guild?.GetTextChannel(guildFeed.ChannelID);
+            SocketGuild guild = discordClient.GetGuild(guildFeed.GuildID);
+            SocketTextChannel channel = guild?.GetTextChannel(guildFeed.ChannelID);
             if (guild == null || channel == null || guildFeed.URL.IsEmpty())
                 return;
             Feed feed;
@@ -119,12 +119,12 @@ namespace MonkeyBot.Services
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
                 return;
-            var lastUpdateUTC = DateTime.UtcNow;
+            DateTime lastUpdateUTC = DateTime.UtcNow;
             if (guildFeed.LastUpdate.HasValue)
                 lastUpdateUTC = guildFeed.LastUpdate.Value;
             else
                 lastUpdateUTC = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
-            var allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
+            IEnumerable<FeedItem> allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
             var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC).OrderBy(x => x.PublishingDate).ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
                 updatedFeeds = allFeeds.Take(1).ToList();
@@ -140,7 +140,7 @@ namespace MonkeyBot.Services
                 string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"";
                 builder.WithTitle(title);
                 DateTime latestUpdateUTC = DateTime.MinValue;
-                foreach (var feedItem in updatedFeeds)
+                foreach (FeedItem feedItem in updatedFeeds)
                 {
                     if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value.ToUniversalTime() > latestUpdateUTC)
                         latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
@@ -195,8 +195,8 @@ namespace MonkeyBot.Services
 
             var sb = new StringBuilder();
 
-            var textNodes = htmlDoc?.DocumentNode?.SelectNodes("//text()");
-            var iframes = htmlDoc?.DocumentNode?.SelectNodes("//iframe[@src]");
+            HtmlNodeCollection textNodes = htmlDoc?.DocumentNode?.SelectNodes("//text()");
+            HtmlNodeCollection iframes = htmlDoc?.DocumentNode?.SelectNodes("//iframe[@src]");
             if (textNodes != null)
             {
                 foreach (HtmlNode node in textNodes)
@@ -217,7 +217,7 @@ namespace MonkeyBot.Services
                     }
                 }
             }
-            var result = sb.ToString();
+            string result = sb.ToString();
             if (!result.IsEmpty())
                 return result;
             return html;

@@ -24,7 +24,7 @@ namespace MonkeyBot.Services
     {
         private readonly Uri tokenUri = new Uri("https://opentdb.com/api_token.php?command=request");
         private readonly Uri baseApiUri = new Uri("https://opentdb.com/api.php");
-        
+
         // The api token enables us to use a session with opentdb so that we don't get the same question twice during a session
         private string apiToken = string.Empty;
 
@@ -149,15 +149,15 @@ namespace MonkeyBot.Services
             if (!(status == TriviaStatus.Running))
                 return false;
 
-            var embedBuilder = new EmbedBuilder()
+            EmbedBuilder embedBuilder = new EmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("The quiz has ended");
 
-            var currentScores = GetCurrentHighScores();
+            string currentScores = GetCurrentHighScores();
             if (!currentScores.IsEmptyOrWhiteSpace())
                 embedBuilder.AddField("Final scores:", currentScores, true);
 
-            var globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildID).ConfigureAwait(false);
+            string globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildID).ConfigureAwait(false);
             if (!globalScores.IsEmptyOrWhiteSpace())
                 embedBuilder.AddField("Global top scores:", globalScores);
 
@@ -177,7 +177,7 @@ namespace MonkeyBot.Services
                 interactiveService.RemoveReactionCallback(currentQuestionMessage);
                 int points = QuestionToPoints(currentQuestion);
 
-                var embedBuilder = new EmbedBuilder()
+                EmbedBuilder embedBuilder = new EmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("Time is up")
                     .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
@@ -204,7 +204,7 @@ namespace MonkeyBot.Services
                 }
                 embedBuilder.AddField("Incorrect answers", msg, true);
 
-                var highScores = GetCurrentHighScores(3);
+                string highScores = GetCurrentHighScores(3);
                 if (!highScores.IsEmptyOrWhiteSpace())
                     embedBuilder.AddField("Top 3:", highScores, true);
 
@@ -230,7 +230,7 @@ namespace MonkeyBot.Services
                     builder.AddField($"{currentQuestion.Question}", "True or false?");
                     var trueEmoji = new Emoji("👍");
                     var falseEmoji = new Emoji("👎");
-                    var correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
+                    Emoji correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
 
                     currentQuestionMessage = await interactiveService.SendMessageWithReactionCallbacksAsync(commandContext,
                         new ReactionCallbackData("", builder.Build(), false, true, true, timeout, _ => GetNextQuestionAsync())
@@ -242,8 +242,8 @@ namespace MonkeyBot.Services
                 else if (currentQuestion.Type == TriviaQuestionType.MultipleChoice)
                 {
                     // add the correct answer to the list of correct answers to form the list of possible answers
-                    var answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
-                    Random rand = new Random();
+                    IEnumerable<string> answers = currentQuestion.IncorrectAnswers.Append(currentQuestion.CorrectAnswer);
+                    var rand = new Random();
                     // randomize the order of the answers
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next()).ToList();
                     var correctAnswerEmoji = new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
@@ -306,7 +306,7 @@ namespace MonkeyBot.Services
             // Add points to current scores and global scores
             AddPointsCurrent(user, userScoresCurrent, pointsToAdd);
 
-            var currentScore = await dbContext.TriviaScores.FirstOrDefaultAsync(s => s.GuildID == guildID && s.UserID == user.Id).ConfigureAwait(false);
+            TriviaScore currentScore = await dbContext.TriviaScores.FirstOrDefaultAsync(s => s.GuildID == guildID && s.UserID == user.Id).ConfigureAwait(false);
             //pointsToAdd can be negative -> prevent less than zero points
             if (currentScore == null && pointsToAdd < 0)
             {
@@ -346,7 +346,7 @@ namespace MonkeyBot.Services
             if (status == TriviaStatus.Stopped || userScoresCurrent.Count < 1)
                 return null;
             amount = Math.Min(amount, userScoresCurrent.Count);
-            var sortedScores = userScoresCurrent
+            IEnumerable<string> sortedScores = userScoresCurrent
                 .OrderByDescending(x => x.Value)
                 .Take(amount)
                 .Select((score, pos) => $"**#{pos + 1}: {discordClient.GetUser(score.Key).Username}**: {score.Value} point{(score.Value == 1 ? "" : "s")}");
@@ -368,8 +368,8 @@ namespace MonkeyBot.Services
             int correctedCount = Math.Min(amount, userScoresAllTime.Count);
             if (correctedCount < 1)
                 return null;
-            var guild = discordClient.GetGuild(guildID);
-            var sortedScores = userScoresAllTime
+            SocketGuild guild = discordClient.GetGuild(guildID);
+            IEnumerable<string> sortedScores = userScoresAllTime
                 .OrderByDescending(x => x.Score)
                 .Take(correctedCount)
                 .Select((score, pos) => $"**#{pos + 1}: {guild.GetUser(score.UserID)?.Username}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
@@ -387,17 +387,17 @@ namespace MonkeyBot.Services
             // Amount of questions per request is limited to 50 by the API
             if (count > 50)
                 count = 50;
-                        
+
             var builder = new UriBuilder(baseApiUri);
-            var query = HttpUtility.ParseQueryString(builder.Query);
+            System.Collections.Specialized.NameValueCollection query = HttpUtility.ParseQueryString(builder.Query);
             query["amount"] = count.ToString();
             query["token"] = apiToken;
-            builder.Query = query.ToString();            
-            var json = await httpClient.GetStringAsync(builder.Uri).ConfigureAwait(false);
+            builder.Query = query.ToString();
+            string json = await httpClient.GetStringAsync(builder.Uri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
-                var otdbResponse = await Task.Run(() => JsonConvert.DeserializeObject<OTDBResponse>(json)).ConfigureAwait(false);
+                OTDBResponse otdbResponse = await Task.Run(() => JsonConvert.DeserializeObject<OTDBResponse>(json)).ConfigureAwait(false);
                 if (otdbResponse.Response == TriviaApiResponse.Success)
                     questions.AddRange(otdbResponse.Questions.Select(CleanQuestion));
                 else if ((otdbResponse.Response == TriviaApiResponse.TokenEmpty || otdbResponse.Response == TriviaApiResponse.TokenNotFound) && loadingRetries <= 2)
@@ -412,7 +412,7 @@ namespace MonkeyBot.Services
         // Requests a token from the api. With the token a session is managed. During a session it is ensured that no question is received twice
         private async Task GetTokenAsync()
         {
-            var json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {
                 var jobject = JObject.Parse(json);

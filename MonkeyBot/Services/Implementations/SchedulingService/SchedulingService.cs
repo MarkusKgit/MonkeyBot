@@ -42,12 +42,12 @@ namespace MonkeyBot.Services
             // Add a new recurring job with the provided ID to the Jobmanager. The 5 seconds interval is only a stub and will be overridden.
             JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunEvery(5).Seconds());
             // Retrieve the schedule from the newly created job
-            var schedule = JobManager.AllSchedules.FirstOrDefault(x => x.Name == jobID);
+            Schedule schedule = JobManager.AllSchedules.FirstOrDefault(x => x.Name == jobID);
             // Because FluentScheduler does not support cron expressions we have to override the default method that
             // calculates the next run with the appropriate method from the CrontabSchedule scheduler
             if (schedule != null)
             {
-                var scheduleType = schedule.GetType();
+                Type scheduleType = schedule.GetType();
                 scheduleType
                   .GetProperty("CalculateNextRun", BindingFlags.NonPublic | BindingFlags.Instance)
                   .SetValue(schedule, (Func<DateTime, DateTime>)cnSchedule.GetNextOccurrence, null);
@@ -59,7 +59,7 @@ namespace MonkeyBot.Services
 
         public DateTime GetNextRun(string jobID)
         {
-            var job = JobManager.GetSchedule(jobID);
+            Schedule job = JobManager.GetSchedule(jobID);
             if (job == null)
                 throw new ArgumentException($"The specified job with id {jobID} does not exist", nameof(jobID));
             return job.NextRun;

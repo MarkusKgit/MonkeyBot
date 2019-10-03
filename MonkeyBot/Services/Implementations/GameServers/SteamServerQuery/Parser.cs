@@ -136,7 +136,7 @@ namespace MonkeyBot.Services
         }
 
         protected ParseException(System.Runtime.Serialization.SerializationInfo serializationInfo, System.Runtime.Serialization.StreamingContext streamingContext) : base(serializationInfo, streamingContext)
-        {            
+        {
         }
     }
 }

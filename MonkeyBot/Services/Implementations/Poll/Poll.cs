@@ -32,7 +32,7 @@ namespace MonkeyBot.Services
             AnswerEmoji = answerEmoji;
         }
 
-        public bool Equals(PollAnswer other) => 
+        public bool Equals(PollAnswer other) =>
             other != null &&
             Answer == other.Answer &&
             AnswerEmoji.Equals(other.AnswerEmoji);

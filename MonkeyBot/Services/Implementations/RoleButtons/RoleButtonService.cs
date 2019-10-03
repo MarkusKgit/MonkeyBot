@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,10 +31,10 @@ namespace MonkeyBot.Services
 
         public async Task AddRoleButtonLinkAsync(ulong guildID, ulong messageID, ulong roleID, string emoteString)
         {
-            var guild = discordClient.GetGuild(guildID);
+            SocketGuild guild = discordClient.GetGuild(guildID);
             if (guild == null)
                 return;
-            var msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);
+            IUserMessage msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);
             if (msg == null)
                 return;
             IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.Ordinal)) ?? new Emoji(emoteString) as IEmote;
@@ -45,7 +46,7 @@ namespace MonkeyBot.Services
             bool exists = await dbContext.RoleButtonLinks.AnyAsync(x => x.GuildID == guildID && x.MessageID == messageID && x.RoleID == roleID && x.EmoteString == emoteString).ConfigureAwait(false);
             if (!exists)
             {
-                RoleButtonLink link = new RoleButtonLink { GuildID = guildID, MessageID = messageID, RoleID = roleID, EmoteString = emoteString };
+                var link = new RoleButtonLink { GuildID = guildID, MessageID = messageID, RoleID = roleID, EmoteString = emoteString };
                 dbContext.RoleButtonLinks.Add(link);
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -62,19 +63,20 @@ namespace MonkeyBot.Services
                 return;
             dbContext.RoleButtonLinks.Remove(link);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
-            var guild = discordClient.GetGuild(guildID);
+            SocketGuild guild = discordClient.GetGuild(guildID);
             if (guild == null)
                 return;
-            var msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);
+            IUserMessage msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);
             if (msg == null)
                 return;
             IEmote emote = guild.Emotes.FirstOrDefault(x => link.EmoteString.Contains(x.Name, StringComparison.Ordinal)) ?? new Emoji(link.EmoteString) as IEmote;
             if (emote == null)
                 return;
+            //TODO: change to explicit type once Discord.Net dependency on IAsyncEnumerable is fixed
             var reactedUsers = msg.GetReactionUsersAsync(emote, 100);
             await reactedUsers.ForEachAsync(async users =>
             {
-                foreach (var user in users)
+                foreach (IUser user in users)
                 {
                     await msg.RemoveReactionAsync(emote, user).ConfigureAwait(false);
                 }
@@ -83,14 +85,14 @@ namespace MonkeyBot.Services
 
         public async Task RemoveAllRoleButtonLinksAsync(ulong guildID)
         {
-            var links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            List<RoleButtonLink> links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
             dbContext.RoleButtonLinks.RemoveRange(links);
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task<bool> ExistsAsync(ulong guildID, ulong messageID, ulong roleID, string emoteString = "")
         {
-            var links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID && x.MessageID == messageID && x.RoleID == roleID).ToListAsync().ConfigureAwait(false);
+           List<RoleButtonLink> links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID && x.MessageID == messageID && x.RoleID == roleID).ToListAsync().ConfigureAwait(false);
             if (!emoteString.IsEmptyOrWhiteSpace())
                 links = links?.Where(x => x.EmoteString == emoteString).ToList();
             return links?.Count > 0;
@@ -98,14 +100,14 @@ namespace MonkeyBot.Services
 
         public async Task<string> ListAllAsync(ulong guildID)
         {
-            var links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            List<RoleButtonLink> links = await dbContext.RoleButtonLinks.Where(x => x.GuildID == guildID).ToListAsync().ConfigureAwait(false);
             if (links == null || links.Count < 1)
                 return "";
             var sb = new StringBuilder();
-            foreach (var link in links)
+            foreach (RoleButtonLink link in links)
             {
-                var guild = discordClient.GetGuild(link.GuildID);
-                var role = guild.GetRole(link.RoleID);
+                SocketGuild guild = discordClient.GetGuild(link.GuildID);
+                SocketRole role = guild.GetRole(link.RoleID);
                 sb.AppendLine($"Message Id: {link.MessageID} Role: {role.Name} Reaction: {link.EmoteString}");
             }
             return sb.ToString();
@@ -125,22 +127,22 @@ namespace MonkeyBot.Services
         {
             if (channel == null || !reaction.User.IsSpecified)
                 return;
-            var msg = cachedMessage.HasValue ? cachedMessage.Value : await cachedMessage.GetOrDownloadAsync().ConfigureAwait(false);
+            IUserMessage msg = cachedMessage.HasValue ? cachedMessage.Value : await cachedMessage.GetOrDownloadAsync().ConfigureAwait(false);
 
             if (!(msg.Channel is ITextChannel textChannel))
                 return;
-            var guild = textChannel.Guild;
+            IGuild guild = textChannel.Guild;
             if (guild == null)
                 return;
-            var user = reaction.User.Value;
-            var emote = reaction.Emote;
+            IUser user = reaction.User.Value;
+            IEmote emote = reaction.Emote;
             if (user.IsBot)
                 return;
-            var match = await dbContext.RoleButtonLinks.SingleOrDefaultAsync(x => x.GuildID == guild.Id && x.MessageID == msg.Id && x.EmoteString == emote.ToString()).ConfigureAwait(false);
+            RoleButtonLink match = await dbContext.RoleButtonLinks.SingleOrDefaultAsync(x => x.GuildID == guild.Id && x.MessageID == msg.Id && x.EmoteString == emote.ToString()).ConfigureAwait(false);
             if (match != null)
             {
-                var role = guild.GetRole(match.RoleID);
-                var gUser = await guild.GetUserAsync(user.Id).ConfigureAwait(false);
+                IRole role = guild.GetRole(match.RoleID);
+                IGuildUser gUser = await guild.GetUserAsync(user.Id).ConfigureAwait(false);
                 if (action == AddOrRemove.Add)
                 {
                     await gUser.AddRoleAsync(role).ConfigureAwait(false);
@@ -160,9 +162,9 @@ namespace MonkeyBot.Services
 
         private async static Task<IUserMessage> GetMessageAsync(SocketGuild guild, ulong messageId)
         {
-            foreach (var tc in guild.TextChannels)
+            foreach (SocketTextChannel tc in guild.TextChannels)
             {
-                var msg = await tc.GetMessageAsync(messageId).ConfigureAwait(false);
+                IMessage msg = await tc.GetMessageAsync(messageId).ConfigureAwait(false);
                 if (msg != null && msg is IUserMessage userMsg)
                 {
                     return userMsg;

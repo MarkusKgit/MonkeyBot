@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You have to provide a search text").ConfigureAwait(false);
                 return;
             }
-            var url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
+            string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
             await ReplyAsync(url).ConfigureAwait(false);
         }
     }

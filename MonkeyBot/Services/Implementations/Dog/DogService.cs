@@ -20,11 +20,11 @@ namespace MonkeyBot.Services
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
             using var httpClient = new HttpClient();
-            var json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
-                var dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
+                DogResponse dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                     return dogResponse.Message;
             }
@@ -34,11 +34,11 @@ namespace MonkeyBot.Services
         public async Task<List<string>> GetDogBreedsAsync()
         {
             using var httpClient = new HttpClient();
-            var json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
-                var dogResponse = JsonConvert.DeserializeObject<DogBreedsResponse>(json);
+                DogBreedsResponse dogResponse = JsonConvert.DeserializeObject<DogBreedsResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
                     return dogResponse.Message.Keys.ToList();

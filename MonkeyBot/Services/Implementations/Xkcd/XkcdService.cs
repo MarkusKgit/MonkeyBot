@@ -11,7 +11,7 @@ namespace MonkeyBot.Services
         // display Url of comic is baseUrl + /comic Number
         // Latest comic json data is baseUrl + /info.0.json
         // Specific comic json data is baseUrl + /comic Number/info.0.json
-        private static readonly Uri baseUrl = new Uri("https://xkcd.com/");        
+        private static readonly Uri baseUrl = new Uri("https://xkcd.com/");
         private static readonly Uri latestComicApiUrl = new Uri(baseUrl, "/info.0.json");
         private Uri GetComicApiUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}/info.0.json");
         public Uri GetComicUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}");

@@ -28,7 +28,7 @@ namespace MonkeyBot.Modules
         [Example("!trivia start 5")]
         public async Task StartTriviaAsync([Summary("The number of questions to play.")] int questionAmount = 10)
         {
-            var success = await triviaService.StartTriviaAsync(questionAmount, Context as SocketCommandContext).ConfigureAwait(false);
+            bool success = await triviaService.StartTriviaAsync(questionAmount, Context as SocketCommandContext).ConfigureAwait(false);
             if (!success)
                 await ReplyAsync("Trivia could not be started :(").ConfigureAwait(false);
         }
@@ -54,7 +54,7 @@ namespace MonkeyBot.Modules
         [Example("!trivia scores 10")]
         public async Task GetScoresAsync([Summary("The amount of scores to get.")] int amount = 5)
         {
-            var globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext).ConfigureAwait(false);
+            string globalScores = await triviaService.GetGlobalHighScoresAsync(amount, Context as SocketCommandContext).ConfigureAwait(false);
             if (globalScores != null)
             {
                 var embedBuilder = new EmbedBuilder()

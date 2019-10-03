@@ -28,7 +28,7 @@ namespace MonkeyBot.Common
 
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
 
-            using (FileStream sourceStream = new FileStream(
+            using (var sourceStream = new FileStream(
                 filePath,
                 append ? FileMode.Append : FileMode.Create,
                 FileAccess.Write,
@@ -48,10 +48,10 @@ namespace MonkeyBot.Common
         /// <returns>Contents of the text file</returns>
         public static async Task<string> ReadTextAsync(string filePath)
         {
-            using FileStream sourceStream = new FileStream(filePath,
+            using var sourceStream = new FileStream(filePath,
                 FileMode.Open, FileAccess.Read, FileShare.Read,
                 bufferSize: 4096, useAsync: true);
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             byte[] buffer = new byte[0x1000];
             int numRead;
@@ -72,7 +72,7 @@ namespace MonkeyBot.Common
         /// <param name="text">Text to post</param>
         public static async Task<RestUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
-            var guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
+            IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
             var channel = await (guild?.GetChannelAsync(channelID)).ConfigureAwait(false) as SocketTextChannel;
             return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
@@ -99,7 +99,7 @@ namespace MonkeyBot.Common
         {
             if (index < 0 || index >= regionalIndicatorLetters.Length)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            return regionalIndicatorLetters[index];            
+            return regionalIndicatorLetters[index];
         }
     }
 }

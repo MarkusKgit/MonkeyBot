@@ -18,14 +18,14 @@ namespace MonkeyBot.Modules
         [Remarks("Adds the specified user to the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
         public async Task AddOwnerAsync([Summary("The name of the user to add")] string username)
-        {            
+        {
             IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
-            var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);           
+            var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
             if (!config.Owners.Contains(user.Id))
             {
-                config.AddOwner(user.Id);                
+                config.AddOwner(user.Id);
                 await config.SaveAsync().ConfigureAwait(false);
                 await ReplyAsync($"{user.Username} has been added to the list of bot owners!").ConfigureAwait(false);
             }
@@ -33,7 +33,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync($"{user.Username} already is a bot owner!").ConfigureAwait(false);
         }
 
-        
+
 
         [Command("RemoveOwner")]
         [Remarks("Removes the specified user from the list of bot owners")]
@@ -43,7 +43,7 @@ namespace MonkeyBot.Modules
             IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
-            var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);            
+            var config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
             if (config.Owners.Contains(user.Id))
             {
                 config.RemoveOwner(user.Id);
@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules
             }
             else
                 await ReplyAsync($"{user.Username} is not a bot owner!").ConfigureAwait(false);
-            
+
         }
     }
 }

@@ -22,7 +22,7 @@ namespace MonkeyBot.Modules
         protected async Task AddGameServerInternalAsync(string ip, ulong channelID)
         {
             //Do parameter checks
-            var endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
+            IPEndPoint endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
             if (endPoint == null)
                 return;
             bool success = false;
@@ -45,7 +45,7 @@ namespace MonkeyBot.Modules
         protected async Task RemoveGameServerInternalAsync(string ip)
         {
             //Do parameter checks
-            var endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
+            IPEndPoint endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
             if (endPoint == null)
                 return;
 
@@ -69,7 +69,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
-            var splitIP = ip.Split(':');
+            string[] splitIP = ip.Split(':');
             if (splitIP == null || splitIP.Length != 2)
             {
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
@@ -85,7 +85,7 @@ namespace MonkeyBot.Modules
                 await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
-            IPEndPoint endPoint = new IPEndPoint(parsedIP, port);
+            var endPoint = new IPEndPoint(parsedIP, port);
             return endPoint;
         }
     }

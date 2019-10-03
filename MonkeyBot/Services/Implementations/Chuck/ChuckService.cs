@@ -14,11 +14,11 @@ namespace MonkeyBot.Services
         public async Task<string> GetChuckFactAsync()
         {
             using var httpClient = new HttpClient();
-            var json = await httpClient.GetStringAsync(randomJokeApiUrl).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(randomJokeApiUrl).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
-                var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
+                ChuckResponse chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                 if (chuckResponse.Type == "success" && chuckResponse.Value != null)
                     return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);
             }
@@ -32,11 +32,11 @@ namespace MonkeyBot.Services
             using var httpClient = new HttpClient();
             var url = new UriBuilder(randomJokeApiUrl);
             url.Query = $"firstName={userName}";
-            var json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
             {
-                var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
+                ChuckResponse chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
                 if (chuckResponse.Type == "success" && chuckResponse.Value != null)
                     return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
             }

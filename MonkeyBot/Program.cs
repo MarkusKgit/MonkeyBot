@@ -21,8 +21,8 @@ public static class Program
         parser
             .SetupHelp("?", "help")
             .Callback(text => Console.WriteLine(text));
-        var parseResult = parser.Parse(args);
-        var parsedArgs = !parseResult.HasErrors ? parser.Object : null;
+        ICommandLineParserResult parseResult = parser.Parse(args);
+        ApplicationArguments parsedArgs = !parseResult.HasErrors ? parser.Object : null;
 
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
@@ -47,7 +47,7 @@ public static class Program
     {
         if (services != null)
         {
-            var discordClient = services.GetService<DiscordSocketClient>();
+            DiscordSocketClient discordClient = services.GetService<DiscordSocketClient>();
             if (discordClient != null)
             {
                 discordClient.LogoutAsync().Wait();

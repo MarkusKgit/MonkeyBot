@@ -49,7 +49,7 @@ namespace MonkeyBot.Services
 
             Flush(stream, 0);
 
-            var readBuffer = new byte[1024];
+            byte[] readBuffer = new byte[1024];
             var completeBuffer = new List<byte>();
             int numberOfBytesRead;
             do
@@ -61,19 +61,19 @@ namespace MonkeyBot.Services
 
             try
             {
-                var b = completeBuffer.ToArray();
-                var length = ReadVarInt(b);
-                var packet = ReadVarInt(b);
-                var jsonLength = ReadVarInt(b);
-                
+                byte[] b = completeBuffer.ToArray();
+                int length = ReadVarInt(b);
+                int packet = ReadVarInt(b);
+                int jsonLength = ReadVarInt(b);
+
                 if (jsonLength > completeBuffer.Count - offset)
                 {
                     //TODO: log receive error
                     return null;
                 }
 
-                var json = ReadString(b, jsonLength);
-                var result = JsonConvert.DeserializeObject<MineQueryResult>(json);
+                string json = ReadString(b, jsonLength);
+                MineQueryResult result = JsonConvert.DeserializeObject<MineQueryResult>(json);
                 return result;
             }
             catch (IOException ex)
@@ -90,14 +90,14 @@ namespace MonkeyBot.Services
 
         internal byte ReadByte(byte[] buffer)
         {
-            var b = buffer[offset];
+            byte b = buffer[offset];
             offset += 1;
             return b;
         }
 
         internal byte[] Read(byte[] buffer, int length)
         {
-            var data = new byte[length];
+            byte[] data = new byte[length];
             Array.Copy(buffer, offset, data, 0, length);
             offset += length;
             return data;
@@ -105,8 +105,8 @@ namespace MonkeyBot.Services
 
         internal int ReadVarInt(byte[] buffer)
         {
-            var value = 0;
-            var size = 0;
+            int value = 0;
+            int size = 0;
             int b;
             while (((b = ReadByte(buffer)) & 0x80) == 0x80)
             {
@@ -121,7 +121,7 @@ namespace MonkeyBot.Services
 
         internal string ReadString(byte[] buffer, int length)
         {
-            var data = Read(buffer, length);
+            byte[] data = Read(buffer, length);
             return Encoding.UTF8.GetString(data);
         }
 
@@ -142,7 +142,7 @@ namespace MonkeyBot.Services
 
         internal void WriteString(string data)
         {
-            var buffer = Encoding.UTF8.GetBytes(data);
+            byte[] buffer = Encoding.UTF8.GetBytes(data);
             WriteVarInt(buffer.Length);
             writeBuffer.AddRange(buffer);
         }
@@ -150,11 +150,11 @@ namespace MonkeyBot.Services
 
         internal void Flush(NetworkStream stream, int id = -1)
         {
-            var buffer = writeBuffer.ToArray();
+            byte[] buffer = writeBuffer.ToArray();
             writeBuffer.Clear();
 
-            var add = 0;
-            var packetData = new[] { (byte)0x00 };
+            int add = 0;
+            byte[] packetData = new[] { (byte)0x00 };
             if (id >= 0)
             {
                 WriteVarInt(id);
@@ -164,7 +164,7 @@ namespace MonkeyBot.Services
             }
 
             WriteVarInt(buffer.Length + add);
-            var bufferLength = writeBuffer.ToArray();
+            byte[] bufferLength = writeBuffer.ToArray();
             writeBuffer.Clear();
 
             stream.Write(bufferLength, 0, bufferLength.Length);
@@ -176,6 +176,6 @@ namespace MonkeyBot.Services
         {
             client.Close();
             client.Dispose();
-        }        
+        }
     }
 }

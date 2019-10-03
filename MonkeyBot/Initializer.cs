@@ -20,43 +20,43 @@ namespace MonkeyBot
     {
         public static async Task<IServiceProvider> InitializeAsync(ApplicationArguments args)
         {
-            var services = ConfigureServices();
+            IServiceProvider services = ConfigureServices();
 
-            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
             LogManager.Configuration = SetupNLogConfig();
 
-            var logger = services.GetService<ILogger<MonkeyClient>>();
+            ILogger<MonkeyClient> logger = services.GetService<ILogger<MonkeyClient>>();
 
-            var client = services.GetService<DiscordSocketClient>();
+            DiscordSocketClient client = services.GetService<DiscordSocketClient>();
             await client.LoginAsync(TokenType.Bot, (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token).ConfigureAwait(false);
             await client.StartAsync().ConfigureAwait(false);
 
-            var manager = services.GetService<CommandManager>();
+            CommandManager manager = services.GetService<CommandManager>();
             await manager.StartAsync().ConfigureAwait(false);
 
-            var dbContext = services.GetRequiredService<MonkeyDBContext>();
+            MonkeyDBContext dbContext = services.GetRequiredService<MonkeyDBContext>();
             await DBInitializer.InitializeAsync(dbContext).ConfigureAwait(false);
 
-            var announcements = services.GetService<IAnnouncementService>();
+            IAnnouncementService announcements = services.GetService<IAnnouncementService>();
             await announcements.InitializeAsync().ConfigureAwait(false);
 
-            var steamGameServerService = services.GetService<SteamGameServerService>();
+            SteamGameServerService steamGameServerService = services.GetService<SteamGameServerService>();
             steamGameServerService.Initialize();
 
-            var minecraftGameServerService = services.GetService<MineCraftGameServerService>();
+            MineCraftGameServerService minecraftGameServerService = services.GetService<MineCraftGameServerService>();
             minecraftGameServerService.Initialize();
 
-            var gameSubscriptionService = services.GetService<IGameSubscriptionService>();
+            IGameSubscriptionService gameSubscriptionService = services.GetService<IGameSubscriptionService>();
             gameSubscriptionService.Initialize();
 
-            var roleButtonsService = services.GetService<IRoleButtonService>();
+            IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
             roleButtonsService.Initialize();
 
-            var feedService = services.GetService<IFeedService>();
+            IFeedService feedService = services.GetService<IFeedService>();
             feedService.Start();
 
-            var battlefieldNewsService = services.GetService<IBattlefieldNewsService>();
+            IBattlefieldNewsService battlefieldNewsService = services.GetService<IBattlefieldNewsService>();
             battlefieldNewsService.Start();
 
             if (args != null && args.BuildDocumentation)
@@ -133,7 +133,7 @@ namespace MonkeyBot
             services.AddSingleton<IDogService, DogService>();
             services.AddSingleton<IXkcdService, XkcdService>();
 
-            var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
+            IServiceProvider provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;
         }
     }

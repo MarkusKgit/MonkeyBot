@@ -2,9 +2,11 @@
 using Discord.Commands;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -76,7 +78,7 @@ namespace MonkeyBot.Modules
         [Example("!Subscriptions")]
         public async Task ListAllAsync()
         {
-            var subscriptions = await gameSubscriptionService.GetSubscriptionsForUser(Context.User.Id).ConfigureAwait(false);
+            IReadOnlyCollection<GameSubscription> subscriptions = await gameSubscriptionService.GetSubscriptionsForUser(Context.User.Id).ConfigureAwait(false);
             if (subscriptions == null || subscriptions.Count < 1)
             {
                 await ReplyAsync("You are not subscribed to any game").ConfigureAwait(false);

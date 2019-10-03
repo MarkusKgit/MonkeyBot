@@ -1,10 +1,12 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -47,8 +49,8 @@ namespace MonkeyBot.Services
 
         private async Task PostAllServerInfoAsync()
         {
-            var servers = await dbContext.GameServers.Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
-            foreach (var server in servers)
+            List<GameServer> servers = await dbContext.GameServers.Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
+            foreach (GameServer server in servers)
             {
                 try
                 {
@@ -63,15 +65,15 @@ namespace MonkeyBot.Services
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            var serverToRemove = await dbContext.GameServers.FirstOrDefaultAsync(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID).ConfigureAwait(false);
+            GameServer serverToRemove = await dbContext.GameServers.FirstOrDefaultAsync(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID).ConfigureAwait(false);
             if (serverToRemove == null)
                 throw new ArgumentException("The specified server does not exist");
             if (serverToRemove.MessageID != null)
             {
                 try
                 {
-                    var guild = discordClient.GetGuild(serverToRemove.GuildID);
-                    var channel = guild?.GetTextChannel(serverToRemove.ChannelID);
+                    SocketGuild guild = discordClient.GetGuild(serverToRemove.GuildID);
+                    ITextChannel channel = guild?.GetTextChannel(serverToRemove.ChannelID);
                     if (await (channel?.GetMessageAsync(serverToRemove.MessageID.Value)).ConfigureAwait(false) is Discord.Rest.RestUserMessage msg)
                     {
                         await msg.DeleteAsync().ConfigureAwait(false);

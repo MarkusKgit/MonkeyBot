@@ -11,11 +11,11 @@ namespace MonkeyBot.Services
 
         public CloudinaryPictureUploadService()
         {
-            var config = DiscordClientConfiguration.LoadAsync().GetAwaiter().GetResult();
+            DiscordClientConfiguration config = DiscordClientConfiguration.LoadAsync().GetAwaiter().GetResult();
 
             if (config.CloudinaryCredentials == null)
                 return;
-            Account account = new Account(
+            var account = new Account(
                 config.CloudinaryCredentials.Cloud,
                 config.CloudinaryCredentials.ApiKey,
                 config.CloudinaryCredentials.ApiSecret);
@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
                 PublicId = id
             };
 
-            var uploadResult = await Task.Run(() => cloudinary?.Upload(uploadParams)).ConfigureAwait(false);
+            ImageUploadResult uploadResult = await Task.Run(() => cloudinary?.Upload(uploadParams)).ConfigureAwait(false);
 
             return uploadResult?.SecureUri?.OriginalString ?? "";
         }

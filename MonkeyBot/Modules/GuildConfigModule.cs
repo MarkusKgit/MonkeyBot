@@ -172,7 +172,7 @@ namespace MonkeyBot.Modules
             await ToggleStreamingAnnouncementsAsync(true).ConfigureAwait(false);
             await ReplyAndDeleteAsync($"Streaming Notifications enabled! {Environment.NewLine}Use !AnnounceMyStreams to automatically have your streams broadcasted when you start streaming").ConfigureAwait(false);
         }
-        
+
         [Command("DisableStreamingNotifications")]
         [Remarks("Disables automated notifications of people that start streaming")]
         public async Task DisableStreamingNotificationsAsync()

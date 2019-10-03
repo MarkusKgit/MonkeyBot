@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -42,14 +43,14 @@ namespace MonkeyBot.Services
             try
             {
                 query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, logger);
-                var serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
+                MineQueryResult serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
                 if (serverInfo == null)
                     return false;
-                var guild = discordClient?.GetGuild(discordGameServer.GuildID);
-                var channel = guild?.GetTextChannel(discordGameServer.ChannelID);
+                SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
+                SocketTextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
                     return false;
-                var builder = new EmbedBuilder()
+                EmbedBuilder builder = new EmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"Minecraft Server ({discordGameServer.ServerIP.Address}:{discordGameServer.ServerIP.Port})")
                     .WithDescription($"Motd: {serverInfo.Description.Motd}");
@@ -124,7 +125,7 @@ namespace MonkeyBot.Services
                 }
                 else
                 {
-                    var message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+                    IUserMessage message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                     discordGameServer.MessageID = message.Id;
                     dbContext.GameServers.Update(discordGameServer);
                     await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -145,7 +146,7 @@ namespace MonkeyBot.Services
 
         private async Task<string> GenerateAndUploadChartAsync(string id, int currentPlayers, int maxPlayers)
         {
-            TimeSpan historyPeriod = TimeSpan.FromHours(12);
+            var historyPeriod = TimeSpan.FromHours(12);
             const string folder = "Gameservers";
 
             if (!Directory.Exists(folder))
@@ -153,8 +154,8 @@ namespace MonkeyBot.Services
             string baseFilePath = Path.Combine(folder, id);
             string storedValuesPath = $"{baseFilePath}.txt";
 
-            var now = DateTime.Now;
-            var minTime = now.Subtract(historyPeriod);
+            DateTime now = DateTime.Now;
+            DateTime minTime = now.Subtract(historyPeriod);
 
             var historicData = new List<HistoricData<int>>();
             if (File.Exists(storedValuesPath))

@@ -24,7 +24,7 @@ namespace MonkeyBot.Modules
         [Remarks("Gets a random Chuck Norris fact.")]
         public async Task GetChuckFactAsync()
         {
-            var fact = await (chuckService?.GetChuckFactAsync()).ConfigureAwait(false);
+            string fact = await (chuckService?.GetChuckFactAsync()).ConfigureAwait(false);
             if (fact.IsEmpty())
             {
                 await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
@@ -40,7 +40,7 @@ namespace MonkeyBot.Modules
             IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
                 return;
-            var fact = await (chuckService?.GetChuckFactAsync(username)).ConfigureAwait(false);
+            string fact = await (chuckService?.GetChuckFactAsync(username)).ConfigureAwait(false);
             if (fact.IsEmpty())
             {
                 await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);

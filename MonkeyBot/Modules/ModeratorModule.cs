@@ -2,6 +2,7 @@
 using Discord.Commands;
 using MonkeyBot.Common;
 using MonkeyBot.Preconditions;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,7 +32,7 @@ namespace MonkeyBot.Modules
                 count = 100;
             if (Context.Channel is ITextChannel channel)
             {
-                var msgs = await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false);
+                IEnumerable<IMessage> msgs = await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false);
                 await channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
             }
         }
@@ -57,7 +58,7 @@ namespace MonkeyBot.Modules
                 count = 100;
             if (Context.Channel is ITextChannel channel)
             {
-                var msgs = (await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false)).Where(x => x.Author.Id == user.Id);
+                IEnumerable<IMessage> msgs = (await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false)).Where(x => x.Author.Id == user.Id);
                 await channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
             }
         }

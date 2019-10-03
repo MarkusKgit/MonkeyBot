@@ -10,7 +10,7 @@ namespace MonkeyBot.Common
     {
         protected async Task ReplyAndDeleteAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, int delayMS = 5000)
         {
-            var msg = await Context.Channel.SendMessageAsync(message, isTTS, embed, options).ConfigureAwait(false);
+            IUserMessage msg = await Context.Channel.SendMessageAsync(message, isTTS, embed, options).ConfigureAwait(false);
             await Task.Delay(delayMS).ConfigureAwait(false);
             await Context.Channel.DeleteMessageAsync(msg).ConfigureAwait(false);
             await Context.Channel.DeleteMessageAsync(Context.Message).ConfigureAwait(false);
@@ -24,7 +24,7 @@ namespace MonkeyBot.Common
                 return null;
             }
             IGuildUser user = null;
-            if (userName.StartsWith("<@", StringComparison.InvariantCulture) && ulong.TryParse(userName.Replace("<@", "", StringComparison.InvariantCulture).Replace(">", "", StringComparison.InvariantCulture), out var id))
+            if (userName.StartsWith("<@", StringComparison.InvariantCulture) && ulong.TryParse(userName.Replace("<@", "", StringComparison.InvariantCulture).Replace(">", "", StringComparison.InvariantCulture), out ulong id))
             {
                 user = await Context.Guild.GetUserAsync(id).ConfigureAwait(false);
             }
@@ -84,8 +84,8 @@ namespace MonkeyBot.Common
         /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
         public async Task<IRole> GetManageRolesRoleAsync()
         {
-            var thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id).ConfigureAwait(false);
-            var ownrole = Context.Guild.Roles.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
+            IGuildUser thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id).ConfigureAwait(false);
+            IRole ownrole = Context.Guild.Roles.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
             return ownrole;
         }
     }

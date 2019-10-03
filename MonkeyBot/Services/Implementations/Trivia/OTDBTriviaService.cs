@@ -35,12 +35,12 @@ namespace MonkeyBot.Services
         public async Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context)
         {
             // Create a combination of guildID and channelID to form a unique identifier for each trivia instance
-            DiscordId id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
+            var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
                 trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
             }
-            if (trivias.TryGetValue(id, out var instance))
+            if (trivias.TryGetValue(id, out OTDBTriviaInstance instance))
             {
                 return await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
             }
@@ -68,8 +68,8 @@ namespace MonkeyBot.Services
                 return false;
             else
             {
-                var result = await trivias[id].StopTriviaAsync().ConfigureAwait(false);
-                if (trivias.TryRemove(id, out var instance))
+                bool result = await trivias[id].StopTriviaAsync().ConfigureAwait(false);
+                if (trivias.TryRemove(id, out OTDBTriviaInstance instance))
                 {
                     instance.Dispose();
                 }
