@@ -29,10 +29,8 @@ namespace MonkeyBot.Services
             this.logger = logger;
         }
 
-        public void Start()
-        {
-            schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync().ConfigureAwait(false), 10);
-        }
+        public void Start() 
+            => schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync().ConfigureAwait(false), 10);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {

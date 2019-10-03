@@ -207,9 +207,7 @@ namespace MonkeyBot.Modules
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        private async Task<GuildConfig> GetOrCreatConfigAsync(ulong guildId)
-        {
-            return (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false)) ?? new GuildConfig { GuildID = Context.Guild.Id };
-        }
+        private async Task<GuildConfig> GetOrCreatConfigAsync(ulong guildId) 
+            => (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false)) ?? new GuildConfig { GuildID = Context.Guild.Id };
     }
 }

@@ -88,10 +88,8 @@ namespace MonkeyBot.Common
         }
 
         //Converts all html encoded special characters
-        public static string CleanHtmlString(string html)
-        {
-            return System.Net.WebUtility.HtmlDecode(html);
-        }
+        public static string CleanHtmlString(string html) 
+            => System.Net.WebUtility.HtmlDecode(html);
 
         private static readonly string[] regionalIndicatorLetters = "🇦|🇧|🇨|🇩|🇪|🇫|🇬|🇭|🇮|🇯|🇰|🇱|🇲|🇳|🇴|🇵|🇶|🇷||🇸|🇹|🇺|🇻|🇼|🇽|🇾|🇿|".Split('|');
 

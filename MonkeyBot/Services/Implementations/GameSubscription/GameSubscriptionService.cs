@@ -21,10 +21,7 @@ namespace MonkeyBot.Services
             discordClient = client;
         }
 
-        public void Initialize()
-        {
-            discordClient.GuildMemberUpdated += Client_GuildMemberUpdatedAsync;
-        }
+        public void Initialize() => discordClient.GuildMemberUpdated += Client_GuildMemberUpdatedAsync;
 
         private async Task Client_GuildMemberUpdatedAsync(SocketUser before, SocketUser after)
         {
@@ -77,9 +74,7 @@ namespace MonkeyBot.Services
             await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID)
-        {
-            return (await dbContext.GameSubscriptions.Where(x => x.UserID == userID).ToListAsync().ConfigureAwait(false)).AsReadOnly();
-        }
+        public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID) 
+            => (await dbContext.GameSubscriptions.Where(x => x.UserID == userID).ToListAsync().ConfigureAwait(false)).AsReadOnly();
     }
 }

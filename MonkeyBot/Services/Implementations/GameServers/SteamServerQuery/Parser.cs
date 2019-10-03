@@ -111,10 +111,8 @@ namespace MonkeyBot.Services
                 throw new ParseException("skip count was outside the bounds of the byte array.");
         }
 
-        internal byte[] GetUnParsedBytes()
-        {
-            return data.Skip(currentPosition + 1).ToArray();
-        }
+        internal byte[] GetUnParsedBytes() 
+            => data.Skip(currentPosition + 1).ToArray();
     }
 
     /// <summary>

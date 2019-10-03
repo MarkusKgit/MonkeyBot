@@ -28,10 +28,8 @@ namespace MonkeyBot.Services
             this.logger = logger;
         }
 
-        public void Initialize()
-        {
-            JobManager.AddJob(async () => await PostAllServerInfoAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(1).Minutes());
-        }
+        public void Initialize() 
+            => JobManager.AddJob(async () => await PostAllServerInfoAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(1).Minutes());
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {

@@ -24,10 +24,8 @@ namespace MonkeyBot.Common
             UserId = userId;
         }
 
-        public override bool Equals(object obj)
-        {
-            return (obj is DiscordId) && Equals(obj as DiscordId);
-        }
+        public override bool Equals(object obj) 
+            => (obj is DiscordId) && Equals(obj as DiscordId);
 
         public bool Equals(DiscordId other)
         {

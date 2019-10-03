@@ -154,25 +154,17 @@ namespace MonkeyBot.Services
             }
         }
 
-        private Task AnnounceAsync(string message, ulong guildID, ulong channelID)
-        {
-            return MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
-        }
+        private Task AnnounceAsync(string message, ulong guildID, ulong channelID) 
+            => MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
 
-        private Task<List<Announcement>> GetAllAnnouncementsAsync()
-        {
-            return dbContext.Announcements.ToListAsync();
-        }
+        private Task<List<Announcement>> GetAllAnnouncementsAsync() 
+            => dbContext.Announcements.ToListAsync();
 
-        public Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
-        {
-            return dbContext.Announcements.Where(x => x.GuildID == guildID).ToListAsync();
-        }
+        public Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID) 
+            => dbContext.Announcements.Where(x => x.GuildID == guildID).ToListAsync();
 
-        private Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName)
-        {
-            return dbContext.Announcements.SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
-        }
+        private Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName) 
+            => dbContext.Announcements.SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
 
         // The announcment's name must be unique on a per guild basis
         private static string GetUniqueId(Announcement announcement) => $"{announcement.Name}-{announcement.GuildID}";

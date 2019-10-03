@@ -5,10 +5,8 @@ namespace MonkeyBot.Services
 {
     public class OTDBDifficultyConverter : JsonConverter
     {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(string);
-        }
+        public override bool CanConvert(Type objectType) 
+            => objectType == typeof(string);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {

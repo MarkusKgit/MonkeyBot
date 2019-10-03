@@ -30,15 +30,11 @@ namespace MonkeyBot.Documentation
             };
         }
 
-        private static string BuildHtmlDocumentation(CommandService commandService)
-        {
-            return BuildDocumentation(commandService, new HTMLFormatter());
-        }
+        private static string BuildHtmlDocumentation(CommandService commandService) 
+            => BuildDocumentation(commandService, new HTMLFormatter());
 
-        private static string BuildMarkdownDocumentation(CommandService commandService)
-        {
-            return BuildDocumentation(commandService, new MarkDownFormatter());
-        }
+        private static string BuildMarkdownDocumentation(CommandService commandService) 
+            => BuildDocumentation(commandService, new MarkDownFormatter());
 
         private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
         {

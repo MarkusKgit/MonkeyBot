@@ -135,10 +135,8 @@ namespace MonkeyBot.Services
             writeBuffer.Add((byte)value);
         }
 
-        internal void WriteShort(short value)
-        {
-            writeBuffer.AddRange(BitConverter.GetBytes(value));
-        }
+        internal void WriteShort(short value) 
+            => writeBuffer.AddRange(BitConverter.GetBytes(value));
 
         internal void WriteString(string data)
         {
