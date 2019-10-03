@@ -13,38 +13,34 @@ namespace MonkeyBot.Services
 
         public async Task<string> GetChuckFactAsync()
         {
-            using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync(randomJokeApiUrl).ConfigureAwait(false);
+            using var httpClient = new HttpClient();
+            var json = await httpClient.GetStringAsync(randomJokeApiUrl).ConfigureAwait(false);
 
-                if (!json.IsEmpty())
-                {
-                    var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
-                    if (chuckResponse.Type == "success" && chuckResponse.Value != null)
-                        return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);
-                }
-                return string.Empty;
+            if (!json.IsEmpty())
+            {
+                var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
+                if (chuckResponse.Type == "success" && chuckResponse.Value != null)
+                    return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);
             }
+            return string.Empty;
         }
 
         public async Task<string> GetChuckFactAsync(string userName)
         {
             if (userName.IsEmpty())
                 return string.Empty;
-            using (var httpClient = new HttpClient())
-            {
-                var url = new UriBuilder(randomJokeApiUrl);
-                url.Query = $"firstName={userName}";
-                var json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
+            using var httpClient = new HttpClient();
+            var url = new UriBuilder(randomJokeApiUrl);
+            url.Query = $"firstName={userName}";
+            var json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
 
-                if (!json.IsEmpty())
-                {
-                    var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
-                    if (chuckResponse.Type == "success" && chuckResponse.Value != null)
-                        return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
-                }
-                return string.Empty;
+            if (!json.IsEmpty())
+            {
+                var chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
+                if (chuckResponse.Type == "success" && chuckResponse.Value != null)
+                    return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke.Replace("Norris", "").Replace("  ", " "));
             }
+            return string.Empty;
         }
     }
 }

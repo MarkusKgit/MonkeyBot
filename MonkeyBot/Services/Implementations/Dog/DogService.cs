@@ -19,36 +19,32 @@ namespace MonkeyBot.Services
         {
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
-            using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
+            using var httpClient = new HttpClient();
+            var json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
 
-                if (!json.IsEmpty())
-                {
-                    var dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
-                    if (dogResponse.Status == "success" && dogResponse.Message != null)
-                        return dogResponse.Message;
-                }
-                return string.Empty;
+            if (!json.IsEmpty())
+            {
+                var dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
+                if (dogResponse.Status == "success" && dogResponse.Message != null)
+                    return dogResponse.Message;
             }
+            return string.Empty;
         }
 
         public async Task<List<string>> GetDogBreedsAsync()
         {
-            using (var httpClient = new HttpClient())
-            {
-                var json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
+            using var httpClient = new HttpClient();
+            var json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
 
-                if (!json.IsEmpty())
+            if (!json.IsEmpty())
+            {
+                var dogResponse = JsonConvert.DeserializeObject<DogBreedsResponse>(json);
+                if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
-                    var dogResponse = JsonConvert.DeserializeObject<DogBreedsResponse>(json);
-                    if (dogResponse.Status == "success" && dogResponse.Message != null)
-                    {
-                        return dogResponse.Message.Keys.ToList();
-                    }
+                    return dogResponse.Message.Keys.ToList();
                 }
-                return Enumerable.Empty<string>().ToList();
             }
+            return Enumerable.Empty<string>().ToList();
         }
     }
 }

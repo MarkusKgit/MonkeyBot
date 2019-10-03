@@ -106,16 +106,14 @@ namespace MonkeyBot.Services
             if (!client.Client.Connected)
                 await client.Client.ConnectAsync(EndPoint).ConfigureAwait(false);
             await client.SendAsync(Query, Query.Length, EndPoint).ConfigureAwait(false);
-            using (var cts = new CancellationTokenSource())
-            {
-                client.Client.ReceiveTimeout = 2000;
-                cts.CancelAfter(2000);
+            using var cts = new CancellationTokenSource();
+            client.Client.ReceiveTimeout = 2000;
+            cts.CancelAfter(2000);
 
-                var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
-                byte[] result = new byte[response.Buffer.Length - 4];
-                response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
-                return result;
-            }
+            var response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
+            byte[] result = new byte[response.Buffer.Length - 4];
+            response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
+            return result;
         }
 
         public void Dispose()

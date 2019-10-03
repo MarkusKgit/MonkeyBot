@@ -41,17 +41,15 @@ namespace MonkeyBot.Services
 
         private async Task<XkcdResponse> GetComicAsync(Uri apiEndPoint)
         {
-            using (var http = new HttpClient())
-            {                
-                try
-                {
-                    string response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<XkcdResponse>(response);
-                }
-                catch
-                {
-                    return null;
-                }
+            using var http = new HttpClient();
+            try
+            {
+                string response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
+                return JsonConvert.DeserializeObject<XkcdResponse>(response);
+            }
+            catch
+            {
+                return null;
             }
         }
     }

@@ -88,10 +88,8 @@ namespace MonkeyBot.Services
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (id.GuildId == null || !trivias.ContainsKey(id))
             {
-                using (var trivia = new OTDBTriviaInstance(context, dbContext))
-                {
-                    return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
-                }
+                using var trivia = new OTDBTriviaInstance(context, dbContext);
+                return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
             }
             else
                 return await trivias[id].GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
