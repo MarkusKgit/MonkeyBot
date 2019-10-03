@@ -6,7 +6,7 @@ namespace MonkeyBot.Services
 {
     internal class Parser
     {
-        private byte[] data = null;
+        private readonly byte[] data = null;
         private int currentPosition = -1;
         private readonly int lastPosition = 0;
 

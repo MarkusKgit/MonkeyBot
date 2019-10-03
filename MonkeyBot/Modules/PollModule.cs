@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class PollModule : InteractiveBase
     {
-        private static TimeSpan pollDuration = TimeSpan.FromHours(1);
+        private static readonly TimeSpan pollDuration = TimeSpan.FromHours(1);
 
         public PollModule()
         {
