@@ -30,8 +30,10 @@ namespace MonkeyBot.Services
             if (userName.IsEmpty())
                 return string.Empty;
             using var httpClient = new HttpClient();
-            var url = new UriBuilder(randomJokeApiUrl);
-            url.Query = $"firstName={userName}";
+            var url = new UriBuilder(randomJokeApiUrl)
+            {
+                Query = $"firstName={userName}"
+            };
             string json = await httpClient.GetStringAsync(url.Uri).ConfigureAwait(false);
 
             if (!json.IsEmpty())

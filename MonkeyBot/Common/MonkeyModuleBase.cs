@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,7 +31,7 @@ namespace MonkeyBot.Common
             }
             else
             {
-                var users = (await (Context.Guild?.GetUsersAsync()).ConfigureAwait(false))?.Where(x => x.Username.Contains(userName, StringComparison.OrdinalIgnoreCase));
+                IEnumerable<IGuildUser> users = (await (Context.Guild?.GetUsersAsync()).ConfigureAwait(false))?.Where(x => x.Username.Contains(userName, StringComparison.OrdinalIgnoreCase));
                 if (users != null && users.Count() == 1)
                     user = users.First();
                 else if (users == null)
@@ -51,7 +52,7 @@ namespace MonkeyBot.Common
                 await ReplyAsync("Please provide the name of the channel").ConfigureAwait(false);
                 return null;
             }
-            var allChannels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
+            IReadOnlyCollection<ITextChannel> allChannels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
             ITextChannel channel = null;
             if (!channelName.IsEmpty())
             {

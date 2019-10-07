@@ -9,6 +9,7 @@ using MonkeyBot.Documentation;
 using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -98,7 +99,7 @@ namespace MonkeyBot
             {
                 case CommandError.UnknownCommand:
                     {
-                        var possibleCommands =
+                        List<string> possibleCommands =
                         commandService
                             .Modules
                             .SelectMany(module => module.Commands)

@@ -73,7 +73,7 @@ namespace MonkeyBot.Common
         public static async Task<RestUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
             IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
-            var channel = await (guild?.GetChannelAsync(channelID)).ConfigureAwait(false) as SocketTextChannel;
+            SocketTextChannel channel = await (guild?.GetChannelAsync(channelID)).ConfigureAwait(false) as SocketTextChannel;
             return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 

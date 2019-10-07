@@ -123,7 +123,7 @@ namespace MonkeyBot.Services
             else
                 lastUpdateUTC = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
             IEnumerable<FeedItem> allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
-            var updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC).OrderBy(x => x.PublishingDate).ToList();
+            List<FeedItem> updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC).OrderBy(x => x.PublishingDate).ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
                 updatedFeeds = allFeeds.Take(1).ToList();
             if (updatedFeeds != null && updatedFeeds.Count > 0)

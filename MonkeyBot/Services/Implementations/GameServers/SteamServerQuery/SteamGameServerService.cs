@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,7 +33,7 @@ namespace MonkeyBot.Services
             {
                 server = new SteamGameServer(discordGameServer.ServerIP);
                 SteamServerInfo serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
-                var playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
+                List<PlayerInfo> playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
                     return false;
                 SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);

@@ -5,6 +5,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -44,7 +45,7 @@ namespace MonkeyBot.Documentation
             foreach (ModuleInfo module in commandService.Modules)
             {
                 builder.AppendLine(f.H3(module.Name));
-                var modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
+                List<string> modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                 if (modulePreconditions != null && modulePreconditions.Count > 0)
                 {
                     builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
@@ -63,7 +64,7 @@ namespace MonkeyBot.Documentation
                     {
                         builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));
                     }
-                    var commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
+                    List<string> commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                     if (commandPreconditions != null && commandPreconditions.Count > 0)
                     {
                         builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
@@ -109,12 +110,12 @@ namespace MonkeyBot.Documentation
                 }
                 if (guildPermission != null && guildPermission.HasValue)
                 {
-                    var guildPermissions = guildPermission.Value.ToString().Split(',').Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag)).ToList();
+                    List<GuildPermission> guildPermissions = guildPermission.Value.ToString().Split(',').Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag)).ToList();
                     permission += $"{prefix} requires guild permission{(guildPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(gp => gp.Humanize(LetterCasing.Title))))} ";
                 }
                 if (channelPermission != null && channelPermission.HasValue)
                 {
-                    var channelPermissions = channelPermission.Value.ToString().Split(',').Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag)).ToList();
+                    List<ChannelPermission> channelPermissions = channelPermission.Value.ToString().Split(',').Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag)).ToList();
                     permission += $"{prefix} requires channel permission{(channelPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(cp => cp.Humanize(LetterCasing.Title))))} ";
                 }
                 return permission.Trim();

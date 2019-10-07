@@ -136,7 +136,7 @@ namespace MonkeyBot.Modules
             if (poll == null)
                 return;
             IEnumerable<string> answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
-            var participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
+            List<IUser> participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
             string participantsString = "-";
             if (participants != null && participants.Count > 0)
                 participantsString = string.Join(", ", participants?.Select(x => x.Mention));
