@@ -36,16 +36,14 @@ namespace MonkeyBot.Common
                 {
                     user = users.First();
                 }
-                else if (users == null)
-                {
-                    _ = await ReplyAsync("User not found").ConfigureAwait(false);
-                }
                 else
                 {
-                    _ = await ReplyAsync("Multiple users found! Please be more specific. Did you mean one of the following:"
-                                         + Environment.NewLine
-                                         + string.Join(", ", users.Select(x => x.Username))
-                        ).ConfigureAwait(false);
+                    _ = users == null
+                        ? await ReplyAsync("User not found").ConfigureAwait(false)
+                        : await ReplyAsync("Multiple users found! Please be more specific. Did you mean one of the following:"
+                                           + Environment.NewLine
+                                           + string.Join(", ", users.Select(x => x.Username))
+                                          ).ConfigureAwait(false);
                 }
             }
             return user;

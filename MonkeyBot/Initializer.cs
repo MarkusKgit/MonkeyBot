@@ -23,7 +23,7 @@ namespace MonkeyBot
             IServiceProvider services = ConfigureServices();
 
             ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
-            loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+            _ = loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
             LogManager.Configuration = SetupNLogConfig();
 
             ILogger<MonkeyClient> logger = services.GetService<ILogger<MonkeyClient>>();
@@ -110,28 +110,28 @@ namespace MonkeyBot
 
         private static IServiceProvider ConfigureServices()
         {
-            var services = new ServiceCollection();
-            services.AddSingleton<ILoggerFactory, LoggerFactory>();
-            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-            services.AddLogging((builder) => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace));
-            services.AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient);
-            services.AddSingleton<DiscordSocketClient, MonkeyClient>();
-            services.AddSingleton<InteractiveService>();
-            services.AddSingleton<CommandService, MonkeyCommandService>();
-            services.AddSingleton<CommandManager>();
-            services.AddSingleton<ISchedulingService, SchedulingService>();
-            services.AddSingleton<IAnnouncementService, AnnouncementService>();
-            services.AddSingleton<ITriviaService, OTDBTriviaService>();
-            services.AddSingleton<IFeedService, FeedService>();
-            services.AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>();
-            services.AddSingleton<SteamGameServerService>();
-            services.AddSingleton<MineCraftGameServerService>();
-            services.AddSingleton<IGameSubscriptionService, GameSubscriptionService>();
-            services.AddSingleton<IRoleButtonService, RoleButtonService>();
-            services.AddSingleton<IChuckService, ChuckService>();
-            services.AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>();
-            services.AddSingleton<IDogService, DogService>();
-            services.AddSingleton<IXkcdService, XkcdService>();
+            IServiceCollection services = new ServiceCollection()
+                .AddSingleton<ILoggerFactory, LoggerFactory>()
+                .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
+                .AddLogging((builder) => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace))
+                .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
+                .AddSingleton<DiscordSocketClient, MonkeyClient>()
+                .AddSingleton<InteractiveService>()
+                .AddSingleton<CommandService, MonkeyCommandService>()
+                .AddSingleton<CommandManager>()
+                .AddSingleton<ISchedulingService, SchedulingService>()
+                .AddSingleton<IAnnouncementService, AnnouncementService>()
+                .AddSingleton<ITriviaService, OTDBTriviaService>()
+                .AddSingleton<IFeedService, FeedService>()
+                .AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>()
+                .AddSingleton<SteamGameServerService>()
+                .AddSingleton<MineCraftGameServerService>()
+                .AddSingleton<IGameSubscriptionService, GameSubscriptionService>()
+                .AddSingleton<IRoleButtonService, RoleButtonService>()
+                .AddSingleton<IChuckService, ChuckService>()
+                .AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>()
+                .AddSingleton<IDogService, DogService>()
+                .AddSingleton<IXkcdService, XkcdService>();
 
             IServiceProvider provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;

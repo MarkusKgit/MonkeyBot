@@ -60,14 +60,9 @@ namespace MonkeyBot.Services
                     .WithTitle($"Minecraft Server ({discordGameServer.ServerIP.Address}:{discordGameServer.ServerIP.Port})")
                     .WithDescription($"Motd: {serverInfo.Description.Motd}");
 
-                if (serverInfo.Players.Sample != null && serverInfo.Players.Sample.Count > 0)
-                {
-                    _ = builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)));
-                }
-                else
-                {
-                    _ = builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
-                }
+                _ = serverInfo.Players.Sample != null && serverInfo.Players.Sample.Count > 0
+                    ? builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)))
+                    : builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {

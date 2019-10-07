@@ -98,7 +98,7 @@ namespace MonkeyBot.Services
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID).ConfigureAwait(false);
-                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
+                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
                         return false;
                     }
                 }
