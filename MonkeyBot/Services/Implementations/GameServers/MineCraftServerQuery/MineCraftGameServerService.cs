@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -38,18 +37,24 @@ namespace MonkeyBot.Services
         protected override async Task<bool> PostServerInfoAsync(GameServer discordGameServer)
         {
             if (discordGameServer == null)
+            {
                 return false;
+            }
             MineQuery query = null;
             try
             {
                 query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, logger);
                 MineQueryResult serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
                 if (serverInfo == null)
+                {
                     return false;
+                }
                 SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
                 SocketTextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
+                {
                     return false;
+                }
                 EmbedBuilder builder = new EmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"Minecraft Server ({discordGameServer.ServerIP.Address}:{discordGameServer.ServerIP.Port})")
@@ -57,18 +62,18 @@ namespace MonkeyBot.Services
 
                 if (serverInfo.Players.Sample != null && serverInfo.Players.Sample.Count > 0)
                 {
-                    builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)));
+                    _ = builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)));
                 }
                 else
                 {
-                    builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
+                    _ = builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
                 }
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version.Name;
-                    dbContext.GameServers.Update(discordGameServer);
-                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = dbContext.GameServers.Update(discordGameServer);
+                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -76,15 +81,17 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        dbContext.GameServers.Update(discordGameServer);
-                        await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                        _ = dbContext.GameServers.Update(discordGameServer);
+                        _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
                 string lastServerUpdate = "";
                 if (discordGameServer.LastVersionUpdate.HasValue)
+                {
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
+                }
 
-                builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
+                _ = builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
                 // Generate chart every full 5 minutes (limit picture upload API calls)
                 string pictureUrl = "";
@@ -97,7 +104,7 @@ namespace MonkeyBot.Services
 
                     if (!pictureUrl.IsEmptyOrWhiteSpace())
                     {
-                        builder.WithImageUrl(pictureUrl);
+                        _ = builder.WithImageUrl(pictureUrl);
                     }
                 }
 
@@ -110,7 +117,7 @@ namespace MonkeyBot.Services
                             //Reuse old image url if new one is not set
                             if (pictureUrl.IsEmptyOrWhiteSpace() && existingMessage.Embeds.FirstOrDefault() != null && existingMessage.Embeds.First().Image.HasValue)
                             {
-                                builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
+                                _ = builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
                             }
                             x.Embed = builder.Build();
                         }).ConfigureAwait(false);
@@ -119,7 +126,7 @@ namespace MonkeyBot.Services
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID).ConfigureAwait(false);
-                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
+                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
                         return false;
                     }
                 }
@@ -127,8 +134,8 @@ namespace MonkeyBot.Services
                 {
                     IUserMessage message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                     discordGameServer.MessageID = message.Id;
-                    dbContext.GameServers.Update(discordGameServer);
-                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = dbContext.GameServers.Update(discordGameServer);
+                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -139,7 +146,9 @@ namespace MonkeyBot.Services
             finally
             {
                 if (query != null)
+                {
                     query.Dispose();
+                }
             }
             return true;
         }
@@ -150,7 +159,10 @@ namespace MonkeyBot.Services
             const string folder = "Gameservers";
 
             if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
+            {
+                _ = Directory.CreateDirectory(folder);
+            }
+
             string baseFilePath = Path.Combine(folder, id);
             string storedValuesPath = $"{baseFilePath}.txt";
 
@@ -193,11 +205,8 @@ namespace MonkeyBot.Services
             };
             double tickSpan = historyPeriod.TotalHours;
 
-            List<PointF> transformedValues = historicData
-                .Select(d => new PointF(
-                    (float)d.Time.Subtract(minTime).TotalHours,
-                    d.Value))
-                .ToList();
+            List<PointF> transformedValues = historicData.Select(d => new PointF((float)d.Time.Subtract(minTime).TotalHours, d.Value))
+                                                         .ToList();
 
             string pictureFilePath = $"{baseFilePath}.png";
 

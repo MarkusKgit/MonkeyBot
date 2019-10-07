@@ -59,7 +59,10 @@ namespace MonkeyBot.Services
         {
             Schedule job = JobManager.GetSchedule(jobID);
             if (job == null)
+            {
                 throw new ArgumentException($"The specified job with id {jobID} does not exist", nameof(jobID));
+            }
+
             return job.NextRun;
         }
 

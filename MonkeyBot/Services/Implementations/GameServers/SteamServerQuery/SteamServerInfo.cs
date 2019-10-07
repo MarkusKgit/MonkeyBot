@@ -121,7 +121,10 @@ namespace MonkeyBot.Services
             SteamServerInfo serverInfo = null;
             var parser = new Parser(data);
             if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_INFO)
+            {
                 throw new Exception("A2S_INFO message header is not valid");
+            }
+
             serverInfo = new SteamServerInfo
             {
                 Protocol = parser.ReadByte(),
@@ -133,27 +136,23 @@ namespace MonkeyBot.Services
                 Players = parser.ReadByte(),
                 MaxPlayers = parser.ReadByte(),
                 Bots = parser.ReadByte(),
-                ServerType = new Func<GameServertype>(() =>
-                {
-                    return ((char)parser.ReadByte()) switch
+                ServerType = new Func<GameServertype>(() 
+                    => ((char)parser.ReadByte()) switch
                     {
                         'l' => GameServertype.Listen,
                         'd' => GameServertype.Dedicated,
                         'p' => GameServertype.SourceTV,
                         _ => GameServertype.Invalid,
-                    };
-                })(),
-                Environment = new Func<GameEnvironment>(() =>
-                {
-                    return ((char)parser.ReadByte()) switch
+                    })(),
+                Environment = new Func<GameEnvironment>(() 
+                    => ((char)parser.ReadByte()) switch
                     {
                         'l' => GameEnvironment.Linux,
                         'w' => GameEnvironment.Windows,
                         'm' => GameEnvironment.Mac,
                         'o' => GameEnvironment.Mac,
                         _ => GameEnvironment.Invalid,
-                    };
-                })(),
+                    })(),
                 IsPrivate = parser.ReadByte() > 0,
                 IsSecure = parser.ReadByte() > 0,
 

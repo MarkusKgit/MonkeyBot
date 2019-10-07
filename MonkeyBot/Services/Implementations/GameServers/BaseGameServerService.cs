@@ -37,8 +37,8 @@ namespace MonkeyBot.Services
             bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
             if (success)
             {
-                dbContext.Add(server);
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = dbContext.Add(server);
+                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
             return success;
         }
@@ -52,7 +52,7 @@ namespace MonkeyBot.Services
             {
                 try
                 {
-                    await PostServerInfoAsync(server).ConfigureAwait(false);
+                    _ = await PostServerInfoAsync(server).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -65,7 +65,9 @@ namespace MonkeyBot.Services
         {
             GameServer serverToRemove = await dbContext.GameServers.FirstOrDefaultAsync(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID).ConfigureAwait(false);
             if (serverToRemove == null)
+            {
                 throw new ArgumentException("The specified server does not exist");
+            }
             if (serverToRemove.MessageID != null)
             {
                 try
@@ -82,8 +84,8 @@ namespace MonkeyBot.Services
                     logger.LogError(e, $"Error trying to remove message for game server {endPoint.Address}");
                 }
             }
-            dbContext.GameServers.Remove(serverToRemove);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = dbContext.GameServers.Remove(serverToRemove);
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

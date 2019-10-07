@@ -27,7 +27,10 @@ namespace MonkeyBot.Services
         protected override async Task<bool> PostServerInfoAsync(GameServer discordGameServer)
         {
             if (discordGameServer == null)
+            {
                 return false;
+            }
+
             SteamGameServer server = null;
             try
             {
@@ -35,27 +38,34 @@ namespace MonkeyBot.Services
                 SteamServerInfo serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
                 List<PlayerInfo> playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
                 if (serverInfo == null || playerInfo == null)
+                {
                     return false;
+                }
                 SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
                 ITextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
+                {
                     return false;
-                var builder = new EmbedBuilder();
-                builder.WithColor(new Color(21, 26, 35));
-                builder.WithTitle($"{serverInfo.Description} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})");
-                builder.WithDescription(serverInfo.Name);
-                builder.AddField("Online Players", $"{playerInfo.Count}/{serverInfo.MaxPlayers}");
-                builder.AddField("Current Map", serverInfo.Map);
+                }
+                var builder = new EmbedBuilder()
+                    .WithColor(new Color(21, 26, 35))
+                    .WithTitle($"{serverInfo.Description} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
+                    .WithDescription(serverInfo.Name)
+                    .AddField("Online Players", $"{playerInfo.Count}/{serverInfo.MaxPlayers}")
+                    .AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null && playerInfo.Count > 0)
-                    builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)));
+                {
+                    _ = builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)));
+                }
+
                 string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
-                builder.AddField("Connect", $"[Click to connect]({connectLink})");
+                _ = builder.AddField("Connect", $"[Click to connect]({connectLink})");
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.GameVersion;
-                    dbContext.GameServers.Update(discordGameServer);
-                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = dbContext.GameServers.Update(discordGameServer);
+                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -63,18 +73,21 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.GameVersion;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        dbContext.GameServers.Update(discordGameServer);
-                        await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                        _ = dbContext.GameServers.Update(discordGameServer);
+                        _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
 
 
                 string lastServerUpdate = "";
                 if (discordGameServer.LastVersionUpdate.HasValue)
+                {
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
-                builder.AddField("Server version", $"{serverInfo.GameVersion}{lastServerUpdate}");
+                }
 
-                builder.WithFooter($"Last check: {DateTime.Now}");
+                _ = builder.AddField("Server version", $"{serverInfo.GameVersion}{lastServerUpdate}");
+                _ = builder.WithFooter($"Last check: {DateTime.Now}");
+
                 if (discordGameServer.MessageID.HasValue)
                 {
                     if (await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
@@ -92,8 +105,8 @@ namespace MonkeyBot.Services
                 else
                 {
                     discordGameServer.MessageID = (await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false)).Id;
-                    dbContext.GameServers.Update(discordGameServer);
-                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = dbContext.GameServers.Update(discordGameServer);
+                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -104,7 +117,9 @@ namespace MonkeyBot.Services
             finally
             {
                 if (server != null)
+                {
                     server.Dispose();
+                }
             }
             return true;
         }

@@ -21,7 +21,7 @@ namespace MonkeyBot.Common
         {
             if (userName.IsEmptyOrWhiteSpace())
             {
-                await ReplyAsync("Please provide a name").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a name").ConfigureAwait(false);
                 return null;
             }
             IGuildUser user = null;
@@ -33,14 +33,20 @@ namespace MonkeyBot.Common
             {
                 IEnumerable<IGuildUser> users = (await (Context.Guild?.GetUsersAsync()).ConfigureAwait(false))?.Where(x => x.Username.Contains(userName, StringComparison.OrdinalIgnoreCase));
                 if (users != null && users.Count() == 1)
+                {
                     user = users.First();
+                }
                 else if (users == null)
-                    await ReplyAsync("User not found").ConfigureAwait(false);
+                {
+                    _ = await ReplyAsync("User not found").ConfigureAwait(false);
+                }
                 else
-                    await ReplyAsync("Multiple users found! Please be more specific. Did you mean one of the following:"
-                        + Environment.NewLine
-                        + string.Join(", ", users.Select(x => x.Username))
+                {
+                    _ = await ReplyAsync("Multiple users found! Please be more specific. Did you mean one of the following:"
+                                         + Environment.NewLine
+                                         + string.Join(", ", users.Select(x => x.Username))
                         ).ConfigureAwait(false);
+                }
             }
             return user;
         }
@@ -49,21 +55,17 @@ namespace MonkeyBot.Common
         {
             if (channelName.IsEmptyOrWhiteSpace() && !defaultToCurrent)
             {
-                await ReplyAsync("Please provide the name of the channel").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide the name of the channel").ConfigureAwait(false);
                 return null;
             }
             IReadOnlyCollection<ITextChannel> allChannels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
-            ITextChannel channel = null;
-            if (!channelName.IsEmpty())
-            {
-                channel = allChannels.FirstOrDefault(x => x.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase));
-            }
-            else if (defaultToCurrent)
-            {
-                channel = Context.Channel as ITextChannel;
-            }
+            ITextChannel channel = !channelName.IsEmpty()
+                ? allChannels.FirstOrDefault(x => x.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase))
+                : defaultToCurrent ? Context.Channel as ITextChannel : null;
             if (channel == null)
-                await ReplyAsync("The specified channel does not exist").ConfigureAwait(false);
+            {
+                _ = await ReplyAsync("The specified channel does not exist").ConfigureAwait(false);
+            }
             return channel;
         }
 
@@ -71,13 +73,13 @@ namespace MonkeyBot.Common
         {
             if (roleName.IsEmptyOrWhiteSpace())
             {
-                await ReplyAsync("Please provide the name of the role").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide the name of the role").ConfigureAwait(false);
                 return null;
             }
             IRole role = Context.Guild.Roles.FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (role == null)
             {
-                await ReplyAsync("The role you specified is invalid!").ConfigureAwait(false);
+                _ = await ReplyAsync("The role you specified is invalid!").ConfigureAwait(false);
             }
             return role;
         }

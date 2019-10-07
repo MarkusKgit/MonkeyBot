@@ -10,30 +10,23 @@ namespace MonkeyBot.Services
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if ((string)reader.Value == "boolean")
-                return TriviaQuestionType.TrueFalse;
-            else if ((string)reader.Value == "multiple")
-                return TriviaQuestionType.MultipleChoice;
-            else
-                return null;
+            return (string)reader.Value switch
+            {
+                "boolean" => TriviaQuestionType.TrueFalse,
+                "multiple" => TriviaQuestionType.MultipleChoice,
+                _ => throw new ParseException("Unknown question type")
+            };
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var questionType = (TriviaQuestionType)value;
-            switch (questionType)
+            writer.WriteValue(questionType switch
             {
-                case TriviaQuestionType.TrueFalse:
-                    writer.WriteValue("boolean");
-                    break;
-
-                case TriviaQuestionType.MultipleChoice:
-                    writer.WriteValue("multiple");
-                    break;
-
-                default:
-                    break;
-            }
+                TriviaQuestionType.TrueFalse => "boolean",
+                TriviaQuestionType.MultipleChoice => "multiple",
+                _ => throw new ArgumentException($"Didn't expect question type {questionType}")
+            });
         }
     }
 }

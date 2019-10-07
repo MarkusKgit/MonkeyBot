@@ -18,11 +18,11 @@ namespace MonkeyBot.Modules
         {
             if (searchText.IsEmptyOrWhiteSpace())
             {
-                await ReplyAsync("You have to provide a search text").ConfigureAwait(false);
+                _ = await ReplyAsync("You have to provide a search text").ConfigureAwait(false);
                 return;
             }
             string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
-            await ReplyAsync(url).ConfigureAwait(false);
+            _ = await ReplyAsync(url).ConfigureAwait(false);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace MonkeyBot.Modules
             question = question.Trim('\"');
             if (question.IsEmpty())
             {
-                await ReplyAsync("Please enter a question").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
             var poll = new Poll
@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
                     new PollAnswer("Don't care", new Emoji("🤷"))
                 }
             };
-            await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
+            _ = await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
         }
 
         [Command("Poll")]
@@ -71,18 +71,18 @@ namespace MonkeyBot.Modules
             }
             if (answers.Length < 2)
             {
-                await ReplyAsync("Please provide at least 2 answers").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide at least 2 answers").ConfigureAwait(false);
                 return;
             }
             if (answers.Length > 7)
             {
-                await ReplyAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
                 return;
             }
             question = question.Trim('\"');
             if (question.IsEmptyOrWhiteSpace())
             {
-                await ReplyAsync("Please enter a question").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
 
@@ -93,7 +93,7 @@ namespace MonkeyBot.Modules
                 Question = question,
                 Answers = answers.Select((ans, i) => new PollAnswer(ans, new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(i)))).ToList()
             };
-            await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
+            _ = await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
         }
 
         private static ReactionCallbackData GeneratePoll(Poll poll)
@@ -113,7 +113,7 @@ namespace MonkeyBot.Modules
             var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll).ConfigureAwait(false));
             foreach (Emoji answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
             {
-                rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(r, poll));
+                _ = rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(r, poll));
             }
             return rcbd;
         }
@@ -122,32 +122,40 @@ namespace MonkeyBot.Modules
         {
             PollAnswer answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
             if (answer != null && reaction.User.IsSpecified)
-                poll.ReactionUsers.AddOrUpdate(answer, new List<IUser> { reaction.User.Value }, (_, list) =>
-                    {
-                        list.Add(reaction.User.Value);
-                        return list;
-                    }
+            {
+                _ = poll.ReactionUsers.AddOrUpdate(
+                        answer,
+                        new List<IUser> { reaction.User.Value }, 
+                        (_, list) =>
+                          {
+                              list.Add(reaction.User.Value);
+                              return list;
+                          }
                 );
+            }
             return Task.CompletedTask;
         }
 
         private static async Task PollEndedAsync(SocketCommandContext context, Poll poll)
         {
             if (poll == null)
+            {
                 return;
+            }
             IEnumerable<string> answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
             List<IUser> participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
             string participantsString = "-";
             if (participants != null && participants.Count > 0)
+            {
                 participantsString = string.Join(", ", participants?.Select(x => x.Mention));
-
+            }
             var embedBuilder = new EmbedBuilder()
                 .WithTitle($"Poll ended: {poll.Question}")
                 .WithColor(new Color(20, 20, 20))
                 .AddField("Results", string.Join(Environment.NewLine, answerCounts))
                 .AddField("Voters", participantsString);
 
-            await context.Channel.SendMessageAsync("", embed: embedBuilder.Build()).ConfigureAwait(false);
+            _ = await context.Channel.SendMessageAsync("", embed: embedBuilder.Build()).ConfigureAwait(false);
         }
     }
 }

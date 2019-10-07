@@ -26,7 +26,9 @@ namespace MonkeyBot.Services
             {
                 DogResponse dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
+                {
                     return dogResponse.Message;
+                }
             }
             return string.Empty;
         }

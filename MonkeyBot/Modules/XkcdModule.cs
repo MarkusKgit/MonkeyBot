@@ -27,15 +27,9 @@ namespace MonkeyBot.Modules
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
         public async Task GetXkcdAsync(string arg = "")
         {
-            XkcdResponse comic;
-            if (!string.IsNullOrEmpty(arg) && arg.Equals("latest", StringComparison.OrdinalIgnoreCase))
-            {
-                comic = await xkcdService.GetLatestComicAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                comic = await xkcdService.GetRandomComicAsync().ConfigureAwait(false);
-            }
+            XkcdResponse comic = !string.IsNullOrEmpty(arg) && arg.Equals("latest", StringComparison.OrdinalIgnoreCase)
+                ? await xkcdService.GetLatestComicAsync().ConfigureAwait(false)
+                : await xkcdService.GetRandomComicAsync().ConfigureAwait(false);
             await EmbedComicAsync(comic, Context.Channel).ConfigureAwait(false);
         }
 
@@ -53,7 +47,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentOutOfRangeException)
             {
-                await ReplyAsync("The specified comic does not exist!").ConfigureAwait(false);
+                _ = await ReplyAsync("The specified comic does not exist!").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -65,19 +59,21 @@ namespace MonkeyBot.Modules
         private async Task EmbedComicAsync(XkcdResponse comic, IMessageChannel channel)
         {
             if (comic == null)
+            {
                 return;
-            var builder = new EmbedBuilder();
+            }
             string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
-            builder.WithImageUrl(comic.ImgUrl.ToString());
-            builder.WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", comicUrl);
-            builder.WithTitle(comic.SafeTitle);
-            builder.WithDescription(comic.Alt);
+            var builder = new EmbedBuilder()
+                .WithImageUrl(comic.ImgUrl.ToString())
+                .WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", comicUrl)
+                .WithTitle(comic.SafeTitle)
+                .WithDescription(comic.Alt);
             if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
             {
                 var date = new DateTime(year, month, day);
-                builder.WithFooter(date.ToString("yyyy-MM-dd"));
+                _ = builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
-            await channel.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            _ = await channel.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
         }
     }
 }

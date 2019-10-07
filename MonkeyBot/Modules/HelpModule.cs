@@ -42,27 +42,29 @@ namespace MonkeyBot.Modules
                     PreconditionResult result = await cmd.CheckPreconditionsAsync(Context).ConfigureAwait(false);
                     if (result.IsSuccess)
                     {
-                        string parameters = string.Empty;
-                        if (cmd.Parameters != null && cmd.Parameters.Count > 0)
-                            parameters = $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*";
-                        builder.AppendLine($"{prefix}{cmd.Aliases[0]}  {parameters}");
+                        string parameters = cmd.Parameters != null && cmd.Parameters.Count > 0
+                            ? $"*{string.Join(" ", cmd.Parameters.Select(x => x.Name))}*"
+                            : string.Empty;
+                        _ = builder.AppendLine($"{prefix}{cmd.Aliases[0]}  {parameters}");
                     }
                 }
                 string description = builder.ToString();
 
                 if (!description.IsEmptyOrWhiteSpace())
                 {
-                    embedBuilder.AddField(x =>
-                    {
-                        x.Name = module.Name;
-                        x.Value = description;
-                        x.IsInline = false;
-                    });
+                    _ = embedBuilder.AddField(x =>
+                      {
+                          x.Name = module.Name;
+                          x.Value = description;
+                          x.IsInline = false;
+                      });
                 }
             }
-            await Context.User.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
+            _ = await Context.User.SendMessageAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
             if (Context.Channel is IGuildChannel)
+            {
                 await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
+            }
         }
 
         [Command("help")]
@@ -74,7 +76,7 @@ namespace MonkeyBot.Modules
 
             if (!result.IsSuccess)
             {
-                await Context.User.SendMessageAsync($"Sorry, I couldn't find a command like **{command}**.").ConfigureAwait(false);
+                _ = await Context.User.SendMessageAsync($"Sorry, I couldn't find a command like **{command}**.").ConfigureAwait(false);
                 return;
             }
 
@@ -92,10 +94,12 @@ namespace MonkeyBot.Modules
                 var paramBuilder = new StringBuilder();
                 foreach (ParameterInfo param in cmd.Parameters)
                 {
-                    paramBuilder.Append(param.Name);
+                    _ = paramBuilder.Append(param.Name);
                     if (!param.Summary.IsEmptyOrWhiteSpace())
-                        paramBuilder.Append($" **({param.Summary})**");
-                    paramBuilder.Append(separator);
+                    {
+                        _ = paramBuilder.Append($" **({param.Summary})**");
+                    }
+                    _ = paramBuilder.Append(separator);
                 }
 
                 string cmdParameters = paramBuilder.ToString().TrimEnd(separator.ToArray());
@@ -104,17 +108,21 @@ namespace MonkeyBot.Modules
                     $"Remarks: {cmd.Remarks}";
                 ExampleAttribute example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                 if (example != null && !example.ExampleText.IsEmpty())
-                    description += $"\nExample: {example.ExampleText}";
-                builder.AddField(x =>
                 {
-                    x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = description;
-                    x.IsInline = false;
-                });
+                    description += $"\nExample: {example.ExampleText}";
+                }
+                _ = builder.AddField(x =>
+                  {
+                      x.Name = string.Join(", ", cmd.Aliases);
+                      x.Value = description;
+                      x.IsInline = false;
+                  });
             }
-            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            _ = await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
             if (Context.Channel is IGuildChannel)
+            {
                 await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
+            }
         }
     }
 }

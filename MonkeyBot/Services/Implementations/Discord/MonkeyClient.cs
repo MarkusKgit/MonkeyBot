@@ -42,35 +42,42 @@ namespace MonkeyBot.Services
         private async Task Client_UserJoinedAsync(SocketGuildUser user)
         {
             if (user.Guild == null)
+            {
                 return;
+            }
 
             GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == user.Guild.Id).ConfigureAwait(false);
             string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
             ITextChannel channel = user.Guild.DefaultChannel;
             if (config?.WelcomeMessageChannelId != null)
+            {
                 channel = user.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? user.Guild.DefaultChannel;
+            }
             if (!welcomeMessage.IsEmpty())
             {
                 welcomeMessage = welcomeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Mention);
-                await (channel?.SendMessageAsync(welcomeMessage)).ConfigureAwait(false);
+                _ = await (channel?.SendMessageAsync(welcomeMessage)).ConfigureAwait(false);
             }
         }
 
         private async Task Client_UserLeftAsync(SocketGuildUser user)
         {
             if (user.Guild == null)
+            {
                 return;
+            }
 
             GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == user.Guild.Id).ConfigureAwait(false);
             string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
             ITextChannel channel = user.Guild.DefaultChannel;
             if (config?.GoodbyeMessageChannelId != null)
+            {
                 channel = user.Guild.GetTextChannel(config.GoodbyeMessageChannelId) ?? user.Guild.DefaultChannel;
-
+            }
             if (!goodbyeMessage.IsEmpty())
             {
                 goodbyeMessage = goodbyeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Username);
-                await (channel?.SendMessageAsync(goodbyeMessage)).ConfigureAwait(false);
+                _ = await (channel?.SendMessageAsync(goodbyeMessage)).ConfigureAwait(false);
             }
         }
 
@@ -81,8 +88,8 @@ namespace MonkeyBot.Services
             if (config == null)
             {
                 config = new GuildConfig();
-                dbContext.GuildConfigs.Add(config);
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = dbContext.GuildConfigs.Add(config);
+                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -92,8 +99,8 @@ namespace MonkeyBot.Services
             GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guild.Id).ConfigureAwait(false);
             if (config != null)
             {
-                dbContext.GuildConfigs.Remove(config);
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = dbContext.GuildConfigs.Remove(config);
+                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -110,8 +117,10 @@ namespace MonkeyBot.Services
             {
                 ITextChannel channel = after.Guild.DefaultChannel;
                 if (config?.DefaultChannelId != null)
+                {
                     channel = after.Guild.GetTextChannel(config.GoodbyeMessageChannelId) ?? after.Guild.DefaultChannel;
-                await (channel?.SendMessageAsync($"{after.Username} has started streaming. Watch it [here]({stream.Url}) ")).ConfigureAwait(false);
+                }
+                _ = await (channel?.SendMessageAsync($"{after.Username} has started streaming. Watch it [here]({stream.Url}) ")).ConfigureAwait(false);
             }
         }
 

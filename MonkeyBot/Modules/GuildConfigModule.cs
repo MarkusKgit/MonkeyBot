@@ -35,15 +35,13 @@ namespace MonkeyBot.Modules
             welcomeMsg = welcomeMsg.Trim('\"');
             if (welcomeMsg.IsEmpty())
             {
-                await ReplyAsync("Please provide a welcome message").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a welcome message").ConfigureAwait(false);
                 return;
             }
 
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageText = welcomeMsg;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
 
@@ -55,8 +53,7 @@ namespace MonkeyBot.Modules
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.DefaultChannelId = channel.Id;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
 
@@ -69,8 +66,7 @@ namespace MonkeyBot.Modules
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageChannelId = channel.Id;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
 
@@ -82,15 +78,13 @@ namespace MonkeyBot.Modules
             goodbyeMsg = goodbyeMsg.Trim('\"');
             if (goodbyeMsg.IsEmpty())
             {
-                await ReplyAsync("Please provide a goodbye message").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a goodbye message").ConfigureAwait(false);
                 return;
             }
 
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.GoodbyeMessageText = goodbyeMsg;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
         }
 
@@ -103,9 +97,7 @@ namespace MonkeyBot.Modules
 
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.GoodbyeMessageChannelId = channel.Id;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
         }
 
@@ -116,16 +108,14 @@ namespace MonkeyBot.Modules
         {
             if (rule.IsEmpty())
             {
-                await ReplyAsync("Please enter a rule").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a rule").ConfigureAwait(false);
                 return;
             }
 
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.Rules ??= new List<string>();
             config.Rules.Add(rule);
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Rule added").ConfigureAwait(false);
         }
 
@@ -135,10 +125,10 @@ namespace MonkeyBot.Modules
         {
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             if (config.Rules != null)
+            {
                 config.Rules.Clear();
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-
+            }
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync("Rules removed").ConfigureAwait(false);
         }
 
@@ -149,7 +139,7 @@ namespace MonkeyBot.Modules
         {
             if (channel == null)
             {
-                await ReplyAsync("Please provide a valid channel").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a valid channel").ConfigureAwait(false);
                 return;
             }
             await bfService.EnableForGuildAsync(Context.Guild.Id, channel.Id).ConfigureAwait(false);
@@ -194,8 +184,7 @@ namespace MonkeyBot.Modules
             }
             config.ConfirmedStreamerIds ??= new List<ulong>();
             config.ConfirmedStreamerIds.Add(Context.User.Id);
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await UpdateConfigAsync(config).ConfigureAwait(false);
             await ReplyAndDeleteAsync($"Your streams will now be broadcasted!").ConfigureAwait(false);
         }
 
@@ -203,11 +192,17 @@ namespace MonkeyBot.Modules
         {
             GuildConfig config = await GetOrCreatConfigAsync(Context.Guild.Id).ConfigureAwait(false);
             config.StreamAnnouncementsEnabled = enable;
-            dbContext.GuildConfigs.Update(config);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await UpdateConfigAsync(config).ConfigureAwait(false);
         }
 
         private async Task<GuildConfig> GetOrCreatConfigAsync(ulong guildId) 
-            => (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false)) ?? new GuildConfig { GuildID = Context.Guild.Id };
+            => (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false)) 
+                ?? new GuildConfig { GuildID = Context.Guild.Id };
+
+        private Task UpdateConfigAsync(GuildConfig config)
+        {
+            _ = dbContext.GuildConfigs.Update(config);
+            return dbContext.SaveChangesAsync();
+        }
     }
 }

@@ -32,9 +32,13 @@ namespace MonkeyBot.Modules
         public async Task AddGameServerAsync([Summary("The ip adress and query port of the server")] string ip, [Summary("The channel where the server info should be posted")] ITextChannel channel)
         {
             if (channel == null)
-                await ReplyAsync("The specified channel does not exist").ConfigureAwait(false);
+            {
+                _ = await ReplyAsync("The specified channel does not exist").ConfigureAwait(false);
+            }
             else
+            {
                 await AddGameServerInternalAsync(ip, channel.Id).ConfigureAwait(false);
+            }
         }
 
         [Command("Remove")]

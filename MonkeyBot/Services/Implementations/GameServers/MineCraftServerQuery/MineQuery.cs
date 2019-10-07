@@ -33,7 +33,9 @@ namespace MonkeyBot.Services
         {
             await client.ConnectAsync(Address, Port).ConfigureAwait(false);
             if (!client.Connected)
+            {
                 return null;
+            }
             writeBuffer = new List<byte>();
             NetworkStream stream = client.GetStream();
 
@@ -110,13 +112,13 @@ namespace MonkeyBot.Services
             int b;
             while (((b = ReadByte(buffer)) & 0x80) == 0x80)
             {
-                value |= (b & 0x7F) << size++ * 7;
+                value |= (b & 0x7F) << (size++ * 7);
                 if (size > 5)
                 {
                     throw new IOException("This VarInt is an imposter!");
                 }
             }
-            return value | (b & 0x7F) << size * 7;
+            return value | ((b & 0x7F) << (size * 7));
         }
 
         internal string ReadString(byte[] buffer, int length)
@@ -129,7 +131,7 @@ namespace MonkeyBot.Services
         {
             while ((value & 128) != 0)
             {
-                writeBuffer.Add((byte)(value & 127 | 128));
+                writeBuffer.Add((byte)((value & 127) | 128));
                 value = (int)(uint)value >> 7;
             }
             writeBuffer.Add((byte)value);

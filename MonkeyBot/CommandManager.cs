@@ -38,7 +38,7 @@ namespace MonkeyBot
 
         public async Task StartAsync()
         {
-            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider).ConfigureAwait(false);
+            _ = await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider).ConfigureAwait(false);
 
             discordClient.MessageReceived += HandleCommandAsync;
         }
@@ -47,16 +47,19 @@ namespace MonkeyBot
 
         public async Task<string> GetPrefixAsync(ulong? guildId)
         {
-            if (guildId == null)
-                return GuildConfig.DefaultPrefix;
-            return (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix
-                ?? GuildConfig.DefaultPrefix;
+            return guildId == null
+                ? GuildConfig.DefaultPrefix
+                : (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix
+                    ?? GuildConfig.DefaultPrefix;
         }
 
         private async Task HandleCommandAsync(SocketMessage socketMsg)
         {
             if (!(socketMsg is SocketUserMessage msg))
+            {
                 return;
+            }
+
             var context = new SocketCommandContext(discordClient, msg);
             SocketGuild guild = (msg.Channel as SocketTextChannel)?.Guild;
             string prefix = await GetPrefixAsync(guild?.Id).ConfigureAwait(false);
@@ -75,7 +78,7 @@ namespace MonkeyBot
                         {
                             CommandError error = result.Error.Value;
                             string errorMessage = GetCommandErrorMessage(error, prefix, commandText);
-                            await context.Channel.SendMessageAsync(errorMessage).ConfigureAwait(false);
+                            _ = await context.Channel.SendMessageAsync(errorMessage).ConfigureAwait(false);
                             if (error == CommandError.Exception || error == CommandError.ParseFailed || error == CommandError.Unsuccessful)
                             {
                                 if (discordClient is MonkeyClient monkeyClient)
@@ -86,7 +89,7 @@ namespace MonkeyBot
                         }
                         else
                         {
-                            await context.Channel.SendMessageAsync(result.ToString()).ConfigureAwait(false);
+                            _ = await context.Channel.SendMessageAsync(result.ToString()).ConfigureAwait(false);
                         }
                     }
                 }
@@ -95,11 +98,23 @@ namespace MonkeyBot
 
         private string GetCommandErrorMessage(CommandError error, string prefix, string commandText)
         {
-            switch (error)
+            return error switch
             {
-                case CommandError.UnknownCommand:
-                    {
-                        List<string> possibleCommands =
+                CommandError.UnknownCommand => GetPossibleCommands(prefix, commandText),
+                CommandError.ParseFailed => "Command could not be parsed, I'm sorry :(",
+                CommandError.BadArgCount => $"Command did not have the right amount of parameters. Type {prefix}help {commandText} for more info",
+                CommandError.ObjectNotFound => " was not found",
+                CommandError.MultipleMatches => $"Multiple commands were found like {commandText}. Please be more specific",
+                CommandError.UnmetPrecondition => $"A precondition for the command was not met. Type {prefix}help {commandText} for more info",
+                CommandError.Exception => "An exception has occured during the command execution. My developer was notified of this",
+                CommandError.Unsuccessful => "The command excecution was unsuccessfull, I'm sorry :(",
+                _ => "Unknown Command Error"
+            };
+        }
+
+        private string GetPossibleCommands(string prefix, string commandText)
+        {
+            List<string> possibleCommands =
                         commandService
                             .Modules
                             .SelectMany(module => module.Commands)
@@ -108,47 +123,24 @@ namespace MonkeyBot
                             .Where(alias => alias.Contains(commandText, StringComparison.OrdinalIgnoreCase))
                             .ToList();
 
-                        string message = "";
-                        if (possibleCommands == null || possibleCommands.Count < 1)
-                        {
-                            message = $"Command *{commandText}* was not found. Type {prefix}help to get a list of commands";
-                        }
-                        else if (possibleCommands.Count == 1)
-                        {
-                            message = $"Did you mean *{possibleCommands.First()}* ? Type {prefix}help to get a list of commands";
-                        }
-                        else if (possibleCommands.Count > 1 && possibleCommands.Count < 5)
-                        {
-                            message = $"Did you mean one of the following commands:{Environment.NewLine}{string.Join(Environment.NewLine, possibleCommands)}{Environment.NewLine}Type {prefix}help to get a list of commands";
-                        }
-                        else
-                        {
-                            message = $"{possibleCommands.Count} possible commands have been found matching your input. Please be more specific.";
-                        }
-                        return message;
-                    }
-                case CommandError.ParseFailed:
-                    return "Command could not be parsed, I'm sorry :(";
-
-                case CommandError.BadArgCount:
-                    return $"Command did not have the right amount of parameters. Type {prefix}help {commandText} for more info";
-
-                case CommandError.ObjectNotFound:
-                    return "Object was not found";
-
-                case CommandError.MultipleMatches:
-                    return $"Multiple commands were found like {commandText}. Please be more specific";
-
-                case CommandError.UnmetPrecondition:
-                    return $"A precondition for the command was not met. Type {prefix}help {commandText} for more info";
-
-                case CommandError.Exception:
-                    return "An exception has occured during the command execution. My developer was notified of this";
-
-                case CommandError.Unsuccessful:
-                    return "The command excecution was unsuccessfull, I'm sorry :(";
+            string message = "";
+            if (possibleCommands == null || possibleCommands.Count < 1)
+            {
+                message = $"Command *{commandText}* was not found. Type {prefix}help to get a list of commands";
             }
-            return "Can't execute the command!";
+            else if (possibleCommands.Count == 1)
+            {
+                message = $"Did you mean *{possibleCommands.First()}* ? Type {prefix}help to get a list of commands";
+            }
+            else if (possibleCommands.Count > 1 && possibleCommands.Count < 5)
+            {
+                message = $"Did you mean one of the following commands:{Environment.NewLine}{string.Join(Environment.NewLine, possibleCommands)}{Environment.NewLine}Type {prefix}help to get a list of commands";
+            }
+            else
+            {
+                message = $"{possibleCommands.Count} possible commands have been found matching your input. Please be more specific.";
+            }
+            return message;
         }
 
         public async Task BuildDocumentationAsync()

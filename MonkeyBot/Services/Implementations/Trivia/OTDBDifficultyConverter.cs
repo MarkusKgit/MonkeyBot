@@ -10,36 +10,25 @@ namespace MonkeyBot.Services
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if ((string)reader.Value == "easy")
-                return TriviaQuestionDifficulty.Easy;
-            else if ((string)reader.Value == "medium")
-                return TriviaQuestionDifficulty.Medium;
-            else if ((string)reader.Value == "hard")
-                return TriviaQuestionDifficulty.Hard;
-            else
-                return null;
+            return (string)reader.Value switch
+            {
+                "easy" => TriviaQuestionDifficulty.Easy,
+                "medium" => TriviaQuestionDifficulty.Medium,
+                "hard" => TriviaQuestionDifficulty.Hard,
+                _ => throw new ParseException("Unknown question difficulty")
+            };
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var difficulty = (TriviaQuestionDifficulty)value;
-            switch (difficulty)
+            writer.WriteValue(difficulty switch
             {
-                case TriviaQuestionDifficulty.Easy:
-                    writer.WriteValue("easy");
-                    break;
-
-                case TriviaQuestionDifficulty.Medium:
-                    writer.WriteValue("medium");
-                    break;
-
-                case TriviaQuestionDifficulty.Hard:
-                    writer.WriteValue("hard");
-                    break;
-
-                default:
-                    break;
-            }
+                TriviaQuestionDifficulty.Easy => "easy",
+                TriviaQuestionDifficulty.Medium => "medium",
+                TriviaQuestionDifficulty.Hard => "hard",
+                _ => throw new ArgumentException($"Didn't expect question difficulty {difficulty}")
+            });            
         }
     }
 }

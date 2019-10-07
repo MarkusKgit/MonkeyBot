@@ -26,39 +26,52 @@ namespace MonkeyBot.Services
         private async Task Client_GuildMemberUpdatedAsync(SocketUser before, SocketUser after)
         {
             string joinedGame = null;
-            if (before.Activity != null && after.Activity != null && after.Activity.Name != before.Activity.Name)
+            if ((before.Activity != null && after.Activity != null && after.Activity.Name != before.Activity.Name)
+                || (before.Activity == null && after.Activity != null))
+            {
                 joinedGame = after.Activity.Name;
-            if (before.Activity == null && after.Activity != null)
-                joinedGame = after.Activity.Name;
+            }
             if (joinedGame.IsEmptyOrWhiteSpace())
+            {
                 return;
-            List<GameSubscription> gameSubscriptions = await dbContext.GameSubscriptions.ToListAsync().ConfigureAwait(false);
+            }
+            List<GameSubscription> gameSubscriptions = await dbContext.GameSubscriptions
+                .Where(subscription => subscription != null
+                                       && joinedGame.Contains(subscription.GameName, StringComparison.OrdinalIgnoreCase)
+                                       && subscription.UserID != after.Id)
+                .ToListAsync()
+                .ConfigureAwait(false);
             if (gameSubscriptions == null)
+            {
                 return;
+            }
+
             foreach (GameSubscription subscription in gameSubscriptions)
             {
-                if (subscription == null)
-                    continue;
-                if (!joinedGame.Contains(subscription.GameName, StringComparison.OrdinalIgnoreCase)) // Skip if user is not subscribed to game
-                    continue;
-                if (subscription.UserID == after.Id) // Don't message because of own game join
-                    continue;
                 SocketGuild subscribedGuild = discordClient.GetGuild(subscription.GuildID);
-                if (subscribedGuild?.GetUser(after.Id) == null) // No message if in different Guild
+                if (subscribedGuild?.GetUser(after.Id) == null) // No message if the user starting the activity is in different Guild
+                {
                     continue;
+                }
                 IUser subscribedUser = discordClient.GetUser(subscription.UserID);
                 if (subscribedUser == null)
+                {
                     continue;
-                await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!").ConfigureAwait(false);
+                }
+
+                _ = await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!").ConfigureAwait(false);
             }
         }
 
         public Task AddSubscriptionAsync(string gameName, ulong guildID, ulong userID)
         {
             if (dbContext.GameSubscriptions.Any(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildID == guildID && x.UserID == userID))
+            {
                 throw new ArgumentException("The user is already subscribed to that game");
+            }
+
             var gameSubscription = new GameSubscription { GuildID = guildID, UserID = userID, GameName = gameName };
-            dbContext.GameSubscriptions.Add(gameSubscription);
+            _ = dbContext.GameSubscriptions.Add(gameSubscription);
             return dbContext.SaveChangesAsync();
         }
 
@@ -66,12 +79,17 @@ namespace MonkeyBot.Services
         {
             GameSubscription subscriptionToRemove = await dbContext
                 .GameSubscriptions
-                .FirstOrDefaultAsync(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildID == guildID && x.UserID == userID)
+                .FirstOrDefaultAsync(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase)
+                                          && x.GuildID == guildID
+                                          && x.UserID == userID)
                 .ConfigureAwait(false);
             if (subscriptionToRemove == null)
+            {
                 throw new ArgumentException("The specified subscription does not exist");
-            dbContext.GameSubscriptions.Remove(subscriptionToRemove);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            _ = dbContext.GameSubscriptions.Remove(subscriptionToRemove);
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID) 

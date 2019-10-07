@@ -18,8 +18,8 @@ namespace MonkeyBot.Common
         public RectangleF AxisRect => new Rectangle(
             axisBorder + axisMargin,
             axisBorder,
-            chartWidth - 2 * axisBorder - axisMargin,
-            chartHeight - 2 * axisBorder - axisMargin);
+            chartWidth - (2 * axisBorder) - axisMargin,
+            chartHeight - (2 * axisBorder) - axisMargin);
 
         public ChartAxis AxisX { get; set; }
         public ChartAxis AxisY { get; set; }
@@ -31,12 +31,17 @@ namespace MonkeyBot.Common
         public XYChart(int width, int height, int borderMargin)
         {
             if (width <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(width));
+            }
             if (height <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(height));
+            }
             if (borderMargin <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(borderMargin));
-
+            }
             chartWidth = width;
             chartHeight = height;
             axisBorder = borderMargin;
@@ -45,10 +50,13 @@ namespace MonkeyBot.Common
         public void ExportChart(string filePath, IEnumerable<PointF> xyValues)
         {
             if (filePath.IsEmptyOrWhiteSpace())
+            {
                 throw new ArgumentNullException(nameof(filePath));
+            }
             if (xyValues == null || !xyValues.Any())
+            {
                 throw new ArgumentException("Please provide some values");
-
+            }
             using Image image = new Bitmap(chartWidth, chartHeight);
             using var graphics = Graphics.FromImage(image);
             using var arrowCap = new AdjustableArrowCap(5, 5);
@@ -69,13 +77,13 @@ namespace MonkeyBot.Common
         private void DrawPoints(Graphics graphics, IEnumerable<PointF> xyValues)
         {
             using var linePen = new Pen(Brushes.Blue, 3.0f);
-            float factorX = (AxisRect.Width - AxisRect.Width / AxisX.NumTicks) / (AxisX.Max - AxisX.Min);
-            float factorY = (AxisRect.Height - AxisRect.Height / AxisY.NumTicks) / (AxisY.Max - AxisY.Min);
+            float factorX = (AxisRect.Width - (AxisRect.Width / AxisX.NumTicks)) / (AxisX.Max - AxisX.Min);
+            float factorY = (AxisRect.Height - (AxisRect.Height / AxisY.NumTicks)) / (AxisY.Max - AxisY.Min);
 
             PointF[] translatedPoints = xyValues
                 .Select(p => new PointF(
-                    p.X * factorX + AxisRect.Left,
-                    AxisRect.Bottom - p.Y * factorY))
+                    (p.X * factorX) + AxisRect.Left,
+                    AxisRect.Bottom - (p.Y * factorY)))
                 .ToArray();
 
             if (translatedPoints.Length > 1)
@@ -95,17 +103,17 @@ namespace MonkeyBot.Common
             float deltaXValues = (AxisX.Max - AxisX.Min) / (AxisX.NumTicks - 1);
             for (int i = 0; i < AxisX.NumTicks; i++)
             {
-                float x = AxisRect.Left + i * deltaXChart;
+                float x = AxisRect.Left + (i * deltaXChart);
                 graphics.DrawLine(tickPen, x, AxisRect.Bottom, x, AxisRect.Bottom + 10);
                 string label = AxisX.LabelFunc?.Invoke(i) ?? $"{i * deltaXValues}";
-                graphics.DrawString(label, font, Brushes.Black, x, AxisRect.Bottom + 30 - font.Height / 2, xFormat);
+                graphics.DrawString(label, font, Brushes.Black, x, AxisRect.Bottom + 30 - (font.Height / 2), xFormat);
             }
 
             float deltaYChart = AxisRect.Height / AxisY.NumTicks;
             float deltaYValues = (AxisY.Max - AxisY.Min) / (AxisY.NumTicks - 1);
             for (int i = 0; i < AxisY.NumTicks; i++)
             {
-                float y = AxisRect.Bottom - i * deltaYChart;
+                float y = AxisRect.Bottom - (i * deltaYChart);
                 graphics.DrawLine(tickPen, AxisRect.Left - 10, y, AxisRect.Left, y);
                 graphics.DrawLine(linesPen, AxisRect.Left, y, AxisRect.Right, y);
                 string label = AxisY.LabelFunc?.Invoke(i) ?? $"{i * deltaYValues}";

@@ -37,7 +37,9 @@ namespace MonkeyBot.Common
             {
                 string path = Path.GetDirectoryName(file);
                 if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+                {
+                    _ = Directory.CreateDirectory(path);
+                }
 
                 var config = new DiscordClientConfiguration();
 
@@ -49,9 +51,13 @@ namespace MonkeyBot.Common
                 await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ").ConfigureAwait(false);
                 string sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
                 if (ulong.TryParse(sOwnerId, out ulong ownerId) && ownerId > 0)
+                {
                     config.AddOwner(ownerId);
+                }
                 else
+                {
                     config.AddOwner(327885109560737793);
+                }
 
                 // Get cloudinary credentials
                 await Console.Out.WriteLineAsync("Do you want to setup cloudinary? (y/n)").ConfigureAwait(false);
@@ -79,13 +85,17 @@ namespace MonkeyBot.Common
         public void AddOwner(ulong ownerId)
         {
             if (!owners.Contains(ownerId))
+            {
                 owners.Add(ownerId);
+            }
         }
 
         public void RemoveOwner(ulong ownerId)
         {
             if (owners.Contains(ownerId))
-                owners.Remove(ownerId);
+            {
+                _ = owners.Remove(ownerId);
+            }
         }
 
         /// <summary> Save the configuration to the path specified in FileName. </summary>

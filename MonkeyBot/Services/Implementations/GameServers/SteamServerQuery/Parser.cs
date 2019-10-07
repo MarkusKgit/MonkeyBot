@@ -23,8 +23,9 @@ namespace MonkeyBot.Services
         {
             currentPosition++;
             if (currentPosition > lastPosition)
+            {
                 throw new ParseException("Index was outside the bounds of the byte array.");
-
+            }
             return data[currentPosition];
         }
 
@@ -32,11 +33,13 @@ namespace MonkeyBot.Services
         {
             currentPosition++;
             if (currentPosition + 3 > lastPosition)
+            {
                 throw new ParseException("Unable to parse bytes to ushort.");
-
+            }
             if (!BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(data, currentPosition, 2);
-
+            }
             ushort num = BitConverter.ToUInt16(data, currentPosition);
             currentPosition++;
 
@@ -47,11 +50,13 @@ namespace MonkeyBot.Services
         {
             currentPosition++;
             if (currentPosition + 3 > lastPosition)
+            {
                 throw new ParseException("Unable to parse bytes to int.");
-
+            }
             if (!BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(data, currentPosition, 4);
-
+            }
             int num = BitConverter.ToInt32(data, currentPosition);
             currentPosition += 3;
 
@@ -62,10 +67,14 @@ namespace MonkeyBot.Services
         {
             currentPosition++;
             if (currentPosition + 7 > lastPosition)
+            {
                 throw new ParseException("Unable to parse bytes to ulong.");
+            }
 
             if (!BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(data, currentPosition, 8);
+            }
 
             ulong num = BitConverter.ToUInt64(data, currentPosition);
             currentPosition += 7;
@@ -77,10 +86,14 @@ namespace MonkeyBot.Services
         {
             currentPosition++;
             if (currentPosition + 3 > lastPosition)
+            {
                 throw new ParseException("Unable to parse bytes to float.");
+            }
 
             if (!BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(data, currentPosition, 4);
+            }
 
             float num = BitConverter.ToSingle(data, currentPosition);
             currentPosition += 3;
@@ -96,7 +109,9 @@ namespace MonkeyBot.Services
             {
                 currentPosition++;
                 if (currentPosition > lastPosition)
+                {
                     throw new ParseException("Unable to parse bytes to string.");
+                }
             }
 
             string str = Encoding.UTF8.GetString(data, temp, currentPosition - temp);
@@ -108,7 +123,9 @@ namespace MonkeyBot.Services
         {
             currentPosition += count;
             if (currentPosition > lastPosition)
+            {
                 throw new ParseException("skip count was outside the bounds of the byte array.");
+            }
         }
 
         internal byte[] GetUnParsedBytes() 

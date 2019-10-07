@@ -38,13 +38,11 @@ namespace MonkeyBot.Services
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-                trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
+                _ = trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
             }
-            if (trivias.TryGetValue(id, out OTDBTriviaInstance instance))
-            {
-                return await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
-            }
-            return false;
+            return trivias.TryGetValue(id, out OTDBTriviaInstance instance)
+                ? await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false)
+                : false;
         }
 
         /// <summary>
@@ -63,7 +61,9 @@ namespace MonkeyBot.Services
         public async Task<bool> StopTriviaAsync(DiscordId id)
         {
             if (!trivias.ContainsKey(id))
+            {
                 return false;
+            }
             else
             {
                 bool result = await trivias[id].StopTriviaAsync().ConfigureAwait(false);
@@ -90,7 +90,9 @@ namespace MonkeyBot.Services
                 return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
             }
             else
+            {
                 return await trivias[id].GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
+            }
         }
     }
 }

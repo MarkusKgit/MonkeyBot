@@ -28,15 +28,15 @@ namespace MonkeyBot.Modules
             List<string> rules = (await dbContext.GuildConfigs.SingleOrDefaultAsync(x => x.GuildID == Context.Guild.Id).ConfigureAwait(false))?.Rules;
             if (rules == null || rules.Count < 1)
             {
-                await ReplyAsync("No rules set!").ConfigureAwait(false);
+                _ = await ReplyAsync("No rules set!").ConfigureAwait(false);
                 return;
             }
             var builder = new EmbedBuilder
             {
                 Color = new Color(255, 0, 0)
             };
-            builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
-            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            _ = builder.AddField($"Rules of {Context.Guild.Name}:", string.Join(Environment.NewLine, rules));
+            _ = await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
             await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
 
         }
@@ -48,7 +48,7 @@ namespace MonkeyBot.Modules
         {
             if (messageContent.IsEmptyOrWhiteSpace())
             {
-                await ReplyAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
+                _ = await ReplyAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
                 return;
             }
             const int searchDepth = 100;
@@ -56,17 +56,17 @@ namespace MonkeyBot.Modules
             IEnumerable<IMessage> matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
             if (matches == null || !matches.Any())
             {
-                await ReplyAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
+                _ = await ReplyAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
                 return;
             }
             else if (matches.Count() > 1)
             {
-                await ReplyAsync($"{matches.Count()} Messages found. Please be more specific").ConfigureAwait(false);
+                _ = await ReplyAsync($"{matches.Count()} Messages found. Please be more specific").ConfigureAwait(false);
                 return;
             }
             else
             {
-                await ReplyAsync($"The message Id is: {matches.First().Id}").ConfigureAwait(false);
+                _ = await ReplyAsync($"The message Id is: {matches.First().Id}").ConfigureAwait(false);
             }
         }
     }

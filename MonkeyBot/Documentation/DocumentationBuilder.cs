@@ -44,13 +44,13 @@ namespace MonkeyBot.Documentation
 
             foreach (ModuleInfo module in commandService.Modules)
             {
-                builder.AppendLine(f.H3(module.Name));
+                _ = builder.AppendLine(f.H3(module.Name));
                 List<string> modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                 if (modulePreconditions != null && modulePreconditions.Count > 0)
                 {
-                    builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
+                    _ = builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
                 }
-                builder.AppendLine(f.NewLine(""));
+                _ = builder.AppendLine(f.NewLine(""));
                 foreach (CommandInfo cmd in module.Commands)
                 {
                     string parameters = string.Empty;
@@ -58,24 +58,24 @@ namespace MonkeyBot.Documentation
                     {
                         parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
                     }
-                    builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases[0]} {parameters}")));
+                    _ = builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases[0]} {parameters}")));
                     ExampleAttribute example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
                     if (example != null && !example.ExampleText.IsEmpty())
                     {
-                        builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));
+                        _ = builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));
                     }
                     List<string> commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                     if (commandPreconditions != null && commandPreconditions.Count > 0)
                     {
-                        builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
+                        _ = builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
                     }
                     if (!cmd.Remarks.IsEmpty())
                     {
-                        builder.AppendLine(f.NewLine($"{f.Em("Remarks:")} {cmd.Remarks}"));
+                        _ = builder.AppendLine(f.NewLine($"{f.Em("Remarks:")} {cmd.Remarks}"));
                     }
-                    builder.AppendLine(f.NewLine(""));
+                    _ = builder.AppendLine(f.NewLine(""));
                 }
-                builder.AppendLine(f.NewLine(f.HorizontalRule()));
+                _ = builder.AppendLine(f.NewLine(f.HorizontalRule()));
             }
             return builder.ToString();
         }
@@ -110,18 +110,26 @@ namespace MonkeyBot.Documentation
                 }
                 if (guildPermission != null && guildPermission.HasValue)
                 {
-                    List<GuildPermission> guildPermissions = guildPermission.Value.ToString().Split(',').Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag)).ToList();
+                    List<GuildPermission> guildPermissions = guildPermission.Value.ToString()
+                        .Split(',')
+                        .Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag))
+                        .ToList();
                     permission += $"{prefix} requires guild permission{(guildPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(gp => gp.Humanize(LetterCasing.Title))))} ";
                 }
                 if (channelPermission != null && channelPermission.HasValue)
                 {
-                    List<ChannelPermission> channelPermissions = channelPermission.Value.ToString().Split(',').Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag)).ToList();
+                    List<ChannelPermission> channelPermissions = channelPermission.Value.ToString()
+                        .Split(',')
+                        .Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag))
+                        .ToList();
                     permission += $"{prefix} requires channel permission{(channelPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(cp => cp.Humanize(LetterCasing.Title))))} ";
                 }
                 return permission.Trim();
             }
             else
+            {
                 return precondition.ToString();
+            }
         }
 
         private static string TranslateContext(ContextType context)

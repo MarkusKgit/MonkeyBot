@@ -14,7 +14,9 @@ namespace MonkeyBot.Services
             DiscordClientConfiguration config = DiscordClientConfiguration.LoadAsync().GetAwaiter().GetResult();
 
             if (config.CloudinaryCredentials == null)
+            {
                 return;
+            }
             var account = new Account(
                 config.CloudinaryCredentials.Cloud,
                 config.CloudinaryCredentials.ApiKey,

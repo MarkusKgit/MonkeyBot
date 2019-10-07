@@ -33,7 +33,7 @@ namespace MonkeyBot.Modules
         {
             if (gameName.IsEmpty())
             {
-                await ReplyAsync("You need to specify a game you wish to subscribe to!").ConfigureAwait(false);
+                _ = await ReplyAsync("You need to specify a game you wish to subscribe to!").ConfigureAwait(false);
                 return;
             }
             try
@@ -43,10 +43,10 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error adding a game subscription");
             }
-            await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
+            _ = await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
         }
 
         [Command("Unsubscribe")]
@@ -56,7 +56,7 @@ namespace MonkeyBot.Modules
         {
             if (gameName.IsEmpty())
             {
-                await ReplyAsync("You need to specify a game you wish to unsubscribe from!").ConfigureAwait(false);
+                _ = await ReplyAsync("You need to specify a game you wish to unsubscribe from!").ConfigureAwait(false);
                 return;
             }
             try
@@ -66,11 +66,11 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a game subscription");
                 return;
             }
-            await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
+            _ = await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
         }
 
         [Command("Subscriptions")]
@@ -81,12 +81,12 @@ namespace MonkeyBot.Modules
             IReadOnlyCollection<GameSubscription> subscriptions = await gameSubscriptionService.GetSubscriptionsForUser(Context.User.Id).ConfigureAwait(false);
             if (subscriptions == null || subscriptions.Count < 1)
             {
-                await ReplyAsync("You are not subscribed to any game").ConfigureAwait(false);
+                _ = await ReplyAsync("You are not subscribed to any game").ConfigureAwait(false);
             }
             else
             {
                 string[] sSubscriptions = await Task.WhenAll(subscriptions.Select(async s => $"{s.GameName} in {(await Context.Client.GetGuildAsync(s.GuildID).ConfigureAwait(false)).Name}")).ConfigureAwait(false);
-                await Context.User.SendMessageAsync($"You are subscribed to the following games {string.Join(", ", sSubscriptions)}").ConfigureAwait(false);
+                _ = await Context.User.SendMessageAsync($"You are subscribed to the following games {string.Join(", ", sSubscriptions)}").ConfigureAwait(false);
                 await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
             }
         }

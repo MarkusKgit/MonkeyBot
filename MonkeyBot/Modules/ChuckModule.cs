@@ -25,12 +25,9 @@ namespace MonkeyBot.Modules
         public async Task GetChuckFactAsync()
         {
             string fact = await (chuckService?.GetChuckFactAsync()).ConfigureAwait(false);
-            if (fact.IsEmpty())
-            {
-                await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
-                return;
-            }
-            await ReplyAsync(fact).ConfigureAwait(false);
+            _ = fact.IsEmpty()
+                ? await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false)
+                : await ReplyAsync(fact).ConfigureAwait(false);
         }
 
         [Command("Chuck")]
@@ -39,15 +36,17 @@ namespace MonkeyBot.Modules
         {
             IGuildUser user = await GetUserInGuildAsync(username).ConfigureAwait(false);
             if (user == null)
+            {
                 return;
+            }
             string fact = await (chuckService?.GetChuckFactAsync(username)).ConfigureAwait(false);
             if (fact.IsEmpty())
             {
-                await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
+                _ = await ReplyAsync("Could not get a chuck fact :(").ConfigureAwait(false);
                 return;
             }
             fact = fact.Replace(username, user.Mention);
-            await ReplyAsync(fact).ConfigureAwait(false);
+            _ = await ReplyAsync(fact).ConfigureAwait(false);
         }
     }
 }

@@ -30,11 +30,11 @@ namespace MonkeyBot.Modules
             string pictureURL = await (dogService?.GetDogPictureUrlAsync()).ConfigureAwait(false);
             if (pictureURL.IsEmpty())
             {
-                await ReplyAsync("Could not get a doggo pic :(").ConfigureAwait(false);
+                _ = await ReplyAsync("Could not get a doggo pic :(").ConfigureAwait(false);
                 return;
             }
             var builder = new EmbedBuilder().WithImageUrl(pictureURL);
-            await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
         }
 
         [Command("Dog")]
@@ -44,18 +44,18 @@ namespace MonkeyBot.Modules
         {
             if (breed.IsEmpty())
             {
-                await ReplyAsync("Please provide a breed").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a breed").ConfigureAwait(false);
                 return;
             }
 
             string pictureURL = await (dogService?.GetDogPictureUrlAsync(breed.ToLowerInvariant())).ConfigureAwait(false);
             if (pictureURL.IsEmpty())
             {
-                await ReplyAsync("Could not get a doggo pic :(. Try using !dogbreeds to get a list of dog breeds I can show you").ConfigureAwait(false);
+                _ = await ReplyAsync("Could not get a doggo pic :(. Try using !dogbreeds to get a list of dog breeds I can show you").ConfigureAwait(false);
                 return;
             }
             var builder = new EmbedBuilder().WithImageUrl(pictureURL);
-            await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
         }
 
         [Command("Dogbreeds")]
@@ -66,10 +66,10 @@ namespace MonkeyBot.Modules
             List<string> breeds = await (dogService?.GetDogBreedsAsync()).ConfigureAwait(false);
             if (breeds == null || !breeds.Any())
             {
-                await ReplyAsync("Could not get a the dog breeds :(").ConfigureAwait(false);
+                _ = await ReplyAsync("Could not get a the dog breeds :(").ConfigureAwait(false);
                 return;
             }
-            await ReplyAsync("Here's a list of available dog breeds:" + Environment.NewLine + string.Join(", ", breeds)).ConfigureAwait(false);
+            _ = await ReplyAsync("Here's a list of available dog breeds:" + Environment.NewLine + string.Join(", ", breeds)).ConfigureAwait(false);
         }
     }
 }

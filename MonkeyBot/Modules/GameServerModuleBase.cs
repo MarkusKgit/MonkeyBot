@@ -24,7 +24,9 @@ namespace MonkeyBot.Modules
             //Do parameter checks
             IPEndPoint endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
             if (endPoint == null)
+            {
                 return;
+            }
             bool success = false;
             try
             {
@@ -33,13 +35,12 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error adding a gameserver");
             }
-            if (success)
-                await ReplyAsync("GameServer added").ConfigureAwait(false);
-            else
-                await ReplyAsync("GameServer could not be added").ConfigureAwait(false);
+            _ = success
+                ? await ReplyAsync("GameServer added").ConfigureAwait(false)
+                : await ReplyAsync("GameServer could not be added").ConfigureAwait(false);
         }
 
         protected async Task RemoveGameServerInternalAsync(string ip)
@@ -47,7 +48,9 @@ namespace MonkeyBot.Modules
             //Do parameter checks
             IPEndPoint endPoint = await ParseIPAsync(ip).ConfigureAwait(false);
             if (endPoint == null)
+            {
                 return;
+            }
 
             try
             {
@@ -56,33 +59,19 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a gameserver");
             }
-            await ReplyAsync("GameServer removed").ConfigureAwait(false);
+            _ = await ReplyAsync("GameServer removed").ConfigureAwait(false);
         }
 
+        //TODO: move the parsing into the command handler
         private async Task<IPEndPoint> ParseIPAsync(string ip)
         {
-            if (ip.IsEmpty())
+            string[] splitIP = ip?.Split(':');
+            if (ip.IsEmpty() || splitIP == null || splitIP.Length != 2 || !IPAddress.TryParse(splitIP[0], out IPAddress parsedIP) || !int.TryParse(splitIP[1], out int port))
             {
-                await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
-                return null;
-            }
-            string[] splitIP = ip.Split(':');
-            if (splitIP == null || splitIP.Length != 2)
-            {
-                await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
-                return null;
-            }
-            if (!IPAddress.TryParse(splitIP[0], out IPAddress parsedIP))
-            {
-                await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
-                return null;
-            }
-            if (!int.TryParse(splitIP[1], out int port))
-            {
-                await ReplyAsync("You need to specify a valid IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
+                _ = await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
             var endPoint = new IPEndPoint(parsedIP, port);

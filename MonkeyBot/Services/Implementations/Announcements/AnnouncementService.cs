@@ -46,11 +46,13 @@ namespace MonkeyBot.Services
         public Task AddRecurringAnnouncementAsync(string name, string cronExpression, string message, ulong guildID, ulong channelID)
         {
             if (name.IsEmpty())
+            {
                 throw new ArgumentException("Please provide an ID");
+            }
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Recurring, GuildID = guildID, ChannelID = channelID, CronExpression = cronExpression, Name = name, Message = message };
             AddRecurringJob(announcement);
-            dbContext.Announcements.Add(announcement);
+            _ = dbContext.Announcements.Add(announcement);
             return dbContext.SaveChangesAsync();
         }
 
@@ -71,13 +73,17 @@ namespace MonkeyBot.Services
         public Task AddSingleAnnouncementAsync(string name, DateTime excecutionTime, string message, ulong guildID, ulong channelID)
         {
             if (name.IsEmpty())
+            {
                 throw new ArgumentException("Please provide an ID");
+            }
             if (excecutionTime < DateTime.Now)
+            {
                 throw new ArgumentException("The time you provided is in the past!");
+            }
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Once, GuildID = guildID, ChannelID = channelID, ExecutionTime = excecutionTime, Name = name, Message = message };
             AddSingleJob(announcement);
-            dbContext.Announcements.Add(announcement);
+            _ = dbContext.Announcements.Add(announcement);
             return dbContext.SaveChangesAsync();
         }
 
@@ -103,12 +109,14 @@ namespace MonkeyBot.Services
             // Try to retrieve the announcement with the provided ID
             Announcement announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
+            {
                 throw new ArgumentException("The announcement with the specified ID does not exist");
+            }
             schedulingService.RemoveJob(GetUniqueId(announcement));
             try
             {
-                dbContext.Announcements.Remove(announcement);
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = dbContext.Announcements.Remove(announcement);
+                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -128,7 +136,9 @@ namespace MonkeyBot.Services
             // Try to retrieve the announcement with the provided ID
             Announcement announcement = await GetSpecificAnnouncementAsync(guildID, announcementName).ConfigureAwait(false);
             if (announcement == null)
+            {
                 throw new ArgumentException("The announcement with the specified ID does not exist");
+            }
             return schedulingService.GetNextRun(GetUniqueId(announcement));
         }
 
@@ -137,7 +147,7 @@ namespace MonkeyBot.Services
         {
             List<Announcement> announcements = await dbContext.Announcements.Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now).ToListAsync().ConfigureAwait(false);
             dbContext.RemoveRange(announcements);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
         }
 
@@ -148,9 +158,13 @@ namespace MonkeyBot.Services
             foreach (Announcement announcement in announcements)
             {
                 if (announcement.Type == AnnouncementType.Recurring)
+                {
                     AddRecurringJob(announcement);
+                }
                 else if (announcement.Type == AnnouncementType.Once)
+                {
                     AddSingleJob(announcement);
+                }
             }
         }
 

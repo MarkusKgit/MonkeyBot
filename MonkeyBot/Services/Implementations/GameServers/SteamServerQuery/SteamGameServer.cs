@@ -44,7 +44,9 @@ namespace MonkeyBot.Services
                 {
                     recvData = await GetPlayerChallengeIdAsync().ConfigureAwait(false);
                     if (isPlayerChallengeId)
+                    {
                         playerChallengeId = null;
+                    }
                 }
                 if (isPlayerChallengeId)
                 {
@@ -56,12 +58,15 @@ namespace MonkeyBot.Services
 
                 var parser = new Parser(null);
                 if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_PLAYER)
+                {
                     throw new Exception("A2S_PLAYER message header is not valid");
+                }
+
                 int playerCount = parser.ReadByte();
                 players = new List<PlayerInfo>(playerCount);
                 for (int i = 0; i < playerCount; i++)
                 {
-                    parser.ReadByte();
+                    _ = parser.ReadByte();
                     players.Add(new PlayerInfo()
                     {
                         Name = parser.ReadString(),
@@ -70,7 +75,9 @@ namespace MonkeyBot.Services
                     });
                 }
                 if (playerCount == 1 && players[0].Name == "Max Players")
+                {
                     players.Clear();
+                }
             }
             catch (Exception e)
             {
@@ -104,8 +111,11 @@ namespace MonkeyBot.Services
         private async Task<byte[]> GetServerResponseAsync(byte[] Query)
         {
             if (!client.Client.Connected)
+            {
                 await client.Client.ConnectAsync(EndPoint).ConfigureAwait(false);
-            await client.SendAsync(Query, Query.Length, EndPoint).ConfigureAwait(false);
+            }
+
+            _ = await client.SendAsync(Query, Query.Length, EndPoint).ConfigureAwait(false);
             using var cts = new CancellationTokenSource();
             client.Client.ReceiveTimeout = 2000;
             cts.CancelAfter(2000);

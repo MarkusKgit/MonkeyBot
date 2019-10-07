@@ -25,11 +25,13 @@ namespace MonkeyBot.Modules
         {
             if (count < 1)
             {
-                await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)
+            {
                 count = 100;
+            }
             if (Context.Channel is ITextChannel channel)
             {
                 IEnumerable<IMessage> msgs = await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false);
@@ -51,11 +53,13 @@ namespace MonkeyBot.Modules
             }
             if (count < 1)
             {
-                await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)
+            {
                 count = 100;
+            }
             if (Context.Channel is ITextChannel channel)
             {
                 IEnumerable<IMessage> msgs = (await channel.GetMessagesAsync(count).FlattenAsync().ConfigureAwait(false)).Where(x => x.Author.Id == user.Id);

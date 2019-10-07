@@ -23,9 +23,11 @@ namespace MonkeyBot.Modules
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            string fact = dbContext.BenzenFacts.OrderBy(r => Guid.NewGuid()).FirstOrDefault()?.Fact;
+            string fact = dbContext.BenzenFacts.OrderBy(_ => Guid.NewGuid()).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
-                await ReplyAsync(fact).ConfigureAwait(false);
+            {
+                _ = await ReplyAsync(fact).ConfigureAwait(false);
+            }
         }
 
         [Command("AddBenzenFact")]
@@ -35,22 +37,22 @@ namespace MonkeyBot.Modules
             fact = fact.Trim('\"').Trim();
             if (fact.IsEmpty())
             {
-                await ReplyAsync("Please provide a fact!").ConfigureAwait(false);
+                _ = await ReplyAsync("Please provide a fact!").ConfigureAwait(false);
                 return;
             }
             if (!fact.Contains(name, StringComparison.OrdinalIgnoreCase))
             {
-                await ReplyAsync("The fact must include Benzen!").ConfigureAwait(false);
+                _ = await ReplyAsync("The fact must include Benzen!").ConfigureAwait(false);
                 return;
             }
             if (dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
-                await ReplyAsync("I already know this fact!").ConfigureAwait(false);
+                _ = await ReplyAsync("I already know this fact!").ConfigureAwait(false);
                 return;
             }
-            dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
-            await ReplyAsync("Fact added").ConfigureAwait(false);
+            _ = dbContext.BenzenFacts.Add(new BenzenFact(fact));
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await ReplyAsync("Fact added").ConfigureAwait(false);
         }
     }
 }

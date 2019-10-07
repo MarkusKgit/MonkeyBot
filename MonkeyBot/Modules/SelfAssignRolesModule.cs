@@ -25,19 +25,21 @@ namespace MonkeyBot.Modules
             // Get the role with the specified name
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
+            {
                 return;
+            }
             // Get the role of the bot with permission manage roles
             IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to assign it
             if (botRole?.Position <= role.Position)
             {
-                await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
+                _ = await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
                 return;
             }
             var guser = (IGuildUser)Context.User;
             if (guser.RoleIds.Contains(role.Id))
             {
-                await ReplyAsync("You already have that role").ConfigureAwait(false);
+                _ = await ReplyAsync("You already have that role").ConfigureAwait(false);
                 return;
             }
             await guser.AddRoleAsync(role).ConfigureAwait(false);
@@ -51,17 +53,19 @@ namespace MonkeyBot.Modules
         {
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
+            {
                 return;
+            }
             var guser = (IGuildUser)Context.User;
             if (!guser.RoleIds.Contains(role.Id))
             {
-                await ReplyAsync("You don't have that role").ConfigureAwait(false);
+                _ = await ReplyAsync("You don't have that role").ConfigureAwait(false);
             }
             IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole?.Position <= role.Position)
             {
-                await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
+                _ = await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
             }
             await guser.RemoveRoleAsync(role).ConfigureAwait(false);
             await ReplyAndDeleteAsync($"Role {role.Name} has been removed").ConfigureAwait(false);
@@ -78,14 +82,14 @@ namespace MonkeyBot.Modules
             foreach (IRole role in Context.Guild.Roles)
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
+                {
                     allRoles.Add(role.Name);
+                }
             }
-            string msg;
-            if (allRoles.Count > 0)
-                msg = "The following assignable roles exist:" + Environment.NewLine + string.Join(", ", allRoles);
-            else
-                msg = "No assignable roles exist!";
-            await ReplyAsync(msg).ConfigureAwait(false);
+            string msg = allRoles.Count > 0
+                ? "The following assignable roles exist:" + Environment.NewLine + string.Join(", ", allRoles)
+                : "No assignable roles exist!";
+            _ = await ReplyAsync(msg).ConfigureAwait(false);
         }
 
         [Command("ListMembers")]
@@ -105,19 +109,21 @@ namespace MonkeyBot.Modules
             {
                 if (role.IsMentionable && role.Name != "everyone" && botRole?.Position > role.Position)
                 {
-                    IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+                    IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id))
+                                                                      .Select(x => x.Username)
+                                                                      .OrderBy(x => x);
                     if (roleUsers != null && roleUsers.Any())
                     {
-                        builder.AddField(x =>
-                        {
-                            x.Name = role.Name;
-                            x.Value = string.Join(", ", roleUsers);
-                            x.IsInline = false;
-                        });
+                        _ = builder.AddField(x =>
+                          {
+                              x.Name = role.Name;
+                              x.Value = string.Join(", ", roleUsers);
+                              x.IsInline = false;
+                          });
                     }
                 }
             }
-            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            _ = await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
             await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
         }
 
@@ -128,23 +134,29 @@ namespace MonkeyBot.Modules
         {
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
+            {
                 return;
+            }
             IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
-            IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id)).Select(x => x.Username).OrderBy(x => x);
+            IOrderedEnumerable<string> roleUsers = guildUsers?.Where(x => x.RoleIds.Contains(role.Id))
+                                                              .Select(x => x.Username)
+                                                              .OrderBy(x => x);
             if (roleUsers == null || !roleUsers.Any())
+            {
                 return;
+            }
             var builder = new EmbedBuilder
             {
                 Color = new Color(114, 137, 218),
                 Description = $"These are the users assigned to the {role.Name} role:"
             };
-            builder.AddField(x =>
-                {
-                    x.Name = role.Name;
-                    x.Value = string.Join(", ", roleUsers);
-                    x.IsInline = false;
-                });
-            await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
+            _ = builder.AddField(x =>
+                  {
+                      x.Name = role.Name;
+                      x.Value = string.Join(", ", roleUsers);
+                      x.IsInline = false;
+                  });
+            _ = await Context.User.SendMessageAsync("", false, builder.Build()).ConfigureAwait(false);
             await ReplyAndDeleteAsync("I have sent you a private message").ConfigureAwait(false);
         }
     }

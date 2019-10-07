@@ -13,12 +13,12 @@ public static class Program
     public static async Task Main(string[] args)
     {
         var parser = new FluentCommandLineParser<ApplicationArguments>();
-        parser
+        _ = parser
             .Setup(arg => arg.BuildDocumentation)
             .As('d', "docu")
             .SetDefault(false)
             .WithDescription("Build the documentation files in the app folder");
-        parser
+        _ = parser
             .SetupHelp("?", "help")
             .Callback(text => Console.WriteLine(text));
         ICommandLineParserResult parseResult = parser.Parse(args);
@@ -37,10 +37,14 @@ public static class Program
     private static async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception ex)
+        {
             await Console.Out.WriteLineAsync($"Unhandled exception: {ex.Message}").ConfigureAwait(false);
+        }
 
         if (e.IsTerminating)
+        {
             await Console.Out.WriteLineAsync("Terminating!").ConfigureAwait(false);
+        }
     }
 
     private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)

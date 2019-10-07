@@ -31,41 +31,45 @@ namespace MonkeyBot.Modules
         [Example("!Feeds add https://blogs.msdn.microsoft.com/dotnet/feed/")]
         public async Task AddFeedUrlAsync([Summary("The name/title of the feed")] string name, [Summary("The url to the feed (Atom/RSS)")] string url, [Summary("Optional: The name of the channel where the Feed updates should be posted. Defaults to current channel")] string channelName = "")
         {
-            if (url.IsEmpty())
+            if (name.IsEmpty())
             {
-                await ReplyAsync("Please enter a name for the feed!").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a name for the feed!").ConfigureAwait(false);
                 return;
             }
             if (url.IsEmpty())
             {
-                await ReplyAsync("Please enter a feed url!").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a feed url!").ConfigureAwait(false);
                 return;
             }
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel == null)
             {
-                await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
+                _ = await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
                 return;
             }
             IEnumerable<HtmlFeedLink> urls = await FeedReader.GetFeedUrlsFromUrlAsync(url).ConfigureAwait(false);
             string feedUrl;
             if (!urls.Any()) // no url - probably the url is already the right feed url
+            {
                 feedUrl = url;
+            }
             else if (urls.Count() == 1)
+            {
                 feedUrl = urls.First().Url;
+            }
             else
             {
-                await ReplyAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}").ConfigureAwait(false);
+                _ = await ReplyAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}").ConfigureAwait(false);
                 return;
             }
             List<(string name, string feedUrl, ulong feedChannelId)> currentFeeds = await feedService.GetFeedsForGuildAsync(Context.Guild.Id, channel.Id).ConfigureAwait(false);
             if (currentFeeds.Any(x => x.feedUrl == feedUrl || x.name == name))
             {
-                await ReplyAsync("The specified feed is already in the list!").ConfigureAwait(false);
+                _ = await ReplyAsync("The specified feed is already in the list!").ConfigureAwait(false);
                 return;
             }
             await feedService.AddFeedAsync(name, feedUrl, Context.Guild.Id, channel.Id).ConfigureAwait(false);
-            await ReplyAsync("Feed added").ConfigureAwait(false);
+            _ = await ReplyAsync("Feed added").ConfigureAwait(false);
         }
 
         [Command("Remove")]
@@ -75,24 +79,24 @@ namespace MonkeyBot.Modules
         {
             if (nameOrUrl.IsEmpty())
             {
-                await ReplyAsync("Please enter a feed url").ConfigureAwait(false);
+                _ = await ReplyAsync("Please enter a feed url").ConfigureAwait(false);
                 return;
             }
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName, true).ConfigureAwait(false);
             if (channel == null)
             {
-                await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
+                _ = await ReplyAsync("The specified channel was not found").ConfigureAwait(false);
                 return;
             }
             List<(string name, string feedUrl, ulong feedChannelId)> currentFeeds = await feedService.GetFeedsForGuildAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);
             if (!currentFeeds.Any(x => x.feedUrl == nameOrUrl || x.name == nameOrUrl))
             {
-                await ReplyAsync("The specified feed is not in the list!").ConfigureAwait(false);
+                _ = await ReplyAsync("The specified feed is not in the list!").ConfigureAwait(false);
                 return;
             }
 
             await feedService.RemoveFeedAsync(nameOrUrl, Context.Guild.Id, channel.Id).ConfigureAwait(false);
-            await ReplyAsync("Feed removed").ConfigureAwait(false);
+            _ = await ReplyAsync("Feed removed").ConfigureAwait(false);
         }
 
         [Command("List")]
@@ -103,7 +107,7 @@ namespace MonkeyBot.Modules
             List<(string name, string feedUrl, ulong feedChannelId)> feeds = await feedService.GetFeedsForGuildAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);
             if (feeds == null || feeds.Count < 1)
             {
-                await ReplyAsync("No feeds have been added yet.").ConfigureAwait(false);
+                _ = await ReplyAsync("No feeds have been added yet.").ConfigureAwait(false);
             }
             else
             {
@@ -113,14 +117,14 @@ namespace MonkeyBot.Modules
                     foreach ((string feedName, string feedUrl, ulong feedChannelId) in feeds)
                     {
                         ITextChannel feedChannel = await Context.Guild.GetTextChannelAsync(feedChannelId).ConfigureAwait(false);
-                        sb.AppendLine($"{feedChannel.Mention}: {feedName} ({feedUrl})");
+                        _ = sb.AppendLine($"{feedChannel.Mention}: {feedName} ({feedUrl})");
                     }
-                    await ReplyAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb.ToString()}").ConfigureAwait(false);
+                    _ = await ReplyAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb.ToString()}").ConfigureAwait(false);
                 }
                 else
                 {
                     string allUrls = string.Join(Environment.NewLine, feeds.Select(x => x.feedUrl));
-                    await ReplyAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, feeds.Select(x => x.feedUrl))}").ConfigureAwait(false);
+                    _ = await ReplyAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, feeds.Select(x => x.feedUrl))}").ConfigureAwait(false);
                 }
             }
         }

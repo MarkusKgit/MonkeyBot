@@ -44,18 +44,18 @@ namespace MonkeyBot.Services
                 GuildID = guildID,
                 ChannelID = channelID
             };
-            dbContext.Feeds.Add(feed);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = dbContext.Feeds.Add(feed);
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             await GetFeedUpdateAsync(feed, true).ConfigureAwait(false);
         }
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID, ulong channelID)
         {
-            Models.Feed feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID).ConfigureAwait(false);
+            Models.Feed feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID)).ConfigureAwait(false);
             if (feed != null)
             {
-                dbContext.Feeds.Remove(feed);
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = dbContext.Feeds.Remove(feed);
+                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -63,9 +63,11 @@ namespace MonkeyBot.Services
         {
             List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID).ConfigureAwait(false);
             if (allFeeds == null)
+            {
                 return;
+            }
             dbContext.Feeds.RemoveRange(allFeeds);
-            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task<List<(string name, string feedUrl, ulong feedChannelId)>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
@@ -76,10 +78,9 @@ namespace MonkeyBot.Services
 
         private Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
-            if (channelID.HasValue)
-                return dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync();
-            else
-                return dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync();
+            return channelID.HasValue
+                ? dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync()
+                : dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync();
         }
 
         private async Task GetAllFeedUpdatesAsync()
@@ -104,7 +105,9 @@ namespace MonkeyBot.Services
             SocketGuild guild = discordClient.GetGuild(guildFeed.GuildID);
             SocketTextChannel channel = guild?.GetTextChannel(guildFeed.ChannelID);
             if (guild == null || channel == null || guildFeed.URL.IsEmpty())
+            {
                 return;
+            }
             Feed feed;
             try
             {
@@ -116,59 +119,72 @@ namespace MonkeyBot.Services
                 return;
             }
             if (feed == null || feed.Items == null || feed.Items.Count < 1)
+            {
                 return;
-            DateTime lastUpdateUTC = DateTime.UtcNow;
-            if (guildFeed.LastUpdate.HasValue)
-                lastUpdateUTC = guildFeed.LastUpdate.Value;
-            else
-                lastUpdateUTC = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
+            }
+
+            DateTime lastUpdateUTC = guildFeed.LastUpdate ?? DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(updateIntervallMinutes));
             IEnumerable<FeedItem> allFeeds = feed?.Items?.Where(x => x.PublishingDate.HasValue);
-            List<FeedItem> updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC).OrderBy(x => x.PublishingDate).ToList();
+            List<FeedItem> updatedFeeds = allFeeds?.Where(x => x.PublishingDate.Value.ToUniversalTime() > lastUpdateUTC)
+                                                   .OrderBy(x => x.PublishingDate)
+                                                   .ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
+            {
                 updatedFeeds = allFeeds.Take(1).ToList();
+            }
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new EmbedBuilder();
-                builder.WithColor(new Color(21, 26, 35));
+                _ = builder.WithColor(new Color(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
-                    builder.WithImageUrl(feed.ImageUrl);
+                {
+                    _ = builder.WithImageUrl(feed.ImageUrl);
+                }
                 string feedTitle = ParseHtml(feed.Title);
                 if (feedTitle.IsEmptyOrWhiteSpace())
+                {
                     feedTitle = guildFeed.Name;
-                string title = $"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"";
-                builder.WithTitle(title);
+                }
+                _ = builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"");
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (FeedItem feedItem in updatedFeeds)
                 {
                     if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value.ToUniversalTime() > latestUpdateUTC)
+                    {
                         latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
-                    string fieldName = feedItem.PublishingDate.HasValue ? feedItem.PublishingDate.Value.ToLocalTime().ToString() : DateTime.Now.ToString();
+                    }
+                    string fieldName = feedItem.PublishingDate.HasValue 
+                        ? feedItem.PublishingDate.Value.ToLocalTime().ToString() 
+                        : DateTime.Now.ToString();
                     string author = feedItem.Author;
                     if (author.IsEmpty())
                     {
                         if (feed.Type == FeedType.Rss_1_0)
+                        {
                             author = (feedItem.SpecificItem as Rss10FeedItem)?.DC?.Creator;
+                        }
                         else if (feed.Type == FeedType.Rss_2_0)
+                        {
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
+                        }
                     }
                     author = !author.IsEmptyOrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
                     string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
                     string content = ParseHtml(feedItem.Description).Trim();
                     if (content.IsEmptyOrWhiteSpace())
+                    {
                         content = ParseHtml(feedItem.Content).Trim();
-                    if (content.IsEmptyOrWhiteSpace())
-                        content = "[...]";
-                    else
-                        content = content.TruncateTo(250, "");
+                    }
+                    content = content.IsEmptyOrWhiteSpace() ? "[...]" : content.TruncateTo(250, "");
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
-                    builder.AddField(fieldName, fieldContent, true);
+                    _ = builder.AddField(fieldName, fieldContent, true);
                 }
-                await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+                _ = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
-                    dbContext.Feeds.Update(guildFeed);
-                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = dbContext.Feeds.Update(guildFeed);
+                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -176,7 +192,9 @@ namespace MonkeyBot.Services
         private string ParseHtml(string html)
         {
             if (html.IsEmptyOrWhiteSpace())
+            {
                 return string.Empty;
+            }
 
             var htmlDoc = new HtmlDocument();
 
@@ -200,7 +218,9 @@ namespace MonkeyBot.Services
                 foreach (HtmlNode node in textNodes)
                 {
                     if (!node.InnerText.IsEmptyOrWhiteSpace())
-                        sb.Append(node.InnerText.Trim() + "|");
+                    {
+                        _ = sb.Append(node.InnerText.Trim() + "|");
+                    }
                 }
             }
             if (iframes != null)
@@ -211,14 +231,12 @@ namespace MonkeyBot.Services
                         node.Attributes.Contains("src") &&
                         !node.Attributes["src"].Value.IsEmptyOrWhiteSpace())
                     {
-                        sb.Append(node.Attributes["src"].Value);
+                        _ = sb.Append(node.Attributes["src"].Value);
                     }
                 }
             }
             string result = sb.ToString();
-            if (!result.IsEmpty())
-                return result;
-            return html;
+            return !result.IsEmpty() ? result : html;
         }
     }
 }
