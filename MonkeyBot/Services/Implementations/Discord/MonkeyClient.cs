@@ -107,7 +107,7 @@ namespace MonkeyBot.Services
         private async Task Client_GuildMemberUpdateAsync(SocketGuildUser before, SocketGuildUser after)
         {
             GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == after.Guild.Id).ConfigureAwait(false);
-            if (!config.StreamAnnouncementsEnabled || !config.ConfirmedStreamerIds.Contains(after.Id))
+            if (config == null || !config.StreamAnnouncementsEnabled || config.ConfirmedStreamerIds == null || !config.ConfirmedStreamerIds.Contains(after.Id))
             {
                 // Streaming announcements has to be enabled for the guild and the streamer must first opt in to have it announced
                 return;
