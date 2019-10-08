@@ -32,7 +32,7 @@ namespace MonkeyBot.Services
             this.logger = logger;
         }
 
-        public void Start() 
+        public void Start()
             => schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), 10);
 
         public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)
@@ -153,8 +153,8 @@ namespace MonkeyBot.Services
                     {
                         latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
                     }
-                    string fieldName = feedItem.PublishingDate.HasValue 
-                        ? feedItem.PublishingDate.Value.ToLocalTime().ToString() 
+                    string fieldName = feedItem.PublishingDate.HasValue
+                        ? feedItem.PublishingDate.Value.ToLocalTime().ToString()
                         : DateTime.Now.ToString();
                     string author = feedItem.Author;
                     if (author.IsEmpty())

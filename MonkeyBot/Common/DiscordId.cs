@@ -26,7 +26,7 @@ namespace MonkeyBot.Common
             UserId = userId;
         }
 
-        public override bool Equals(object obj) 
+        public override bool Equals(object obj)
             => (obj is DiscordId) && Equals(obj as DiscordId);
 
         public bool Equals(DiscordId other)
@@ -48,7 +48,7 @@ namespace MonkeyBot.Common
             return (guild && channel && user);
         }
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
             => (GuildId, ChannelId, UserId).GetHashCode();
     }
 }

@@ -5,7 +5,7 @@ namespace MonkeyBot.Services
 {
     public class OTDBQuestionTypeConverter : JsonConverter
     {
-        public override bool CanConvert(Type objectType) 
+        public override bool CanConvert(Type objectType)
             => objectType == typeof(string);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)

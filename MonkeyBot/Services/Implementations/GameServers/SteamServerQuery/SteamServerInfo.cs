@@ -136,7 +136,7 @@ namespace MonkeyBot.Services
                 Players = parser.ReadByte(),
                 MaxPlayers = parser.ReadByte(),
                 Bots = parser.ReadByte(),
-                ServerType = new Func<GameServertype>(() 
+                ServerType = new Func<GameServertype>(()
                     => ((char)parser.ReadByte()) switch
                     {
                         'l' => GameServertype.Listen,
@@ -144,7 +144,7 @@ namespace MonkeyBot.Services
                         'p' => GameServertype.SourceTV,
                         _ => GameServertype.Invalid,
                     })(),
-                Environment = new Func<GameEnvironment>(() 
+                Environment = new Func<GameEnvironment>(()
                     => ((char)parser.ReadByte()) switch
                     {
                         'l' => GameEnvironment.Linux,

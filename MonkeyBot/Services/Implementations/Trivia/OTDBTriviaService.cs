@@ -50,7 +50,7 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
         /// <returns>success</returns>
-        public async Task<bool> SkipQuestionAsync(DiscordId id) 
+        public async Task<bool> SkipQuestionAsync(DiscordId id)
             => trivias.ContainsKey(id) ? await trivias[id].SkipQuestionAsync().ConfigureAwait(false) : false;
 
         /// <summary>

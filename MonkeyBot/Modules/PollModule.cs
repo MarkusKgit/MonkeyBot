@@ -125,7 +125,7 @@ namespace MonkeyBot.Modules
             {
                 _ = poll.ReactionUsers.AddOrUpdate(
                         answer,
-                        new List<IUser> { reaction.User.Value }, 
+                        new List<IUser> { reaction.User.Value },
                         (_, list) =>
                           {
                               list.Add(reaction.User.Value);

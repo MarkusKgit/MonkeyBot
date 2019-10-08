@@ -11,14 +11,14 @@ namespace MonkeyBot.Services
     {
         private static readonly Uri randomJokeApiUrl = new Uri("http://api.icndb.com/jokes/random");
 
-        public Task<string> GetChuckFactAsync() 
+        public Task<string> GetChuckFactAsync()
             => GetJokeAsync(randomJokeApiUrl);
 
-        public Task<string> GetChuckFactAsync(string userName)        
+        public Task<string> GetChuckFactAsync(string userName)
             => userName.IsEmpty()
                 ? Task.FromResult(string.Empty)
                 : GetJokeAsync(new UriBuilder(randomJokeApiUrl) { Query = $"firstName={userName}" }.Uri);
-        
+
 
         private static async Task<string> GetJokeAsync(Uri uri)
         {

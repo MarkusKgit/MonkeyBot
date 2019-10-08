@@ -92,7 +92,7 @@ namespace MonkeyBot.Services
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID) 
+        public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID)
             => (await dbContext.GameSubscriptions.Where(x => x.UserID == userID).ToListAsync().ConfigureAwait(false)).AsReadOnly();
     }
 }

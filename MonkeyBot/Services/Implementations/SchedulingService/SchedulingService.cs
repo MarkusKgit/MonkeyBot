@@ -20,7 +20,7 @@ namespace MonkeyBot.Services
             }
         }
 
-        public void ScheduleJobOnce(string jobID, DateTime time, Action job) 
+        public void ScheduleJobOnce(string jobID, DateTime time, Action job)
             => JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunOnceAt(time));
 
         public async void ScheduleJobRecurring(string jobID, int intervalSeconds, Action job, int delaySeconds)
@@ -66,7 +66,7 @@ namespace MonkeyBot.Services
             return job.NextRun;
         }
 
-        public void RemoveJob(string jobID) 
+        public void RemoveJob(string jobID)
             => JobManager.RemoveJob(jobID);
     }
 }

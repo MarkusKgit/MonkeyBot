@@ -1,6 +1,4 @@
 ﻿using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
 using System;
 using System.IO;
 using System.Text;
@@ -35,8 +33,8 @@ namespace MonkeyBot.Common
                                                      FileAccess.Write,
                                                      FileShare.None,
                                                      bufferSize: 4096,
-                                                     useAsync: true);            
-            await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);            
+                                                     useAsync: true);
+            await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -74,23 +72,23 @@ namespace MonkeyBot.Common
         public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {
             IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
-            ITextChannel channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);            
+            ITextChannel channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);
             return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
-            using CancellationTokenRegistration _ = cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs);           
+            using CancellationTokenRegistration _ = cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs);
             if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
             {
                 throw new OperationCanceledException(cancellationToken);
-            }            
+            }
             return await task.ConfigureAwait(false);
         }
 
         //Converts all html encoded special characters
-        public static string CleanHtmlString(string html) 
+        public static string CleanHtmlString(string html)
             => System.Net.WebUtility.HtmlDecode(html);
 
         private static readonly string[] regionalIndicatorLetters = "🇦|🇧|🇨|🇩|🇪|🇫|🇬|🇭|🇮|🇯|🇰|🇱|🇲|🇳|🇴|🇵|🇶|🇷|🇸|🇹|🇺|🇻|🇼|🇽|🇾|🇿|".Split('|');

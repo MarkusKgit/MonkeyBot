@@ -29,12 +29,12 @@ namespace MonkeyBot.Services
             this.logger = logger;
         }
 
-        public void Start() 
+        public void Start()
             => schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync().ConfigureAwait(false), 10);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {
-            GuildConfig cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false) 
+            GuildConfig cfg = await dbContext.GuildConfigs.SingleOrDefaultAsync(g => g.GuildID == guildID).ConfigureAwait(false)
                 ?? new GuildConfig { GuildID = guildID };
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;

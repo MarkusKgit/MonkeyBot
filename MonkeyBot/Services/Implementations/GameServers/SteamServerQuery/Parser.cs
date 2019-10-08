@@ -128,7 +128,7 @@ namespace MonkeyBot.Services
             }
         }
 
-        internal byte[] GetUnParsedBytes() 
+        internal byte[] GetUnParsedBytes()
             => data.Skip(currentPosition + 1).ToArray();
     }
 

@@ -31,19 +31,19 @@ namespace MonkeyBot.Services
 
         public async Task AddRoleButtonLinkAsync(ulong guildID, ulong messageID, ulong roleID, string emoteString)
         {
-            SocketGuild guild = discordClient.GetGuild(guildID);            
+            SocketGuild guild = discordClient.GetGuild(guildID);
             if (guild == null)
             {
                 return;
             }
-            
-            IUserMessage msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);            
+
+            IUserMessage msg = await GetMessageAsync(guild, messageID).ConfigureAwait(false);
             if (msg == null)
             {
                 return;
             }
-            IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.Ordinal)) 
-                ?? new Emoji(emoteString) as IEmote;            
+            IEmote emote = guild.Emotes.FirstOrDefault(x => emoteString.Contains(x.Name, StringComparison.Ordinal))
+                ?? new Emoji(emoteString) as IEmote;
             if (emote == null)
             {
                 return;
@@ -143,10 +143,10 @@ namespace MonkeyBot.Services
             return sb.ToString();
         }
 
-        private Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction) 
+        private Task DiscordClient_ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
             => AddOrRemoveRoleAsync(AddOrRemove.Remove, cachedMessage, channel, reaction);
 
-        private Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction) 
+        private Task DiscordClient_ReactionAddedAsync(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
             => AddOrRemoveRoleAsync(AddOrRemove.Add, cachedMessage, channel, reaction);
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
