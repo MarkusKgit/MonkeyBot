@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Models;
 using Newtonsoft.Json;
+using NLog.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +29,13 @@ namespace MonkeyBot.Database
         {
         }
 
+        private static readonly ILoggerFactory NLogLoggerFactory = LoggerFactory.Create(builder =>
+        {
+            _ = builder
+                .AddFilter((category, level) => level == LogLevel.Warning)
+                .AddNLog();
+        });
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string databasePath = Path.Combine(AppContext.BaseDirectory, "Data");
@@ -35,6 +44,7 @@ namespace MonkeyBot.Database
                 _ = Directory.CreateDirectory(databasePath);
             }
             string datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
+            _ = optionsBuilder.UseLoggerFactory(NLogLoggerFactory);
             _ = optionsBuilder.UseSqlite($"Filename={datadir}");
         }
 
