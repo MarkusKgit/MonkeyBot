@@ -20,16 +20,15 @@ namespace MonkeyBot
     {
         public static async Task<IServiceProvider> InitializeAsync(ApplicationArguments args)
         {
-            IServiceProvider services = ConfigureServices();
-
-            ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
-            _ = loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
-            LogManager.Configuration = SetupNLogConfig();
-
-            ILogger<MonkeyClient> logger = services.GetService<ILogger<MonkeyClient>>();
+            IServiceProvider services = ConfigureServices(loggingBuilder =>
+            {
+                _ = loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                _ = loggingBuilder.AddNLog(SetupNLogConfig());
+            });
 
             DiscordSocketClient client = services.GetService<DiscordSocketClient>();
-            await client.LoginAsync(TokenType.Bot, (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token).ConfigureAwait(false);
+            string token = (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token;
+            await client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await client.StartAsync().ConfigureAwait(false);
 
             CommandManager manager = services.GetService<CommandManager>();
@@ -62,7 +61,7 @@ namespace MonkeyBot
             if (args != null && args.BuildDocumentation)
             {
                 await manager.BuildDocumentationAsync().ConfigureAwait(false); // Write the documentation
-                logger.LogInformation("Documentation built");
+                await Console.Out.WriteLineAsync("Documentation built").ConfigureAwait(false);
             }
 
             return services;
@@ -108,12 +107,10 @@ namespace MonkeyBot
         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        private static IServiceProvider ConfigureServices()
+        private static IServiceProvider ConfigureServices(Action<ILoggingBuilder> configureLogging)
         {
             IServiceCollection services = new ServiceCollection()
-                .AddSingleton<ILoggerFactory, LoggerFactory>()
-                .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
-                .AddLogging((builder) => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace))
+                .AddLogging(configureLogging)
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
                 .AddSingleton<DiscordSocketClient, MonkeyClient>()
                 .AddSingleton<InteractiveService>()
