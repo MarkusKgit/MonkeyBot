@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Models;
-using Newtonsoft.Json;
 using NLog.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 
 namespace MonkeyBot.Database
 {
@@ -60,13 +60,13 @@ namespace MonkeyBot.Database
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.CommandPrefix).IsRequired();
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.Rules)
                 .HasConversion(
-                    x => JsonConvert.SerializeObject(x),
-                    x => JsonConvert.DeserializeObject<List<string>>(x));
+                    x => JsonSerializer.Serialize(x, null),
+                    x => JsonSerializer.Deserialize<List<string>>(x, null));
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds)
                 .HasConversion(
-                    x => JsonConvert.SerializeObject(x),
-                    x => JsonConvert.DeserializeObject<List<ulong>>(x));
+                    x => JsonSerializer.Serialize(x, null),
+                    x => JsonSerializer.Deserialize<List<ulong>>(x, null));
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.StreamAnnouncementsEnabled).HasDefaultValue(false);
 
             //Feeds
@@ -83,8 +83,8 @@ namespace MonkeyBot.Database
             _ = modelBuilder.Entity<GameServer>().Property(x => x.GameServerType).IsRequired().HasConversion<string>();
             _ = modelBuilder.Entity<GameServer>().Property(x => x.ServerIP).IsRequired()
                 .HasConversion(
-                    x => JsonConvert.SerializeObject(x),
-                    x => JsonConvert.DeserializeObject<System.Net.IPEndPoint>(x));
+                    x => JsonSerializer.Serialize(x, null),
+                    x => JsonSerializer.Deserialize<System.Net.IPEndPoint>(x, null));
 
             //GameSubscriptions
             _ = modelBuilder.Entity<GameSubscription>().HasKey(x => x.ID);

@@ -1,7 +1,7 @@
 ﻿using MonkeyBot.Common;
-using Newtonsoft.Json;
 using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -26,7 +26,7 @@ namespace MonkeyBot.Services
             string json = await httpClient.GetStringAsync(uri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {
-                ChuckResponse chuckResponse = JsonConvert.DeserializeObject<ChuckResponse>(json);
+                ChuckResponse chuckResponse = JsonSerializer.Deserialize<ChuckResponse>(json);
                 if (chuckResponse.Type == "success" && chuckResponse.Value != null)
                 {
                     return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);

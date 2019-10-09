@@ -1,17 +1,19 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
-    public class OTDBDifficultyConverter : JsonConverter
+    public class OTDBDifficultyConverter : JsonConverter<TriviaQuestionDifficulty>
     {
+        
+
         public override bool CanConvert(Type objectType)
             => objectType == typeof(string);
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override TriviaQuestionDifficulty Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options = null)
         {
-            return (string)reader.Value switch
-            {
+            return reader.GetString() switch {
                 "easy" => TriviaQuestionDifficulty.Easy,
                 "medium" => TriviaQuestionDifficulty.Medium,
                 "hard" => TriviaQuestionDifficulty.Hard,
@@ -19,15 +21,14 @@ namespace MonkeyBot.Services
             };
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, TriviaQuestionDifficulty value, JsonSerializerOptions options)
         {
-            var difficulty = (TriviaQuestionDifficulty)value;
-            writer.WriteValue(difficulty switch
+            writer.WriteStringValue(value switch
             {
                 TriviaQuestionDifficulty.Easy => "easy",
                 TriviaQuestionDifficulty.Medium => "medium",
                 TriviaQuestionDifficulty.Hard => "hard",
-                _ => throw new ArgumentException($"Didn't expect question difficulty {difficulty}")
+                _ => throw new ArgumentException($"Didn't expect question difficulty {value}")
             });
         }
     }

@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
@@ -9,24 +9,24 @@ namespace MonkeyBot.Services
     /// </summary>
     public class OTDBQuestion : ITriviaQuestion
     {
-        [JsonProperty(PropertyName = "category")]
+        [JsonPropertyName("category")]
         public string Category { get; set; }
 
-        [JsonProperty(PropertyName = "type")]
+        [JsonPropertyName("type")]
         [JsonConverter(typeof(OTDBQuestionTypeConverter))]
         public TriviaQuestionType Type { get; set; }
 
-        [JsonProperty(PropertyName = "difficulty")]
+        [JsonPropertyName("difficulty")]
         [JsonConverter(typeof(OTDBDifficultyConverter))]
         public TriviaQuestionDifficulty Difficulty { get; set; }
 
-        [JsonProperty(PropertyName = "question")]
+        [JsonPropertyName("question")]
         public string Question { get; set; }
 
-        [JsonProperty(PropertyName = "correct_answer")]
+        [JsonPropertyName("correct_answer")]
         public string CorrectAnswer { get; set; }
 
-        [JsonProperty(PropertyName = "incorrect_answers")]
+        [JsonPropertyName("incorrect_answers")]
         public List<string> IncorrectAnswers { get; set; }
     }
 }

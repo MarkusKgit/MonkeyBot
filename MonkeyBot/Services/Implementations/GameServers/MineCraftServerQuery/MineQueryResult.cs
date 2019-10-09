@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
@@ -8,70 +8,70 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Protocol that the server is using and the given name
         /// </summary>
-        [JsonProperty(PropertyName = "description")]
+        [JsonPropertyName("description")]
         public DescriptionPayload Description { get; set; }
 
-        [JsonProperty(PropertyName = "players")]
+        [JsonPropertyName("players")]
         public PlayersPayload Players { get; set; }
 
-        [JsonProperty(PropertyName = "version")]
+        [JsonPropertyName("version")]
         public VersionPayload Version { get; set; }
 
-        [JsonProperty(PropertyName = "modinfo")]
+        [JsonPropertyName("modinfo")]
         public ModInfosPayload ModInfos { get; set; }
     }
 
     public class DescriptionPayload
     {
-        [JsonProperty(PropertyName = "text")]
+        [JsonPropertyName("text")]
         public string Motd { get; set; }
     }
 
     public class PlayersPayload
     {
-        [JsonProperty(PropertyName = "max")]
+        [JsonPropertyName("max")]
         public int Max { get; set; }
 
-        [JsonProperty(PropertyName = "online")]
+        [JsonPropertyName("online")]
         public int Online { get; set; }
 
-        [JsonProperty(PropertyName = "sample")]
+        [JsonPropertyName("sample")]
         public List<PlayerPayload> Sample { get; set; }
     }
 
     public class VersionPayload
     {
-        [JsonProperty(PropertyName = "name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty(PropertyName = "protocol")]
+        [JsonPropertyName("protocol")]
         public int Protocol { get; set; }
     }
 
     public class PlayerPayload
     {
-        [JsonProperty(PropertyName = "name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty(PropertyName = "id")]
+        [JsonPropertyName("id")]
         public string Id { get; set; }
     }
 
     public class ModInfosPayload
     {
-        [JsonProperty(PropertyName = "type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
-        [JsonProperty(PropertyName = "modList")]
+        [JsonPropertyName("modList")]
         public List<ModInfoPayload> ModList { get; set; }
     }
 
     public class ModInfoPayload
     {
-        [JsonProperty(PropertyName = "modid")]
+        [JsonPropertyName("modid")]
         public string Id { get; set; }
 
-        [JsonProperty(PropertyName = "version")]
+        [JsonPropertyName("version")]
         public string Version { get; set; }
     }
 }

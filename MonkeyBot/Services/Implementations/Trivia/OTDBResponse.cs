@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
@@ -7,10 +7,10 @@ namespace MonkeyBot.Services
 
     public class OTDBResponse
     {
-        [JsonProperty(PropertyName = "response_code")]
+        [JsonPropertyName("response_code")]
         public TriviaApiResponse Response { get; set; }
 
-        [JsonProperty(PropertyName = "results")]
+        [JsonPropertyName("results")]
         public List<OTDBQuestion> Questions { get; set; }
     }
 

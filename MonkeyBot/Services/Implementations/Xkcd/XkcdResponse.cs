@@ -1,41 +1,41 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
     public class XkcdResponse
     {
-        [JsonProperty("month")]
+        [JsonPropertyName("month")]
         public string Month { get; set; }
 
-        [JsonProperty("num")]
+        [JsonPropertyName("num")]
         public int Number { get; set; }
 
-        [JsonProperty("link")]
+        [JsonPropertyName("link")]
         public string Link { get; set; }
 
-        [JsonProperty("year")]
+        [JsonPropertyName("year")]
         public string Year { get; set; }
 
-        [JsonProperty("news")]
+        [JsonPropertyName("news")]
         public string News { get; set; }
 
-        [JsonProperty("safe_title")]
+        [JsonPropertyName("safe_title")]
         public string SafeTitle { get; set; }
 
-        [JsonProperty("transcript")]
+        [JsonPropertyName("transcript")]
         public string Transcript { get; set; }
 
-        [JsonProperty("alt")]
+        [JsonPropertyName("alt")]
         public string Alt { get; set; }
 
-        [JsonProperty("img")]
+        [JsonPropertyName("img")]
         public Uri ImgUrl { get; set; }
 
-        [JsonProperty("title")]
+        [JsonPropertyName("title")]
         public string Title { get; set; }
 
-        [JsonProperty("day")]
+        [JsonPropertyName("day")]
         public string Day { get; set; }
     }
 }
