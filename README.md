@@ -144,7 +144,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ## Usage
 
-Once the bot is running and connected it will respond to [commands](commands.md). 
+Once the bot is running and connected it will respond to [commands](Commands.md). 
 Try !help to get you started.
 
 
