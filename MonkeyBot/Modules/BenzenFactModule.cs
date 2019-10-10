@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -23,7 +24,10 @@ namespace MonkeyBot.Modules
         [Remarks("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync()
         {
-            string fact = dbContext.BenzenFacts.OrderBy(_ => Guid.NewGuid()).FirstOrDefault()?.Fact;
+            int totalFacts = dbContext.BenzenFacts.Count();
+            var r = new Random();
+            int randomOffset = r.Next(0, totalFacts);
+            string fact = dbContext.BenzenFacts.Skip(randomOffset).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
             {
                 _ = await ReplyAsync(fact).ConfigureAwait(false);
