@@ -37,7 +37,7 @@ namespace MonkeyBot.Services
             }
             List<GameSubscription> gameSubscriptions = await dbContext.GameSubscriptions
                 .Where(subscription => subscription != null
-                                       && joinedGame.Contains(subscription.GameName, StringComparison.OrdinalIgnoreCase)
+                                       && joinedGame.ToUpper().Contains(subscription.GameName.ToUpper())
                                        && subscription.UserID != after.Id)
                 .ToListAsync()
                 .ConfigureAwait(false);
@@ -62,10 +62,10 @@ namespace MonkeyBot.Services
                 _ = await subscribedUser.SendMessageAsync($"{after.Username} has launched {joinedGame}!").ConfigureAwait(false);
             }
         }
-
+                
         public Task AddSubscriptionAsync(string gameName, ulong guildID, ulong userID)
         {
-            if (dbContext.GameSubscriptions.Any(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase) && x.GuildID == guildID && x.UserID == userID))
+            if (dbContext.GameSubscriptions.Any(x => x.GameName.ToUpper().Contains(gameName.ToUpper()) && x.GuildID == guildID && x.UserID == userID))            
             {
                 throw new ArgumentException("The user is already subscribed to that game");
             }
@@ -79,7 +79,7 @@ namespace MonkeyBot.Services
         {
             GameSubscription subscriptionToRemove = await dbContext
                 .GameSubscriptions
-                .FirstOrDefaultAsync(x => x.GameName.Contains(gameName, StringComparison.OrdinalIgnoreCase)
+                .FirstOrDefaultAsync(x => x.GameName.ToUpper().Contains(gameName.ToUpper())
                                           && x.GuildID == guildID
                                           && x.UserID == userID)
                 .ConfigureAwait(false);

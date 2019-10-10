@@ -40,13 +40,17 @@ namespace MonkeyBot.Modules
             {
                 // Add the Subscription to the Service to activate it
                 await gameSubscriptionService.AddSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
+                _ = await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
+            }
+            catch (ArgumentException ex)
+            {
+                _ = await ReplyAsync(ex.Message).ConfigureAwait(false);                
             }
             catch (Exception ex)
             {
                 _ = await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
-                logger.LogWarning(ex, "Error adding a game subscription");
-            }
-            _ = await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
+                logger.LogWarning(ex, "Error adding a game subscription");                
+            }            
         }
 
         [Command("Unsubscribe")]
@@ -63,14 +67,17 @@ namespace MonkeyBot.Modules
             {
                 // Remove the subscription from the Service
                 await gameSubscriptionService.RemoveSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
+                _ = await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
+            }
+            catch (ArgumentException ex)
+            {
+                _ = await ReplyAsync(ex.Message).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _ = await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
-                logger.LogWarning(ex, "Error removing a game subscription");
-                return;
-            }
-            _ = await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
+                logger.LogWarning(ex, "Error removing a game subscription");                
+            }            
         }
 
         [Command("Subscriptions")]
