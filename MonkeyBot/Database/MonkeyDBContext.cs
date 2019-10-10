@@ -83,8 +83,8 @@ namespace MonkeyBot.Database
             _ = modelBuilder.Entity<GameServer>().Property(x => x.GameServerType).IsRequired().HasConversion<string>();
             _ = modelBuilder.Entity<GameServer>().Property(x => x.ServerIP).IsRequired()
                 .HasConversion(
-                    x => JsonSerializer.Serialize(x, null),
-                    x => JsonSerializer.Deserialize<System.Net.IPEndPoint>(x, null));
+                    x => x.ToString(),
+                    x => System.Net.IPEndPoint.Parse(x));
 
             //GameSubscriptions
             _ = modelBuilder.Entity<GameSubscription>().HasKey(x => x.ID);

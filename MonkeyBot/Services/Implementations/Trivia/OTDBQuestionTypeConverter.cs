@@ -6,9 +6,6 @@ namespace MonkeyBot.Services
 {
     public class OTDBQuestionTypeConverter : JsonConverter<TriviaQuestionType>
     {
-        public override bool CanConvert(Type objectType)
-            => objectType == typeof(string);
-
         public override TriviaQuestionType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             return reader.GetString() switch

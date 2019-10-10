@@ -427,7 +427,10 @@ namespace MonkeyBot.Services
 
             if (!json.IsEmpty())
             {
-                OTDBResponse otdbResponse = await Task.Run(() => JsonSerializer.Deserialize<OTDBResponse>(json)).ConfigureAwait(false);
+                OTDBResponse otdbResponse = JsonSerializer.Deserialize<OTDBResponse>(json, new JsonSerializerOptions() {
+                    Converters = {new OTDBDifficultyConverter(), new OTDBQuestionTypeConverter()}
+                });
+                
                 if (otdbResponse.Response == TriviaApiResponse.Success)
                 {
                     questions.AddRange(otdbResponse.Questions.Select(CleanQuestion));

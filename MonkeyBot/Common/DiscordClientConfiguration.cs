@@ -15,12 +15,16 @@ namespace MonkeyBot.Common
         /// <summary> The location and name of the bot's configuration file. </summary>
         private const string fileName = "config/configuration.json";
 
-        [JsonPropertyName("Owners")]
-        public List<ulong> owners {get; set;} = new List<ulong>();
-
         /// <summary> Ids of users who will have owner access to the bot. </summary>
-        [JsonIgnore]
-        public IReadOnlyList<ulong> Owners => owners.AsReadOnly();
+        private List<ulong> owners = new List<ulong>();
+
+        // TODO: Make setter private once System.Text.Json supports it
+        [JsonPropertyName("Owners")]
+        public IReadOnlyList<ulong> Owners
+        {
+            get => owners;
+            set => owners = new List<ulong>(value);
+        }
 
         /// <summary> The bot's login token. </summary>
         [JsonPropertyName("Token")]
