@@ -1,16 +1,14 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
-    public class OTDBQuestionTypeConverter : JsonConverter
+    public class OTDBQuestionTypeConverter : JsonConverter<TriviaQuestionType>
     {
-        public override bool CanConvert(Type objectType)
-            => objectType == typeof(string);
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override TriviaQuestionType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return (string)reader.Value switch
+            return reader.GetString() switch
             {
                 "boolean" => TriviaQuestionType.TrueFalse,
                 "multiple" => TriviaQuestionType.MultipleChoice,
@@ -18,14 +16,13 @@ namespace MonkeyBot.Services
             };
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, TriviaQuestionType value, JsonSerializerOptions options)
         {
-            var questionType = (TriviaQuestionType)value;
-            writer.WriteValue(questionType switch
+            writer.WriteStringValue(value switch
             {
                 TriviaQuestionType.TrueFalse => "boolean",
                 TriviaQuestionType.MultipleChoice => "multiple",
-                _ => throw new ArgumentException($"Didn't expect question type {questionType}")
+                _ => throw new ArgumentException($"Didn't expect question type {value}")
             });
         }
     }

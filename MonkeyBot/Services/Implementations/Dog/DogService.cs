@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -24,7 +24,7 @@ namespace MonkeyBot.Services
 
             if (!json.IsEmpty())
             {
-                DogResponse dogResponse = JsonConvert.DeserializeObject<DogResponse>(json);
+                DogResponse dogResponse = JsonSerializer.Deserialize<DogResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
                     return dogResponse.Message;
@@ -40,7 +40,7 @@ namespace MonkeyBot.Services
 
             if (!json.IsEmpty())
             {
-                DogBreedsResponse dogResponse = JsonConvert.DeserializeObject<DogBreedsResponse>(json);
+                DogBreedsResponse dogResponse = JsonSerializer.Deserialize<DogBreedsResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
                     return dogResponse.Message.Keys.ToList();

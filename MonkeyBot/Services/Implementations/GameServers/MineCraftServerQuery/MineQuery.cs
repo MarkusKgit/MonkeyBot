@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -75,7 +75,7 @@ namespace MonkeyBot.Services
                 }
 
                 string json = ReadString(b, jsonLength);
-                MineQueryResult result = JsonConvert.DeserializeObject<MineQueryResult>(json);
+                MineQueryResult result = JsonSerializer.Deserialize<MineQueryResult>(json);
                 return result;
             }
             catch (IOException ex)

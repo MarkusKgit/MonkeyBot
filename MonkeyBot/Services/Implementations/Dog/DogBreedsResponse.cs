@@ -1,14 +1,14 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
 {
     public class DogBreedsResponse
     {
-        [JsonProperty("status")]
+        [JsonPropertyName("status")]
         public string Status { get; set; }
 
-        [JsonProperty("message")]
+        [JsonPropertyName("message")]
         public Dictionary<string, List<string>> Message { get; set; }
     }
 }

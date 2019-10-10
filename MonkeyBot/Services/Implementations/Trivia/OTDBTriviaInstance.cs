@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -428,7 +427,10 @@ namespace MonkeyBot.Services
 
             if (!json.IsEmpty())
             {
-                OTDBResponse otdbResponse = await Task.Run(() => JsonConvert.DeserializeObject<OTDBResponse>(json)).ConfigureAwait(false);
+                OTDBResponse otdbResponse = JsonSerializer.Deserialize<OTDBResponse>(json, new JsonSerializerOptions() {
+                    Converters = {new OTDBDifficultyConverter(), new OTDBQuestionTypeConverter()}
+                });
+                
                 if (otdbResponse.Response == TriviaApiResponse.Success)
                 {
                     questions.AddRange(otdbResponse.Questions.Select(CleanQuestion));
@@ -448,8 +450,8 @@ namespace MonkeyBot.Services
             string json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {
-                var jobject = JObject.Parse(json);
-                apiToken = (string)jobject.GetValue("token", StringComparison.OrdinalIgnoreCase);
+                var jDocument = JsonDocument.Parse(json);
+                apiToken = jDocument.RootElement.GetProperty("token").GetString();
             }
         }
 

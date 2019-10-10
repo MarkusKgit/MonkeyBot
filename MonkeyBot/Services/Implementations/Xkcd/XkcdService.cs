@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -45,7 +45,7 @@ namespace MonkeyBot.Services
             try
             {
                 string response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
-                return JsonConvert.DeserializeObject<XkcdResponse>(response);
+                return JsonSerializer.Deserialize<XkcdResponse>(response);
             }
             catch
             {

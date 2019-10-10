@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Common
@@ -14,19 +15,23 @@ namespace MonkeyBot.Common
         /// <summary> The location and name of the bot's configuration file. </summary>
         private const string fileName = "config/configuration.json";
 
-        [JsonProperty(PropertyName = "Owners")]
-        private readonly List<ulong> owners = new List<ulong>();
-
         /// <summary> Ids of users who will have owner access to the bot. </summary>
-        [JsonIgnore]
-        public IReadOnlyList<ulong> Owners => owners.AsReadOnly();
+        private List<ulong> owners = new List<ulong>();
+
+        // TODO: Make setter private once System.Text.Json supports it
+        [JsonPropertyName("Owners")]
+        public IReadOnlyList<ulong> Owners
+        {
+            get => owners;
+            set => owners = new List<ulong>(value);
+        }
 
         /// <summary> The bot's login token. </summary>
-        [JsonProperty(PropertyName = "Token")]
-        public string Token { get; private set; }
+        [JsonPropertyName("Token")]
+        public string Token { get; set; }
 
         /// <summary> Api credentials for cloudinary for uploading pictures. </summary>
-        [JsonProperty(PropertyName = "CloudinaryCredentials")]
+        [JsonPropertyName("CloudinaryCredentials")]
         public CloudinaryCredentials CloudinaryCredentials { get; set; }
 
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
@@ -110,12 +115,12 @@ namespace MonkeyBot.Common
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
             string json = await MonkeyHelpers.ReadTextAsync(filePath).ConfigureAwait(false);
-            DiscordClientConfiguration config = JsonConvert.DeserializeObject<DiscordClientConfiguration>(json);
+            DiscordClientConfiguration config = JsonSerializer.Deserialize<DiscordClientConfiguration>(json);
             return config;
         }
 
         /// <summary> Convert the configuration to a json string. </summary>
         private string ToJson()
-            => JsonConvert.SerializeObject(this, Formatting.Indented);
+            => JsonSerializer.Serialize(this, new JsonSerializerOptions() {WriteIndented = true});
     }
 }

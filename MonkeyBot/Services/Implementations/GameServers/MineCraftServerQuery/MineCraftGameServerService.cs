@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using PointF = System.Drawing.PointF;
 
@@ -168,7 +168,7 @@ namespace MonkeyBot.Services
             if (File.Exists(storedValuesPath))
             {
                 string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
-                List<HistoricData<int>> loadedData = JsonConvert.DeserializeObject<List<HistoricData<int>>>(json);
+                List<HistoricData<int>> loadedData = JsonSerializer.Deserialize<List<HistoricData<int>>>(json);
                 historicData = loadedData
                     .Where(x => x.Time > minTime)
                     .ToList();
@@ -180,7 +180,8 @@ namespace MonkeyBot.Services
             }
             historicData.Add(new HistoricData<int>(DateTime.Now, currentPlayers));
 
-            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonConvert.SerializeObject(historicData, Formatting.Indented)).ConfigureAwait(false);
+            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonSerializer.Serialize(historicData, new JsonSerializerOptions() {WriteIndented = true}))
+                .ConfigureAwait(false);
 
             var chart = new XYChart
             {
