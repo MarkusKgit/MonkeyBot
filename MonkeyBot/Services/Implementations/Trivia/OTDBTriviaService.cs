@@ -2,6 +2,7 @@
 using MonkeyBot.Common;
 using MonkeyBot.Database;
 using System.Collections.Concurrent;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -13,13 +14,15 @@ namespace MonkeyBot.Services
     public class OTDBTriviaService : ITriviaService
     {
         private readonly MonkeyDBContext dbContext;
+        private readonly IHttpClientFactory clientFactory;
 
         // holds all trivia instances on a per guild and channel basis
         private readonly ConcurrentDictionary<DiscordId, OTDBTriviaInstance> trivias;
 
-        public OTDBTriviaService(MonkeyDBContext dbContext)
+        public OTDBTriviaService(MonkeyDBContext dbContext, IHttpClientFactory clientFactory)
         {
             this.dbContext = dbContext;
+            this.clientFactory = clientFactory;
             trivias = new ConcurrentDictionary<DiscordId, OTDBTriviaInstance>();
         }
 
@@ -38,7 +41,7 @@ namespace MonkeyBot.Services
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (!trivias.ContainsKey(id))
             {
-                _ = trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext));
+                _ = trivias.TryAdd(id, new OTDBTriviaInstance(context, dbContext, clientFactory));
             }
             return trivias.TryGetValue(id, out OTDBTriviaInstance instance)
                 ? await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false)
@@ -86,7 +89,7 @@ namespace MonkeyBot.Services
             var id = new DiscordId(context.Guild.Id, context.Channel.Id, null);
             if (id.GuildId == null || !trivias.ContainsKey(id))
             {
-                using var trivia = new OTDBTriviaInstance(context, dbContext);
+                using var trivia = new OTDBTriviaInstance(context, dbContext,clientFactory);
                 return await trivia.GetGlobalHighScoresAsync(amount, id.GuildId.Value).ConfigureAwait(false);
             }
             else

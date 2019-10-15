@@ -10,16 +10,23 @@ namespace MonkeyBot.Services
     // https://dog.ceo/dog-api/documentation/
     public class DogService : IDogService
     {
+        private readonly IHttpClientFactory clientFactory;
+
         private static readonly Uri baseApiUri = new Uri("https://dog.ceo/api/");
         private static readonly Uri randomPictureUri = new Uri(baseApiUri, "breeds/image/random");
         private static Uri GetRandomPictureForBreedUri(string breed) => new Uri(baseApiUri, $"breed/{breed}/images/random");
         private static readonly Uri breedsUri = new Uri(baseApiUri, "breeds/list/all");
 
+        public DogService(IHttpClientFactory clientFactory)
+        {
+            this.clientFactory = clientFactory;
+        }
+        
         public async Task<string> GetDogPictureUrlAsync(string breed = "")
         {
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
-            using var httpClient = new HttpClient();
+            HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
@@ -35,7 +42,7 @@ namespace MonkeyBot.Services
 
         public async Task<List<string>> GetDogBreedsAsync()
         {
-            using var httpClient = new HttpClient();
+            HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
