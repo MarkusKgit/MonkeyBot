@@ -111,6 +111,7 @@ namespace MonkeyBot
         {
             IServiceCollection services = new ServiceCollection()
                 .AddLogging(configureLogging)
+                .AddHttpClient()
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
                 .AddSingleton<DiscordSocketClient, MonkeyClient>()
                 .AddSingleton<InteractiveService>()

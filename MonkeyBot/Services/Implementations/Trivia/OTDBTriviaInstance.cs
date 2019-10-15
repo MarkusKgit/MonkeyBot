@@ -33,9 +33,8 @@ namespace MonkeyBot.Services
         private readonly SocketCommandContext commandContext;
         private readonly DiscordSocketClient discordClient;
         private readonly MonkeyDBContext dbContext;
-        private readonly InteractiveService interactiveService;
-        private readonly HttpClientHandler httpClientHandler;
-        private readonly HttpClient httpClient;
+        private readonly InteractiveService interactiveService;        
+        private readonly IHttpClientFactory clientFactory;
 
         private readonly List<OTDBQuestion> questions;
 
@@ -61,7 +60,7 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="commandContext">Message context of the channel where the trivia should be hosted</param>
         /// <param name="db">DB Service instance</param>
-        public OTDBTriviaInstance(SocketCommandContext commandContext, MonkeyDBContext dbContext)
+        public OTDBTriviaInstance(SocketCommandContext commandContext, MonkeyDBContext dbContext, IHttpClientFactory clientFactory)
         {
             this.commandContext = commandContext;
             discordClient = commandContext.Client;
@@ -70,12 +69,7 @@ namespace MonkeyBot.Services
             questions = new List<OTDBQuestion>();
             guildID = commandContext.Guild.Id;
             channelID = commandContext.Channel.Id;
-            httpClientHandler = new HttpClientHandler
-            {
-                Proxy = null,
-                UseProxy = false
-            };
-            httpClient = new HttpClient(httpClientHandler);
+            this.clientFactory = clientFactory;            
         }
 
         /// <summary>
@@ -423,6 +417,7 @@ namespace MonkeyBot.Services
             query["amount"] = count.ToString();
             query["token"] = apiToken;
             builder.Query = query.ToString();
+            HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(builder.Uri).ConfigureAwait(false);
 
             if (!json.IsEmpty())
@@ -447,6 +442,7 @@ namespace MonkeyBot.Services
         // Requests a token from the api. With the token a session is managed. During a session it is ensured that no question is received twice
         private async Task GetTokenAsync()
         {
+            HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {
@@ -470,9 +466,7 @@ namespace MonkeyBot.Services
 
         public void Dispose()
         {
-            interactiveService.Dispose();
-            httpClientHandler.Dispose();
-            httpClient.Dispose();
+            interactiveService.Dispose();            
             GC.SuppressFinalize(this);
         }
     }

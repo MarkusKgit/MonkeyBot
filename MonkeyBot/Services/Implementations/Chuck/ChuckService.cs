@@ -9,7 +9,14 @@ namespace MonkeyBot.Services
     //http://www.icndb.com/api/
     public class ChuckService : IChuckService
     {
+        private readonly IHttpClientFactory clientFactory;
+
         private static readonly Uri randomJokeApiUrl = new Uri("http://api.icndb.com/jokes/random");
+
+        public ChuckService(IHttpClientFactory clientFactory)
+        {
+            this.clientFactory = clientFactory;
+        }
 
         public Task<string> GetChuckFactAsync()
             => GetJokeAsync(randomJokeApiUrl);
@@ -20,9 +27,9 @@ namespace MonkeyBot.Services
                 : GetJokeAsync(new UriBuilder(randomJokeApiUrl) { Query = $"firstName={userName}" }.Uri);
 
 
-        private static async Task<string> GetJokeAsync(Uri uri)
+        private async Task<string> GetJokeAsync(Uri uri)
         {
-            using var httpClient = new HttpClient();
+            HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(uri).ConfigureAwait(false);
             if (!json.IsEmpty())
             {

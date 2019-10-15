@@ -7,6 +7,8 @@ namespace MonkeyBot.Services
 {
     public class XkcdService : IXkcdService
     {
+        private readonly IHttpClientFactory clientFactory;
+
         // https://xkcd.com/~comicNumber~
         // display Url of comic is baseUrl + /comic Number
         // Latest comic json data is baseUrl + /info.0.json
@@ -15,6 +17,11 @@ namespace MonkeyBot.Services
         private static readonly Uri latestComicApiUrl = new Uri(baseUrl, "/info.0.json");
         private Uri GetComicApiUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}/info.0.json");
         public Uri GetComicUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}");
+
+        public XkcdService(IHttpClientFactory clientFactory)
+        {
+            this.clientFactory = clientFactory;
+        }
 
         public async Task<XkcdResponse> GetComicAsync(int number)
         {
@@ -41,10 +48,10 @@ namespace MonkeyBot.Services
 
         private async Task<XkcdResponse> GetComicAsync(Uri apiEndPoint)
         {
-            using var http = new HttpClient();
+            HttpClient httpClient = clientFactory.CreateClient();
             try
             {
-                string response = await http.GetStringAsync(apiEndPoint).ConfigureAwait(false);
+                string response = await httpClient.GetStringAsync(apiEndPoint).ConfigureAwait(false);
                 return JsonSerializer.Deserialize<XkcdResponse>(response);
             }
             catch
