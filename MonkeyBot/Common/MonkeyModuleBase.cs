@@ -9,7 +9,7 @@ namespace MonkeyBot.Common
 {
     public abstract class MonkeyModuleBase : ModuleBase
     {
-        protected async Task ReplyAndDeleteAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, int delayMS = 5000)
+        protected async Task ReplyAndDeleteAsync(string? message = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null, int delayMS = 5000)
         {
             IUserMessage msg = await Context.Channel.SendMessageAsync(message, isTTS, embed, options).ConfigureAwait(false);
             await Task.Delay(delayMS).ConfigureAwait(false);
@@ -17,21 +17,21 @@ namespace MonkeyBot.Common
             await Context.Channel.DeleteMessageAsync(Context.Message).ConfigureAwait(false);
         }
 
-        protected async Task<IGuildUser> GetUserInGuildAsync(string userName)
+        protected async Task<IGuildUser?> GetUserInGuildAsync(string userName)
         {
             if (userName.IsEmptyOrWhiteSpace())
             {
                 _ = await ReplyAsync("Please provide a name").ConfigureAwait(false);
                 return null;
             }
-            IGuildUser user = null;
+            IGuildUser? user = null;
             if (userName.StartsWith("<@", StringComparison.InvariantCulture) && ulong.TryParse(userName.Replace("<@", "", StringComparison.InvariantCulture).Replace(">", "", StringComparison.InvariantCulture), out ulong id))
             {
                 user = await Context.Guild.GetUserAsync(id).ConfigureAwait(false);
             }
             else
             {
-                IEnumerable<IGuildUser> users = (await (Context.Guild?.GetUsersAsync()).ConfigureAwait(false))?.Where(x => x.Username.Contains(userName, StringComparison.OrdinalIgnoreCase));
+                IEnumerable<IGuildUser> users = (await Context.Guild.GetUsersAsync().ConfigureAwait(false)).Where(x => x.Username.Contains(userName, StringComparison.OrdinalIgnoreCase));
                 if (users != null && users.Count() == 1)
                 {
                     user = users.First();
@@ -49,7 +49,7 @@ namespace MonkeyBot.Common
             return user;
         }
 
-        protected async Task<ITextChannel> GetTextChannelInGuildAsync(string channelName, bool defaultToCurrent)
+        protected async Task<ITextChannel?> GetTextChannelInGuildAsync(string channelName, bool defaultToCurrent)
         {
             if (channelName.IsEmptyOrWhiteSpace() && !defaultToCurrent)
             {
@@ -57,7 +57,7 @@ namespace MonkeyBot.Common
                 return null;
             }
             IReadOnlyCollection<ITextChannel> allChannels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
-            ITextChannel channel = !channelName.IsEmpty()
+            ITextChannel? channel = !channelName.IsEmpty()
                 ? allChannels.FirstOrDefault(x => x.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase))
                 : defaultToCurrent ? Context.Channel as ITextChannel : null;
             if (channel == null)
@@ -67,7 +67,7 @@ namespace MonkeyBot.Common
             return channel;
         }
 
-        protected async Task<IRole> GetRoleInGuildAsync(string roleName)
+        protected async Task<IRole?> GetRoleInGuildAsync(string roleName)
         {
             if (roleName.IsEmptyOrWhiteSpace())
             {

@@ -15,15 +15,15 @@ namespace MonkeyBot.Models
 
         public ulong DefaultChannelId { get; set; }
 
-        public string WelcomeMessageText { get; set; }
+        public string? WelcomeMessageText { get; set; }
 
         public ulong WelcomeMessageChannelId { get; set; }
 
-        public string GoodbyeMessageText { get; set; }
+        public string? GoodbyeMessageText { get; set; }
 
         public ulong GoodbyeMessageChannelId { get; set; }
 
-        public List<string> Rules { get; set; }
+        public List<string> Rules { get; set; } = new List<string>();
 
         public bool BattlefieldUpdatesEnabled { get; set; }
 
@@ -33,6 +33,6 @@ namespace MonkeyBot.Models
 
         public bool StreamAnnouncementsEnabled { get; set; }
 
-        public List<ulong> ConfirmedStreamerIds { get; set; }
+        public List<ulong> ConfirmedStreamerIds { get; set; } = new List<ulong>();
     }
 }

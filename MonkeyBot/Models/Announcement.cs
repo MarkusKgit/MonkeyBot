@@ -12,13 +12,13 @@ namespace MonkeyBot.Models
 
         public AnnouncementType Type { get; set; }
 
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         public DateTime? ExecutionTime { get; set; }
 
-        public string CronExpression { get; set; }
+        public string? CronExpression { get; set; }
     }
 
     public enum AnnouncementType

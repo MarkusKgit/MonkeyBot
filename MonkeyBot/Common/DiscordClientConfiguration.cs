@@ -28,11 +28,11 @@ namespace MonkeyBot.Common
 
         /// <summary> The bot's login token. </summary>
         [JsonPropertyName("Token")]
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         /// <summary> Api credentials for cloudinary for uploading pictures. </summary>
         [JsonPropertyName("CloudinaryCredentials")]
-        public CloudinaryCredentials CloudinaryCredentials { get; set; }
+        public CloudinaryCredentials? CloudinaryCredentials { get; set; }
 
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
         public static async Task EnsureExistsAsync()
@@ -40,8 +40,8 @@ namespace MonkeyBot.Common
             string file = Path.Combine(AppContext.BaseDirectory, fileName);
             if (!File.Exists(file))
             {
-                string path = Path.GetDirectoryName(file);
-                if (!Directory.Exists(path))
+                string? path = Path.GetDirectoryName(file);
+                if (path != null && !Directory.Exists(path))
                 {
                     _ = Directory.CreateDirectory(path);
                 }
@@ -54,7 +54,7 @@ namespace MonkeyBot.Common
 
                 // Get owner
                 await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ").ConfigureAwait(false);
-                string sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                string? sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
                 if (ulong.TryParse(sOwnerId, out ulong ownerId) && ownerId > 0)
                 {
                     config.AddOwner(ownerId);
@@ -66,8 +66,8 @@ namespace MonkeyBot.Common
 
                 // Get cloudinary credentials
                 await Console.Out.WriteLineAsync("Do you want to setup cloudinary? (y/n)").ConfigureAwait(false);
-                string ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                if (ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
+                string? ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                if (ans != null && ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
                 {
                     var creds = new CloudinaryCredentials();
                     await Console.Out.WriteLineAsync("Enter your cloud id").ConfigureAwait(false);

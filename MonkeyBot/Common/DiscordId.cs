@@ -5,7 +5,7 @@ namespace MonkeyBot.Common
     /// <summary>
     /// Provides a unique id as a combination of GuildId, ChannelId and UserId. Id parts that are null and will be ignored
     /// </summary>
-    public class DiscordId : IEquatable<DiscordId>
+    public class DiscordId : IEquatable<DiscordId?>
     {
         public ulong? GuildId { get; }
         public ulong? ChannelId { get; }
@@ -26,10 +26,10 @@ namespace MonkeyBot.Common
             UserId = userId;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => (obj is DiscordId) && Equals(obj as DiscordId);
 
-        public bool Equals(DiscordId other)
+        public bool Equals(DiscordId? other)
         {
             if (other == null)
             {

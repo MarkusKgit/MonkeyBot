@@ -45,7 +45,7 @@ namespace MonkeyBot.Documentation
             foreach (ModuleInfo module in commandService.Modules)
             {
                 _ = builder.AppendLine(f.H3(module.Name));
-                List<string> modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
+                List<string>? modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                 if (modulePreconditions != null && modulePreconditions.Count > 0)
                 {
                     _ = builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
@@ -64,7 +64,7 @@ namespace MonkeyBot.Documentation
                     {
                         _ = builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));
                     }
-                    List<string> commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
+                    List<string>? commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
                     if (commandPreconditions != null && commandPreconditions.Count > 0)
                     {
                         _ = builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
@@ -98,14 +98,14 @@ namespace MonkeyBot.Documentation
                 ChannelPermission? channelPermission;
                 if (precondition is RequireBotPermissionAttribute)
                 {
-                    guildPermission = (precondition as RequireBotPermissionAttribute).GuildPermission;
-                    channelPermission = (precondition as RequireBotPermissionAttribute).ChannelPermission;
+                    guildPermission = (precondition as RequireBotPermissionAttribute)?.GuildPermission;
+                    channelPermission = (precondition as RequireBotPermissionAttribute)?.ChannelPermission;
                     prefix = "Bot";
                 }
                 else
                 {
-                    guildPermission = (precondition as RequireUserPermissionAttribute).GuildPermission;
-                    channelPermission = (precondition as RequireUserPermissionAttribute).ChannelPermission;
+                    guildPermission = (precondition as RequireUserPermissionAttribute)?.GuildPermission;
+                    channelPermission = (precondition as RequireUserPermissionAttribute)?.ChannelPermission;
                     prefix = "User";
                 }
                 if (guildPermission != null && guildPermission.HasValue)
@@ -128,7 +128,7 @@ namespace MonkeyBot.Documentation
             }
             else
             {
-                return precondition.ToString();
+                return precondition.ErrorMessage;
             }
         }
 

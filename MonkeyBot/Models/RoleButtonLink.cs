@@ -10,6 +10,6 @@
 
         public ulong RoleID { get; set; }
 
-        public string EmoteString { get; set; }
+        public string? EmoteString { get; set; }
     }
 }

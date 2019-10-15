@@ -183,22 +183,21 @@ namespace MonkeyBot.Services
             await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonSerializer.Serialize(historicData, new JsonSerializerOptions() {WriteIndented = true}))
                 .ConfigureAwait(false);
 
-            var chart = new XYChart
-            {
-                AxisX = new ChartAxis
+            var chart = new XYChart(
+                axisX: new ChartAxis
                 {
                     Min = 0,
                     Max = (int)historyPeriod.TotalHours,
                     NumTicks = (int)historyPeriod.TotalHours + 1,
                     LabelFunc = (x) => x == (int)historyPeriod.TotalHours ? "Now" : $"{x - historyPeriod.TotalHours}h"
                 },
-                AxisY = new ChartAxis
+                axisY: new ChartAxis
                 {
                     Min = 0,
                     Max = maxPlayers,
                     NumTicks = 11
                 }
-            };
+            );
             double tickSpan = historyPeriod.TotalHours;
 
             List<PointF> transformedValues = historicData.Select(d => new PointF((float)d.Time.Subtract(minTime).TotalHours, d.Value))
@@ -214,6 +213,7 @@ namespace MonkeyBot.Services
     }
 
     public class HistoricData<T>
+        where T : struct
     {
         public DateTime Time { get; set; }
         public T Value { get; set; }

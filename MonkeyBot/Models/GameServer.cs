@@ -15,9 +15,9 @@ namespace MonkeyBot.Models
 
         public GameServerType GameServerType { get; set; }
 
-        public IPEndPoint ServerIP { get; set; }
+        public IPEndPoint? ServerIP { get; set; }
 
-        public string GameVersion { get; set; }
+        public string? GameVersion { get; set; }
 
         public DateTime? LastVersionUpdate { get; set; }
     }

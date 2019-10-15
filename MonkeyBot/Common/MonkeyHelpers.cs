@@ -19,8 +19,8 @@ namespace MonkeyBot.Common
         {
             if (!File.Exists(filePath))
             {
-                string strippedPath = Path.GetDirectoryName(filePath);
-                if (!strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
+                string? strippedPath = Path.GetDirectoryName(filePath);
+                if (strippedPath != null && !strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
                 {
                     _ = Directory.CreateDirectory(strippedPath);
                 }
@@ -69,17 +69,23 @@ namespace MonkeyBot.Common
         /// <param name="guildID">Id of the Discord guild</param>
         /// <param name="channelID">Id of the Discord channel</param>
         /// <param name="text">Text to post</param>
-        public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed? embed = null, RequestOptions? options = null)
         {
-            IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
-            ITextChannel channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);
-            return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
+            IGuild guild = await client.GetGuildAsync(guildID).ConfigureAwait(false);
+            ITextChannel channel = await (guild.GetTextChannelAsync(channelID)).ConfigureAwait(false);
+            return await (channel.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
-            using CancellationTokenRegistration _ = cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs);
+            using CancellationTokenRegistration _ = cancellationToken.Register(s =>
+            {
+                if (s != null)
+                {
+                    ((TaskCompletionSource<bool>)s).TrySetResult(true);
+                }
+            }, tcs);
             if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
             {
                 throw new OperationCanceledException(cancellationToken);

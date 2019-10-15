@@ -21,6 +21,7 @@ namespace MonkeyBot.Database
         public DbSet<GameSubscription> GameSubscriptions { get; set; }
         public DbSet<RoleButtonLink> RoleButtonLinks { get; set; }
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public MonkeyDBContext() : base()
         {
         }
@@ -28,6 +29,7 @@ namespace MonkeyBot.Database
         public MonkeyDBContext(DbContextOptions<MonkeyDBContext> options) : base(options)
         {
         }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
         private static readonly ILoggerFactory NLogLoggerFactory = LoggerFactory.Create(builder =>
         {

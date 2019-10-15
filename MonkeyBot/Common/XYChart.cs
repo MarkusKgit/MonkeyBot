@@ -24,11 +24,11 @@ namespace MonkeyBot.Common
         public ChartAxis AxisX { get; set; }
         public ChartAxis AxisY { get; set; }
 
-        public XYChart() : this(1000, 500, 50)
+        public XYChart(ChartAxis axisX, ChartAxis axisY) : this(1000, 500, 50, axisX, axisY)
         {
         }
 
-        public XYChart(int width, int height, int borderMargin)
+        public XYChart(int width, int height, int borderMargin, ChartAxis axisX, ChartAxis axisY)
         {
             if (width <= 0)
             {
@@ -45,6 +45,8 @@ namespace MonkeyBot.Common
             chartWidth = width;
             chartHeight = height;
             axisBorder = borderMargin;
+            AxisX = axisX;
+            AxisY = axisY;
         }
 
         public void ExportChart(string filePath, IEnumerable<PointF> xyValues)

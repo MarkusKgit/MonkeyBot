@@ -27,7 +27,7 @@ namespace MonkeyBot
             });
 
             DiscordSocketClient client = services.GetService<DiscordSocketClient>();
-            string token = (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token;
+            string? token = (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token;
             await client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await client.StartAsync().ConfigureAwait(false);
 

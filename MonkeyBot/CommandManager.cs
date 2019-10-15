@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,6 @@ namespace MonkeyBot
         private readonly DiscordSocketClient discordClient;
         private readonly CommandService commandService;
         private readonly MonkeyDBContext dbContext;
-
         /// <summary>
         /// Create a new CommandManager instance with DI. Use <see cref="StartAsync"/> afterwards to actually start the CommandManager/>
         /// </summary>

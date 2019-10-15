@@ -13,10 +13,10 @@ namespace MonkeyBot.Models
         public ulong ChannelID { get; set; }
 
         /// <summary>The name or title of the feed</summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>The URL of the feed</summary>
-        public string URL { get; set; }
+        public string? URL { get; set; }
 
         /// <summary>The Time the feed was last updated (null if new)</summary>
         public DateTime? LastUpdate { get; set; }
