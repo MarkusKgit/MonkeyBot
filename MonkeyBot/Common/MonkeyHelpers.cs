@@ -20,7 +20,7 @@ namespace MonkeyBot.Common
             if (!File.Exists(filePath))
             {
                 string? strippedPath = Path.GetDirectoryName(filePath);
-                if (strippedPath != null && !strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
+                if (!strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
                 {
                     _ = Directory.CreateDirectory(strippedPath);
                 }
@@ -71,9 +71,9 @@ namespace MonkeyBot.Common
         /// <param name="text">Text to post</param>
         public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed? embed = null, RequestOptions? options = null)
         {
-            IGuild guild = await client.GetGuildAsync(guildID).ConfigureAwait(false);
-            ITextChannel channel = await (guild.GetTextChannelAsync(channelID)).ConfigureAwait(false);
-            return await (channel.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
+            IGuild? guild = await client.GetGuildAsync(guildID).ConfigureAwait(false);
+            ITextChannel? channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);
+            return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)

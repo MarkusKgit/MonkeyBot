@@ -83,10 +83,10 @@ namespace MonkeyBot.Common
         }
 
         /// <summary>Get the bot's highest ranked role with permission Manage Roles</summary>
-        public async Task<IRole> GetManageRolesRoleAsync()
+        public async Task<IRole?> GetManageRolesRoleAsync()
         {
-            IGuildUser thisBot = await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id).ConfigureAwait(false);
-            IRole ownrole = Context.Guild.Roles.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
+            IGuildUser? thisBot = await (Context.Guild?.GetUserAsync(Context.Client.CurrentUser.Id)).ConfigureAwait(false);
+            IRole ownrole = Context.Guild?.Roles?.FirstOrDefault(x => x.Permissions.ManageRoles && x.Id == thisBot.RoleIds.Max());
             return ownrole;
         }
     }

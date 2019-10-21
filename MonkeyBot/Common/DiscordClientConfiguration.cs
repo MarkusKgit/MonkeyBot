@@ -69,17 +69,16 @@ namespace MonkeyBot.Common
                 string? ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                 if (ans != null && ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
                 {
-                    var creds = new CloudinaryCredentials();
                     await Console.Out.WriteLineAsync("Enter your cloud id").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.Cloud = ans;
+                    string? cloudId = await Console.In.ReadLineAsync().ConfigureAwait(false);
+
                     await Console.Out.WriteLineAsync("Enter your Api Key").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.ApiKey = ans;
+                    string? apiKey = await Console.In.ReadLineAsync().ConfigureAwait(false);
+
                     await Console.Out.WriteLineAsync("Enter your Api Secret").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.ApiSecret = ans;
-                    config.CloudinaryCredentials = creds;
+                    string? apiSecret = await Console.In.ReadLineAsync().ConfigureAwait(false);
+
+                    config.CloudinaryCredentials = new CloudinaryCredentials(cloudId, apiKey, apiSecret);
                 }
 
                 await config.SaveAsync().ConfigureAwait(false); // Save the new configuration object to file.

@@ -2,8 +2,15 @@
 {
     public class CloudinaryCredentials
     {
-        public string? Cloud { get; set; }
-        public string? ApiKey { get; set; }
-        public string? ApiSecret { get; set; }
+        public string Cloud { get; }
+        public string ApiKey { get; }
+        public string ApiSecret { get; }
+
+        public CloudinaryCredentials(string cloud, string apiKey, string apiSecret)
+        {
+            Cloud = cloud;
+            ApiKey = apiKey;
+            ApiSecret = apiSecret;
+        }
     }
 }
