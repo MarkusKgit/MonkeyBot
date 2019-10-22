@@ -28,6 +28,16 @@ namespace MonkeyBot
 
             DiscordSocketClient client = services.GetService<DiscordSocketClient>();
             string? token = (await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false)).Token;
+            try
+            {
+                TokenUtils.ValidateToken(TokenType.Bot, token);
+            }
+            catch (Exception ex) when (ex is ArgumentNullException || ex is ArgumentException)
+            {
+                Console.WriteLine($"{(ex is ArgumentNullException ? "No" : "An invalid")} token was supplied. Please check your config file. Program will now terminate");
+                _ = Console.ReadKey();
+                Environment.Exit(-1);
+            }
             await client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await client.StartAsync().ConfigureAwait(false);
 
