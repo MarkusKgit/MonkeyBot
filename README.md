@@ -163,7 +163,9 @@ See the [open issues](https://github.com/MarkusKgit/MonkeyBot/issues) for a list
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**. Have a look at our [Contributing guidelines](CONTRIBUTING.md) for more info.
+
+tl;dr:
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
