@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
         {
             var server = new GameServer { GameServerType = gameServerType, ServerIP = endpoint, GuildID = guildID, ChannelID = channelID };
             bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
-            if (success && dbContext.GameServers.Contains(server))
+            if (success && !dbContext.GameServers.Contains(server))
             {
                 _ = dbContext.Add(server);
                 _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
