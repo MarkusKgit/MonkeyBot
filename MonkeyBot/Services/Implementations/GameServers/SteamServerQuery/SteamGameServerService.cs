@@ -55,11 +55,11 @@ namespace MonkeyBot.Services
                     .AddField("Current Map", serverInfo.Map);
                 if (playerInfo != null && playerInfo.Count > 0)
                 {
-                    _ = builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)));
+                    _ = builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
                 }
 
                 string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
-                _ = builder.AddField("Connect", $"[Click to connect]({connectLink})");
+                _ = builder.AddField("Connect using this link", $"[{connectLink}]({connectLink})");
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
@@ -108,6 +108,10 @@ namespace MonkeyBot.Services
                     _ = dbContext.GameServers.Update(discordGameServer);
                     _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
+            }
+            catch (TimeoutException tex)
+            {
+                logger.LogWarning(tex, "Timed out trying to get steam server info");
             }
             catch (Exception ex)
             {

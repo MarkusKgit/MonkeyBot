@@ -37,15 +37,15 @@ namespace MonkeyBot.Services
         public async Task<ReadOnlyCollection<PlayerInfo>> GetPlayersAsync()
         {
             List<PlayerInfo> players;
+            byte[] recvData = null;
             try
-            {
-                byte[] recvData;
+            {                
                 if (playerChallengeId == null)
                 {
                     recvData = await GetPlayerChallengeIdAsync().ConfigureAwait(false);
                     if (isPlayerChallengeId)
                     {
-                        playerChallengeId = null;
+                        playerChallengeId = recvData;
                     }
                 }
                 if (isPlayerChallengeId)
@@ -56,7 +56,7 @@ namespace MonkeyBot.Services
                     recvData = await GetServerResponseAsync(combinedArray).ConfigureAwait(false);
                 }
 
-                var parser = new Parser(null);
+                var parser = new Parser(recvData);
                 if (parser.ReadByte() != (byte)ResponseMsgHeader.A2S_PLAYER)
                 {
                     throw new Exception("A2S_PLAYER message header is not valid");
@@ -81,7 +81,7 @@ namespace MonkeyBot.Services
             }
             catch (Exception e)
             {
-                e.Data.Add("ReceivedData", (byte[])null == null ? new byte[1] : null);
+                e.Data.Add("ReceivedData", recvData ?? new byte[1]);
                 throw;
             }
             return new ReadOnlyCollection<PlayerInfo>(players);
@@ -117,9 +117,7 @@ namespace MonkeyBot.Services
 
             _ = await client.SendAsync(Query, Query.Length, EndPoint).ConfigureAwait(false);
             using var cts = new CancellationTokenSource();
-            client.Client.ReceiveTimeout = 2000;
-            cts.CancelAfter(2000);
-
+            cts.CancelAfter(3000);
             UdpReceiveResult response = await client.ReceiveAsync().WithCancellationAsync(cts.Token).ConfigureAwait(false);
             byte[] result = new byte[response.Buffer.Length - 4];
             response.Buffer.Skip(4).ToArray().CopyTo(result, 0);
