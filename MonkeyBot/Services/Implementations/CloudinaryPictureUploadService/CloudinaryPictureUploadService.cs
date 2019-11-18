@@ -31,8 +31,8 @@ namespace MonkeyBot.Services
                 File = new FileDescription(filePath),
                 PublicId = id
             };
-
-            ImageUploadResult uploadResult = await Task.Run(() => cloudinary?.Upload(uploadParams)).ConfigureAwait(false);
+            
+            ImageUploadResult uploadResult = await cloudinary.UploadAsync(uploadParams).ConfigureAwait(false);
 
             return uploadResult?.SecureUri?.OriginalString ?? "";
         }
