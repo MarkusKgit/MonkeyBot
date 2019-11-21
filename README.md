@@ -203,8 +203,8 @@ For a full list of commands see [Commands](Commands.md)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[build-shield]: https://ci.appveyor.com/api/projects/status/n8jxa05v2o17hyww/branch/master?svg=true
-[build-url]: https://ci.appveyor.com/project/MarkusKgit/monkeybot/branch/master
+[build-shield]: https://github.com/markuskgit/MonkeyBot/workflows/Build/badge.svg
+[build-url]: https://github.com/MarkusKgit/MonkeyBot
 [contributors-shield]: https://img.shields.io/github/contributors/MarkusKgit/MonkeyBot.svg?style=flat-square
 [contributors-url]: https://github.com/MarkusKgit/MonkeyBot/graphs/contributors
 [issues-shield]: https://img.shields.io/github/issues/Markuskgit/MonkeyBot.svg?style=flat-square
