@@ -3,6 +3,7 @@ using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
+using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,12 @@ namespace MonkeyBot.Modules
     [Name("Info")]
     public class InfoModule : MonkeyModuleBase
     {
-        private readonly MonkeyDBContext dbContext;
+        //private readonly MonkeyDBContext dbContext;
+        private readonly IGuildService guildService;
 
-        public InfoModule(MonkeyDBContext dbContext)
+        public InfoModule(IGuildService guildService)
         {
-            this.dbContext = dbContext;
+            this.guildService = guildService;
         }
 
         [Command("Rules")]
@@ -25,7 +27,7 @@ namespace MonkeyBot.Modules
         [RequireContext(ContextType.Guild)]
         public async Task ListRulesAsync()
         {
-            List<string> rules = (await dbContext.GuildConfigs.SingleOrDefaultAsync(x => x.GuildID == Context.Guild.Id).ConfigureAwait(false))?.Rules;
+            List<string> rules = (await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false)).Rules;
             if (rules == null || rules.Count < 1)
             {
                 _ = await ReplyAsync("No rules set!").ConfigureAwait(false);

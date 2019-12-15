@@ -23,7 +23,7 @@ namespace MonkeyBot
         private readonly IServiceProvider serviceProvider;
         private readonly DiscordSocketClient discordClient;
         private readonly CommandService commandService;
-        private readonly MonkeyDBContext dbContext;
+        private readonly IGuildService guildService;
 
         /// <summary>
         /// Create a new CommandManager instance with DI. Use <see cref="StartAsync"/> afterwards to actually start the CommandManager/>
@@ -33,7 +33,7 @@ namespace MonkeyBot
             this.serviceProvider = serviceProvider;
             discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
             commandService = serviceProvider.GetRequiredService<CommandService>();
-            dbContext = serviceProvider.GetRequiredService<MonkeyDBContext>();
+            guildService = serviceProvider.GetRequiredService<IGuildService>();
         }
 
         public async Task StartAsync()
@@ -49,7 +49,7 @@ namespace MonkeyBot
         {
             return guildId == null
                 ? GuildConfig.DefaultPrefix
-                : (await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId.Value).ConfigureAwait(false))?.CommandPrefix
+                : (await guildService.GetOrCreateConfigAsync(guildId.Value).ConfigureAwait(false))?.CommandPrefix
                     ?? GuildConfig.DefaultPrefix;
         }
 

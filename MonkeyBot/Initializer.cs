@@ -117,6 +117,7 @@ namespace MonkeyBot
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<CommandService, MonkeyCommandService>()
                 .AddSingleton<CommandManager>()
+                .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<ISchedulingService, SchedulingService>()
                 .AddSingleton<IAnnouncementService, AnnouncementService>()
                 .AddSingleton<ITriviaService, OTDBTriviaService>()
