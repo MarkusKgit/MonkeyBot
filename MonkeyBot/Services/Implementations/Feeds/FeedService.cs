@@ -140,12 +140,7 @@ namespace MonkeyBot.Services
                 {
                     _ = builder.WithImageUrl(feed.ImageUrl);
                 }
-                string feedTitle = ParseHtml(feed.Title);
-                if (feedTitle.IsEmptyOrWhiteSpace())
-                {
-                    feedTitle = guildFeed.Name;
-                }
-                _ = builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{feedTitle}".TruncateTo(255, "") + "\"");
+                _ = builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (FeedItem feedItem in updatedFeeds)
                 {
