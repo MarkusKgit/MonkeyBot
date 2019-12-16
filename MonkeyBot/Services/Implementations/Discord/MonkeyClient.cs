@@ -46,16 +46,17 @@ namespace MonkeyBot.Services
 
             GuildConfig config = await guildService.GetOrCreateConfigAsync(user.Guild.Id).ConfigureAwait(false);
             string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
-            ITextChannel channel = user.Guild.DefaultChannel;
-            if (config?.WelcomeMessageChannelId != null)
+            if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
             {
-                channel = user.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? user.Guild.DefaultChannel;
-            }
-            if (!welcomeMessage.IsEmpty())
-            {
+                ITextChannel channel = user.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? user.Guild.DefaultChannel;                
                 welcomeMessage = welcomeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Mention);
-                _ = await (channel?.SendMessageAsync(welcomeMessage)).ConfigureAwait(false);
-            }
+                EmbedBuilder builder = new EmbedBuilder()
+                    .WithColor(Color.DarkBlue)
+                    .WithDescription(welcomeMessage)
+                    .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
+                    .WithCurrentTimestamp();
+                _ = await (channel?.SendMessageAsync(embed: builder.Build())).ConfigureAwait(false);
+            }            
         }
 
         private async Task Client_UserLeftAsync(SocketGuildUser user)
@@ -67,15 +68,16 @@ namespace MonkeyBot.Services
 
             GuildConfig config = await guildService.GetOrCreateConfigAsync(user.Guild.Id).ConfigureAwait(false);
             string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
-            ITextChannel channel = user.Guild.DefaultChannel;
-            if (config?.GoodbyeMessageChannelId != null)
+            if (config?.GoodbyeMessageChannelId != null && !goodbyeMessage.IsEmpty())
             {
-                channel = user.Guild.GetTextChannel(config.GoodbyeMessageChannelId) ?? user.Guild.DefaultChannel;
-            }
-            if (!goodbyeMessage.IsEmpty())
-            {
+                ITextChannel channel = user.Guild.GetTextChannel(config.GoodbyeMessageChannelId) ?? user.Guild.DefaultChannel;
                 goodbyeMessage = goodbyeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Username);
-                _ = await (channel?.SendMessageAsync(goodbyeMessage)).ConfigureAwait(false);
+                EmbedBuilder builder = new EmbedBuilder()
+                    .WithColor(Color.DarkBlue)
+                    .WithDescription(goodbyeMessage)
+                    .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
+                    .WithCurrentTimestamp();
+                _ = await (channel?.SendMessageAsync(embed: builder.Build())).ConfigureAwait(false);
             }
         }
 
