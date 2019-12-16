@@ -58,15 +58,9 @@ namespace MonkeyBot.Database
             _ = modelBuilder.Entity<GuildConfig>().HasKey(x => x.ID);
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.GuildID).IsRequired();
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.CommandPrefix).IsRequired();
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.Rules)
-                .HasConversion(
-                    x => JsonSerializer.Serialize(x, null),
-                    x => JsonSerializer.Deserialize<List<string>>(x, null));
+            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.Rules).HasJsonConversion();
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds)
-                .HasConversion(
-                    x => JsonSerializer.Serialize(x, null),
-                    x => JsonSerializer.Deserialize<List<ulong>>(x, null));
+            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds).HasJsonConversion();
             _ = modelBuilder.Entity<GuildConfig>().Property(x => x.StreamAnnouncementsEnabled).HasDefaultValue(false);
 
             //Feeds
