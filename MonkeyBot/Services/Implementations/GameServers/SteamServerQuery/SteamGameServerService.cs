@@ -58,8 +58,9 @@ namespace MonkeyBot.Services
                     _ = builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
                 }
 
-                string connectLink = $"steam://rungameid/{serverInfo.GameId}//%20+connect%20{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
-                _ = builder.AddField("Connect using this link", $"[{connectLink}]({connectLink})");
+                //Discord removed support for protocols other than http or https so this currently makes no sense. Leaving it here, in case they re-enable it
+                //string connectLink = $"steam://connect/{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
+                //_ = builder.AddField("Connect using this link", connectLink);
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
