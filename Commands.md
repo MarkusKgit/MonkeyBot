@@ -3,6 +3,7 @@
 - [Admin Commands](#admin-commands)
 - [Announcements](#announcements)
 - [Benzen Facts](#benzen-facts)
+- [Cat pictures](#cat-pictures)
 - [Chuck Norris jokes](#chuck-norris-jokes)
 - [Dog pictures](#dog-pictures)
 - [Feeds](#feeds)
@@ -62,6 +63,19 @@
   
 `!addbenzenfact _fact`  
 *Remarks:* Add a fact about Benzen  
+  
+---  
+### Cat pictures
+**Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
+  
+`!cat `  
+*Remarks:* Gets a random cat picture.  
+  
+`!cat _breed`  
+*Remarks:* Gets a random Cat picture for the given breed.  
+  
+`!catbreeds `  
+*Remarks:* Gets a list of available cat breeds.  
   
 ---  
 ### Chuck Norris jokes

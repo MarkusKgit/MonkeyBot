@@ -129,6 +129,7 @@ namespace MonkeyBot
                 .AddSingleton<IRoleButtonService, RoleButtonService>()
                 .AddSingleton<IChuckService, ChuckService>()
                 .AddSingleton<IPictureUploadService, CloudinaryPictureUploadService>()
+                .AddSingleton<ICatService, CatService>()
                 .AddSingleton<IDogService, DogService>()
                 .AddSingleton<IXkcdService, XkcdService>();
 
