@@ -34,6 +34,10 @@ namespace MonkeyBot.Common
         [JsonPropertyName("CloudinaryCredentials")]
         public CloudinaryCredentials CloudinaryCredentials { get; set; }
 
+        /// <summary> Pixabay Api Key for image search </summary>
+        [JsonPropertyName("PixabayApiKey")]
+        public string PixabayApiKey { get; set; }
+
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
         public static async Task EnsureExistsAsync()
         {
@@ -80,6 +84,16 @@ namespace MonkeyBot.Common
                     ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
                     creds.ApiSecret = ans;
                     config.CloudinaryCredentials = creds;
+                }
+
+                // Get Pixabay Api key
+                await Console.Out.WriteLineAsync("Do you have a Pixabay Api key?").ConfigureAwait(false);
+                ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                if (ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
+                {                    
+                    await Console.Out.WriteLineAsync("Enter your Api key").ConfigureAwait(false);
+                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                    config.PixabayApiKey = ans;
                 }
 
                 await config.SaveAsync().ConfigureAwait(false); // Save the new configuration object to file.

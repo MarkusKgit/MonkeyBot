@@ -14,6 +14,7 @@
 - [MineCraftGameServer](#minecraftgameserver)
 - [Misc](#misc)
 - [Moderator Commands](#moderator-commands)
+- [Picture Search](#picture-search)
 - [Simple poll](#simple-poll)
 - [Role Buttons](#role-buttons)
 - [Roles](#roles)
@@ -226,6 +227,13 @@
 *Example:* `!Prune JohnDoe 10`  
 *Preconditions:* User requires channel permission: *Manage Messages*, Bot requires channel permission: *Manage Messages*  
 *Remarks:* Deletes the specified amount of messages for the specified user  
+  
+---  
+### Picture search
+**Preconditions:** Minimum permission: *User*, Can only be used in a *channel*  
+  
+`!picture _searchterm`  
+*Remarks:* Gets a random picture for the given search term.  
   
 ---  
 ### Simple poll
