@@ -74,7 +74,7 @@ namespace MonkeyBot
 
             var coloredConsoleTarget = new ColoredConsoleTarget("logconsole")
             {
-                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception:format=ToString,Data:exceptionDataSeparator=\r\n}"
             };
 
             logConfig.AddTarget(coloredConsoleTarget);
@@ -82,14 +82,14 @@ namespace MonkeyBot
             var debugTarget = new DebuggerTarget
             {
                 Name = "debugConsole",
-                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}"
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception:format=ToString,Data:exceptionDataSeparator=\r\n}"
             };
             logConfig.AddTarget(debugTarget);
 
             var fileTarget = new FileTarget
             {
                 Name = "logFile",
-                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception}",
+                Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss} ${logger:shortName=True} | ${message} ${exception:format=ToString,Data:exceptionDataSeparator=\r\n}",
                 FileName = "${basedir}/Logs/${level}.log",
                 ArchiveFileName = "${basedir}/Logs/Archive/${level}.{##}.log",
                 ArchiveNumbering = ArchiveNumberingMode.Sequence,
