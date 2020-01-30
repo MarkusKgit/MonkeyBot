@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -15,7 +14,7 @@ namespace MonkeyBot.Services
         private readonly IHttpClientFactory clientFactory;
         private readonly ILogger<PixabayService> logger;
         private readonly string apiKey;
-        private static readonly int hitsPerPage = 10;
+        private const int hitsPerPage = 10;
         private static readonly Random rng = new Random();
 
         private static readonly Uri baseApiUri = new Uri("https://pixabay.com/api/");
