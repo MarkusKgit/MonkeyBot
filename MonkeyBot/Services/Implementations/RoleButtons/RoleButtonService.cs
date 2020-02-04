@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
@@ -17,10 +18,13 @@ namespace MonkeyBot.Services
 
         private readonly MonkeyDBContext dbContext;
 
-        public RoleButtonService(DiscordSocketClient discordClient, MonkeyDBContext dbContext)
+        private readonly ILogger<RoleButtonService> logger;
+
+        public RoleButtonService(DiscordSocketClient discordClient, MonkeyDBContext dbContext, ILogger<RoleButtonService> logger)
         {
             this.discordClient = discordClient;
             this.dbContext = dbContext;
+            this.logger = logger;
         }
 
         public void Initialize()
@@ -151,27 +155,51 @@ namespace MonkeyBot.Services
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            if (channel == null || !reaction.User.IsSpecified)
+            if (channel == null)
             {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Channel was null");
                 return;
             }
 
+            if (reaction == null)
+            {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Reaction was null");
+                return;
+            }
+
+            IEmote emote = reaction.Emote;
+
+            if (!reaction.User.IsSpecified)
+            {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - No user was specified in the reaction object");
+                return;
+            }
+
+            IUser user = reaction.User.Value;
+
             IUserMessage msg = cachedMessage.HasValue ? cachedMessage.Value : await cachedMessage.GetOrDownloadAsync().ConfigureAwait(false);
+            if (msg == null)
+            {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Could not get the underlying message");
+                return;
+            }
+
             if (!(msg.Channel is ITextChannel textChannel))
             {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - message was not from a text channel");
                 return;
             }
 
             IGuild guild = textChannel.Guild;
             if (guild == null)
             {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Guild was null");
                 return;
             }
 
-            IUser user = reaction.User.Value;
-            IEmote emote = reaction.Emote;
             if (user.IsBot)
             {
+                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
                 return;
             }
 
@@ -193,7 +221,7 @@ namespace MonkeyBot.Services
                     _ = await gUser.SendMessageAsync($"Role {role.Name} removed").ConfigureAwait(false);
                 }
             }
-            else if ((await dbContext.RoleButtonLinks.CountAsync(x => x.MessageID == msg.Id).ConfigureAwait(false)) > 0) // Remove all new reactions that were not added by Bot
+            else if (await dbContext.RoleButtonLinks.AnyAsync(x => x.MessageID == msg.Id).ConfigureAwait(false)) // Remove all new reactions that were not added by Bot
             {
                 await msg.RemoveReactionAsync(emote, user).ConfigureAwait(false);
             }
