@@ -55,9 +55,9 @@ namespace MonkeyBot.Services
             // Get a random picture number based on the amount of total hits. 
             // We then have to find the correct page and offset
             // Only use the top results for meaninful results
-            int randomPictureNr = rng.Next(1, (int)(0.3 * response.TotalHits));
+            int randomPictureNr = rng.Next(1, Math.Min(response.TotalHits, 50));
             // Page is starting at 1
-            int page = 1 + randomPictureNr / hitsPerPage;
+            int page = 1 + (randomPictureNr / hitsPerPage);
             // Picture Index is 0 based
             int pictureIndex = (randomPictureNr % hitsPerPage) - 1;
 
