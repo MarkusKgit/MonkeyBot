@@ -49,7 +49,7 @@ namespace MonkeyBot.Services
             if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
             {
                 ITextChannel channel = user.Guild.GetTextChannel(config.WelcomeMessageChannelId) ?? user.Guild.DefaultChannel;                
-                welcomeMessage = welcomeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Mention);
+                welcomeMessage = welcomeMessage.Replace("%server%", user.Guild.Name).Replace("%user%", user.Username);
                 EmbedBuilder builder = new EmbedBuilder()
                     .WithColor(Color.DarkBlue)
                     .WithDescription(welcomeMessage)
