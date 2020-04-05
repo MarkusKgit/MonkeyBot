@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -119,11 +120,13 @@ namespace MonkeyBot.Services
             }
         }
 
+        private static readonly string[] ignoredExceptions = new string[2] { "WebSocket connection was closed", "Server requested a reconnect" };
+        
         private async Task MonkeyClient_LogAsync(LogMessage logMessage)
         {
             string msg = $"{logMessage.Source}: {logMessage.Message}";
             Exception ex = logMessage.Exception;
-            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ex.Message.Contains("WebSocket connection was closed", StringComparison.OrdinalIgnoreCase))
+            if (logMessage.Severity <= LogSeverity.Warning && ConnectionState == ConnectionState.Connected && !ignoredExceptions.Any(ig => ex.Message.Contains(ig, StringComparison.OrdinalIgnoreCase)))
             {
                 string adminMessage = $"{msg} {ex?.Message}";
                 await NotifyAdminAsync(adminMessage).ConfigureAwait(false);
