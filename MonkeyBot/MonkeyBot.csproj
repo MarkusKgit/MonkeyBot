@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.10.0" />
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
-    <PackageReference Include="Discord.Net" Version="2.1.1" />
+    <PackageReference Include="Discord.Net" Version="2.2.0" />
     <PackageReference Include="FluentCommandLineParser-netstandard" Version="1.4.3.13" />
     <PackageReference Include="FluentScheduler" Version="5.3.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
