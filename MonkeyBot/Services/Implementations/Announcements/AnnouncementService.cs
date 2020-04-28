@@ -145,7 +145,11 @@ namespace MonkeyBot.Services
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            List<Announcement> announcements = await dbContext.Announcements.Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now).ToListAsync().ConfigureAwait(false);
+            List<Announcement> announcements = await dbContext.Announcements
+                .AsQueryable()
+                .Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now)
+                .ToListAsync()
+                .ConfigureAwait(false);
             dbContext.RemoveRange(announcements);
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
@@ -172,13 +176,13 @@ namespace MonkeyBot.Services
             => MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
 
         private Task<List<Announcement>> GetAllAnnouncementsAsync()
-            => dbContext.Announcements.ToListAsync();
+            => dbContext.Announcements.AsQueryable().ToListAsync();
 
         public Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
-            => dbContext.Announcements.Where(x => x.GuildID == guildID).ToListAsync();
+            => dbContext.Announcements.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
 
         private Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName)
-            => dbContext.Announcements.SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
+            => dbContext.Announcements.AsQueryable().SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
 
         // The announcment's name must be unique on a per guild basis
         private static string GetUniqueId(Announcement announcement) => $"{announcement.Name}-{announcement.GuildID}";

@@ -47,7 +47,7 @@ namespace MonkeyBot.Services
 
         private async Task PostAllServerInfoAsync()
         {
-            List<GameServer> servers = await dbContext.GameServers.Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
+            List<GameServer> servers = await dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
             foreach (GameServer server in servers)
             {
                 try
@@ -63,7 +63,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            GameServer serverToRemove = (await dbContext.GameServers.ToListAsync().ConfigureAwait(false)).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
+            GameServer serverToRemove = (await dbContext.GameServers.AsQueryable().ToListAsync().ConfigureAwait(false)).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
             if (serverToRemove == null)
             {
                 throw new ArgumentException("The specified server does not exist");

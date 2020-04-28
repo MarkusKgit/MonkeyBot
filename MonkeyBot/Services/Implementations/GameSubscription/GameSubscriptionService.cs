@@ -36,6 +36,7 @@ namespace MonkeyBot.Services
                 return;
             }
             List<GameSubscription> gameSubscriptions = await dbContext.GameSubscriptions
+                .AsQueryable()
                 .Where(subscription => subscription != null
                                        && joinedGame.ToUpper().Contains(subscription.GameName.ToUpper())
                                        && subscription.UserID != after.Id)
@@ -77,8 +78,8 @@ namespace MonkeyBot.Services
 
         public async Task RemoveSubscriptionAsync(string gameName, ulong guildID, ulong userID)
         {
-            GameSubscription subscriptionToRemove = await dbContext
-                .GameSubscriptions
+            GameSubscription subscriptionToRemove = await dbContext.GameSubscriptions
+                .AsQueryable()
                 .FirstOrDefaultAsync(x => x.GameName.ToUpper().Contains(gameName.ToUpper())
                                           && x.GuildID == guildID
                                           && x.UserID == userID)
@@ -93,6 +94,6 @@ namespace MonkeyBot.Services
         }
 
         public async Task<IReadOnlyCollection<GameSubscription>> GetSubscriptionsForUser(ulong userID)
-            => (await dbContext.GameSubscriptions.Where(x => x.UserID == userID).ToListAsync().ConfigureAwait(false)).AsReadOnly();
+            => (await dbContext.GameSubscriptions.AsQueryable().Where(x => x.UserID == userID).ToListAsync().ConfigureAwait(false)).AsReadOnly();
     }
 }
