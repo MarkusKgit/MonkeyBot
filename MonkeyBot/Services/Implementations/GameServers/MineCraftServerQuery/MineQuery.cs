@@ -56,7 +56,7 @@ namespace MonkeyBot.Services
             int numberOfBytesRead;
             do
             {
-                numberOfBytesRead = await stream.ReadAsync(readBuffer);
+                numberOfBytesRead = await stream.ReadAsync(readBuffer).ConfigureAwait(false);
                 completeBuffer.AddRange(readBuffer.Take(numberOfBytesRead));
             }
             while (numberOfBytesRead > 0);
