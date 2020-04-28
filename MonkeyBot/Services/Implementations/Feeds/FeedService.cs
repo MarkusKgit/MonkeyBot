@@ -51,7 +51,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID, ulong channelID)
         {
-            Models.Feed feed = await dbContext.Feeds.SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID)).ConfigureAwait(false);
+            Models.Feed feed = await dbContext.Feeds.AsQueryable().SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID && f.ChannelID == channelID)).ConfigureAwait(false);
             if (feed != null)
             {
                 _ = dbContext.Feeds.Remove(feed);
@@ -79,8 +79,8 @@ namespace MonkeyBot.Services
         private Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
             return channelID.HasValue
-                ? dbContext.Feeds.Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync()
-                : dbContext.Feeds.Where(x => x.GuildID == guildID).ToListAsync();
+                ? dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync()
+                : dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
         }
 
         private async Task GetAllFeedUpdatesAsync()

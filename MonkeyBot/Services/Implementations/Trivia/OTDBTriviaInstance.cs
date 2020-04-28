@@ -313,7 +313,10 @@ namespace MonkeyBot.Services
             // Add points to current scores and global scores
             AddPointsCurrent(user, userScoresCurrent, pointsToAdd);
 
-            TriviaScore currentScore = await dbContext.TriviaScores.FirstOrDefaultAsync(s => s.GuildID == guildID && s.UserID == user.Id).ConfigureAwait(false);
+            TriviaScore currentScore = await dbContext.TriviaScores
+                .AsQueryable()
+                .FirstOrDefaultAsync(s => s.GuildID == guildID && s.UserID == user.Id)
+                .ConfigureAwait(false);
             //pointsToAdd can be negative -> prevent less than zero points
             if (currentScore == null && pointsToAdd < 0)
             {
@@ -378,7 +381,11 @@ namespace MonkeyBot.Services
         /// <returns></returns>
         public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildID)
         {
-            List<TriviaScore> userScoresAllTime = await dbContext.TriviaScores.Where(s => s.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            List<TriviaScore> userScoresAllTime = await dbContext.TriviaScores
+                .AsQueryable()
+                .Where(s => s.GuildID == guildID)
+                .ToListAsync()
+                .ConfigureAwait(false);
             if (userScoresAllTime == null)
             {
                 return null;

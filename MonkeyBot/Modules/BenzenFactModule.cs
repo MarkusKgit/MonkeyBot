@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
             int totalFacts = dbContext.BenzenFacts.Count();
             var r = new Random();
             int randomOffset = r.Next(0, totalFacts);
-            string fact = dbContext.BenzenFacts.Skip(randomOffset).FirstOrDefault()?.Fact;
+            string fact = dbContext.BenzenFacts.AsQueryable().Skip(randomOffset).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
             {
                 _ = await ReplyAsync(fact).ConfigureAwait(false);
