@@ -124,8 +124,8 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
     Description=MonkeyBot service
   
     [Service]
-    WorkingDirectory=/home/markus/MonkeyBot/MonkeyBot/published
-    ExecStart=/usr/bin/dotnet /home/markus/MonkeyBot/MonkeyBot/published/MonkeyBot.dll
+    WorkingDirectory=/home/markus/MonkeyBot/published
+    ExecStart=/usr/bin/dotnet /home/markus/MonkeyBot/published/MonkeyBot.dll
     Restart=on-failure
     RestartSec=10
     SyslogIdentifier=monkeybot-service
