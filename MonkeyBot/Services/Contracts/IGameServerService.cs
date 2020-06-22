@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using MonkeyBot.Models;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -13,6 +15,13 @@ namespace MonkeyBot.Services
         /// <param name="channelID"></param>
         /// <returns></returns>
         Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID);
+
+        /// <summary>
+        /// Returns a List of added Gameservers for this guild
+        /// </summary>
+        /// <param name="guildID"></param>
+        /// <returns></returns>
+        Task<List<GameServer>> ListServers(ulong guildID);
 
         /// <summary>
         /// Removes a game server listener from the specified channel

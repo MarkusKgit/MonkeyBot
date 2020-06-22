@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
 using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System.Threading.Tasks;
@@ -9,8 +10,8 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     /// <summary>Module that provides support for Minecraft game servers</summary>
-    [Group("MineCraftGameServer")]
-    [Name("MineCraftGameServer")]
+    [Group("MineCraftGameServers")]
+    [Name("MineCraftGameServers")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireContext(ContextType.Guild)]
     [RequireBotPermission(GuildPermission.EmbedLinks)]
@@ -22,13 +23,13 @@ namespace MonkeyBot.Modules
 
         [Command("Add")]
         [Remarks("Adds the specified game server and posts it's info info in the current channel")]
-        [Example("!gameserver add 127.0.0.1:1234")]
+        [Example("!minecraftgameservers add 127.0.0.1:1234")]
         public Task AddGameServerAsync([Remainder][Summary("The ip adress and query port of the server")] string ip)
             => AddGameServerInternalAsync(ip, Context.Channel.Id);
 
         [Command("Add")]
         [Remarks("Adds the specified game server and sets the channel where the info will be posted.")]
-        [Example("!gameserver add \"127.0.0.1:1234\" \"general\"")]
+        [Example("!minecraftgameservers add \"127.0.0.1:1234\" \"general\"")]
         public async Task AddGameServerAsync([Summary("The ip adress and query port of the server")] string ip, [Summary("The channel where the server info should be posted")] ITextChannel channel)
         {
             if (channel == null)
@@ -41,9 +42,15 @@ namespace MonkeyBot.Modules
             }
         }
 
+        [Command("List")]
+        [Remarks("Lists all added steam game servers")]
+        [Example("!minecraftgameservers list")]
+        public Task ListSteamGameserversAsync()
+            => ListGameServersInternalAsync(GameServerType.Minecraft);
+
         [Command("Remove")]
         [Remarks("Removes the specified game server")]
-        [Example("!gameserver remove 127.0.0.1:1234")]
+        [Example("!minecraftgameservers remove 127.0.0.1:1234")]
         public Task RemoveGameServerAsync([Summary("The ip adress and query port of the server")] string ip)
             => RemoveGameServerInternalAsync(ip);
     }

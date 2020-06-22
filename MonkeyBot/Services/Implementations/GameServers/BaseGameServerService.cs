@@ -61,6 +61,9 @@ namespace MonkeyBot.Services
             }
         }
 
+        public async Task<List<GameServer>> ListServers(ulong guildID) 
+            => await dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
             GameServer serverToRemove = (await dbContext.GameServers.AsQueryable().ToListAsync().ConfigureAwait(false)).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
@@ -87,5 +90,7 @@ namespace MonkeyBot.Services
             _ = dbContext.GameServers.Remove(serverToRemove);
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
+
+        
     }
 }

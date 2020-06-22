@@ -1,9 +1,14 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -43,6 +48,23 @@ namespace MonkeyBot.Modules
                 : await ReplyAsync("GameServer could not be added").ConfigureAwait(false);
         }
 
+        protected async Task ListGameServersInternalAsync(GameServerType gameServerType)
+        {
+            List<GameServer> servers = (await gameServerService.ListServers(Context.Guild.Id).ConfigureAwait(false)).Where(s => s.GameServerType == gameServerType).ToList();
+            if (servers == null || servers.Count < 1)
+            {
+                _ = await ReplyAsync("No servers have been added yet.").ConfigureAwait(false);
+                return;
+            }
+            var sb = new StringBuilder();
+            foreach (GameServer server in servers)
+            {
+                ITextChannel feedChannel = await Context.Guild.GetTextChannelAsync(server.ChannelID).ConfigureAwait(false);
+                _ = sb.AppendLine($"{feedChannel.Mention}: {server.ServerIP}");
+            }
+            _ = await ReplyAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb}").ConfigureAwait(false);
+        }
+
         protected async Task RemoveGameServerInternalAsync(string ip)
         {
             //Do parameter checks
@@ -61,6 +83,7 @@ namespace MonkeyBot.Modules
             {
                 _ = await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a gameserver");
+                return;
             }
             _ = await ReplyAsync("GameServer removed").ConfigureAwait(false);
         }
