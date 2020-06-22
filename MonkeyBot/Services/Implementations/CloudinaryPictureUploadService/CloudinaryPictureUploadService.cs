@@ -34,7 +34,7 @@ namespace MonkeyBot.Services
             
             ImageUploadResult uploadResult = await cloudinary.UploadAsync(uploadParams).ConfigureAwait(false);
 
-            return uploadResult?.SecureUri?.OriginalString ?? "";
+            return uploadResult?.SecureUrl?.OriginalString ?? "";
         }
     }
 }
