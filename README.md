@@ -15,7 +15,7 @@
   <p align="center">
     A general purpose Discord Bot for the <a href="https://www.monkey-gamers.com"><strong>Monkey Gamers</strong></a> community written in C#
     <br />
-    <a href="https://github.com/MarkusKgit/MonkeyBot/blob/master/Commands.md"><strong>Explore the available commands »</strong></a>
+    <a href="https://github.com/MarkusKgit/MonkeyBot/blob/main/Commands.md"><strong>Explore the available commands »</strong></a>
     <br />
     <br />
     <a href="https://discord.gg/u43XvME">Join Chat</a>
