@@ -40,8 +40,7 @@ namespace MonkeyBot.Modules
             }
 
             var builder = new EmbedBuilder()
-                .WithImageUrl(pictureURL)
-                .WithAuthor("Results powered by pixabay.com", url: "https://pixabay.com/");
+                .WithImageUrl(pictureURL);            
 
             _ = await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
         }
