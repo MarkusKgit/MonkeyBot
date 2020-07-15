@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -10,24 +10,71 @@ namespace MonkeyBot.Services
     public class GoogleImageSearchService : IPictureSearchService
     {
         private static Random rnd = new Random();
+        private static readonly string[] imageExtensions = new string[] { "jpg", "jpeg", "png", "gif" };
 
         public async Task<string> GetRandomPictureUrlAsync(string searchterm)
         {
-            var web = new HtmlWeb();
+            var web = new HtmlWeb
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
+            };
             string url = $"https://www.google.com/search?q={HttpUtility.UrlEncode(searchterm)}&tbm=isch";
             HtmlDocument document = await web.LoadFromWebAsync(url).ConfigureAwait(false);
-            var nodes = document.DocumentNode.SelectNodes($"//*[@class='rg_meta notranslate']");
-            if (nodes == null || nodes.Count < 1)
+            var urls = document.DocumentNode.InnerHtml.Split("[", StringSplitOptions.RemoveEmptyEntries)
+                .Select(l => l.Trim('"'))
+                .Where(l => l.StartsWith("http") && imageExtensions.Contains(l.Split('"')[0].Split('.').Last()))
+                .Select(l => l.Split('"')[0])
+                .ToList();
+
+            if (urls == null && urls.Count < 1)
                 return "";
-            var urls = nodes.Select(n => n.InnerHtml)
-                            .Where(h => !string.IsNullOrEmpty(h))
-                            .Select(n => Regex.Match(n, @"(https?:\/\/.*\.(?:png|jpg|gif))"))
-                            .Where(m => m.Success)
-                            .Select(m => m.Value)
-                            .ToList();
 
-            return (urls != null && urls.Count >= 1) ? urls.ElementAt(rnd.Next(0, urls.Count)) : "";
+            for (int i = 0; i < urls.Count; i++)
+            {
+                string randomImageUrl = urls.ElementAt(rnd.Next(0, urls.Count));
+                if (UrlIsValid(randomImageUrl))
+                {
+                    return randomImageUrl;
+                }
+                _ = urls.Remove(randomImageUrl);
+            }
 
+            return "";
+        }
+
+        /// <summary>
+        /// This method will check a url to see that it does not return server or protocol errors
+        /// </summary>
+        /// <param name="url">The path to check</param>
+        /// <returns></returns>
+        private static bool UrlIsValid(string url)
+        {
+            try
+            {
+                var request = WebRequest.Create(new Uri(url)) as HttpWebRequest;
+                request.Timeout = 1000;
+                request.Method = "HEAD"; //Get only the header information -- no need to download any content
+
+                using HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+                int statusCode = (int)response.StatusCode;
+                if (statusCode >= 100 && statusCode < 400) //Good requests
+                {
+                    return true;
+                }
+                else if (statusCode >= 500 && statusCode <= 510) //Server Errors
+                {
+                    return false;
+                }
+            }
+            catch (WebException ex)
+            {
+                if (ex.Status == WebExceptionStatus.ProtocolError) //400 errors
+                {
+                    return false;
+                }
+            }
+            catch (Exception) { } //YOLO
+            return false;
         }
     }
 }
