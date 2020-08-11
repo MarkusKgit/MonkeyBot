@@ -59,7 +59,6 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 ### Built With
 
 * [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)
-* [CloudinaryDotNet](https://github.com/cloudinary/CloudinaryDotNet)
 * [Discord.Net](https://github.com/RogueException/Discord.Net)
 * [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
 * [Fluent Command Line Parser](https://github.com/PingmanTools/fluent-command-line-parser/tree/netstandard)
@@ -70,6 +69,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 * [NCrontab](https://github.com/atifaziz/NCrontab)
 * [NLog](https://github.com/NLog/NLog)
 * [SQLite](https://www.sqlite.org/index.html)
+* [SteamQueryNet](https://github.com/cyilcode/SteamQueryNet)
 
 <!-- GETTING STARTED -->
 ## Getting Started
