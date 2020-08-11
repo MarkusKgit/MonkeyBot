@@ -35,6 +35,7 @@ namespace MonkeyBot.Services
             }
 
             ServerQuery serverQuery = null;
+
             try
             {
                 using var udpClient = new UdpWrapper();
@@ -52,12 +53,18 @@ namespace MonkeyBot.Services
                 {
                     return false;
                 }
+
+                string onlinePlayers = players.Count > serverInfo.MaxPlayers
+                    ? $"{serverInfo.MaxPlayers}(+{players.Count - serverInfo.MaxPlayers})/{serverInfo.MaxPlayers}"
+                    : $"{players.Count}/{serverInfo.MaxPlayers}";
+
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"{serverInfo.Game} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
                     .WithDescription(serverInfo.Name)
-                    .AddField("Online Players", $"{players.Count}/{serverInfo.MaxPlayers}")
+                    .AddField("Online Players", onlinePlayers)
                     .AddField("Current Map", serverInfo.Map);
+
                 if (players != null && players.Count > 0)
                 {
                     _ = builder.AddField("Currently connected players:", string.Join(", ", players.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
@@ -94,6 +101,12 @@ namespace MonkeyBot.Services
                 _ = builder.AddField("Server version", $"{serverInfo.Version}{lastServerUpdate}");
                 _ = builder.WithFooter($"Last check: {DateTime.Now}");
 
+                string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players, serverInfo.MaxPlayers).ConfigureAwait(false);
+                if (!chart.IsEmptyOrWhiteSpace())
+                {
+                    _ = builder.AddField("Player Count History", chart);
+                }
+
                 if (discordGameServer.MessageID.HasValue)
                 {
                     if (await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
@@ -114,6 +127,7 @@ namespace MonkeyBot.Services
                     _ = dbContext.GameServers.Update(discordGameServer);
                     _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
+
             }
             catch (TimeoutException tex)
             {
@@ -133,5 +147,7 @@ namespace MonkeyBot.Services
             }
             return true;
         }
+
+
     }
 }

@@ -1,16 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
-using PointF = System.Drawing.PointF;
 
 namespace MonkeyBot.Services
 {
@@ -88,18 +83,14 @@ namespace MonkeyBot.Services
 
                 _ = builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
-                // Generate chart every full 5 minutes (limit picture upload API calls)
-                string pictureUrl = "";
-                if (DateTime.Now.Minute % 5 == 0)
+                // Generate chart every full 10 minutes                
+                if (DateTime.Now.Minute % 10 == 0)
                 {
-                    pictureUrl = await GenerateAndUploadChartAsync(
-                        discordGameServer.ServerIP.ToString().Replace(".", "_").Replace(":", "_"),
-                        serverInfo.Players.Online,
-                        serverInfo.Players.Max).ConfigureAwait(false);
+                    string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players.Online, serverInfo.Players.Max).ConfigureAwait(false);
 
-                    if (!pictureUrl.IsEmptyOrWhiteSpace())
+                    if (!chart.IsEmptyOrWhiteSpace())
                     {
-                        _ = builder.WithImageUrl(pictureUrl);
+                        _ = builder.AddField("Player Count History", chart);
                     }
                 }
 
@@ -107,15 +98,7 @@ namespace MonkeyBot.Services
                 {
                     if (await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(x =>
-                        {
-                            //Reuse old image url if new one is not set
-                            if (pictureUrl.IsEmptyOrWhiteSpace() && existingMessage.Embeds.FirstOrDefault() != null && existingMessage.Embeds.First().Image.HasValue)
-                            {
-                                _ = builder.WithImageUrl(existingMessage.Embeds.First().Image.Value.Url);
-                            }
-                            x.Embed = builder.Build();
-                        }).ConfigureAwait(false);
+                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build()).ConfigureAwait(false);
                     }
                     else
                     {
@@ -146,86 +129,6 @@ namespace MonkeyBot.Services
                 }
             }
             return true;
-        }
-
-        private async Task<string> GenerateAndUploadChartAsync(string id, int currentPlayers, int maxPlayers)
-        {
-            var historyPeriod = TimeSpan.FromHours(12);
-            const string folder = "Gameservers";
-
-            if (!Directory.Exists(folder))
-            {
-                _ = Directory.CreateDirectory(folder);
-            }
-
-            string baseFilePath = Path.Combine(folder, id);
-            string storedValuesPath = $"{baseFilePath}.txt";
-
-            DateTime now = DateTime.Now;
-            DateTime minTime = now.Subtract(historyPeriod);
-
-            var historicData = new List<HistoricData<int>>();
-            if (File.Exists(storedValuesPath))
-            {
-                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
-                List<HistoricData<int>> loadedData = JsonSerializer.Deserialize<List<HistoricData<int>>>(json);
-                historicData = loadedData
-                    .Where(x => x.Time > minTime)
-                    .ToList();
-            }
-            // Sharper transition by adding the last known player count with current time stamp and then the new value if the value changed
-            if (historicData.Any() && historicData.Last().Value != currentPlayers)
-            {
-                historicData.Add(new HistoricData<int>(DateTime.Now, historicData.Last().Value));
-            }
-            historicData.Add(new HistoricData<int>(DateTime.Now, currentPlayers));
-
-            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonSerializer.Serialize(historicData, new JsonSerializerOptions() {WriteIndented = true}))
-                .ConfigureAwait(false);
-
-            var chart = new XYChart
-            {
-                AxisX = new ChartAxis
-                {
-                    Min = 0,
-                    Max = (int)historyPeriod.TotalHours,
-                    NumTicks = (int)historyPeriod.TotalHours + 1,
-                    LabelFunc = (x) => x == (int)historyPeriod.TotalHours ? "Now" : $"{x - historyPeriod.TotalHours}h"
-                },
-                AxisY = new ChartAxis
-                {
-                    Min = 0,
-                    Max = maxPlayers,
-                    NumTicks = 11
-                }
-            };
-            double tickSpan = historyPeriod.TotalHours;
-
-            List<PointF> transformedValues = historicData.Select(d => new PointF((float)d.Time.Subtract(minTime).TotalHours, d.Value))
-                                                         .ToList();
-
-            string pictureFilePath = $"{baseFilePath}.png";
-
-            chart.ExportChart(pictureFilePath, transformedValues);
-
-            string pictureUrl = await pictureUploadService.UploadPictureAsync(pictureFilePath, id).ConfigureAwait(false);
-            return pictureUrl;
-        }
-    }
-
-    public class HistoricData<T>
-    {
-        public DateTime Time { get; set; }
-        public T Value { get; set; }
-
-        public HistoricData()
-        {
-        }
-
-        public HistoricData(DateTime time, T value)
-        {
-            Time = time;
-            Value = value;
         }
     }
 }

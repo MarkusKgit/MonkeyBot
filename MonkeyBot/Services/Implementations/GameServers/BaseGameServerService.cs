@@ -3,12 +3,16 @@ using Discord.WebSocket;
 using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -61,7 +65,7 @@ namespace MonkeyBot.Services
             }
         }
 
-        public async Task<List<GameServer>> ListServers(ulong guildID) 
+        public async Task<List<GameServer>> ListServers(ulong guildID)
             => await dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync().ConfigureAwait(false);
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
@@ -91,6 +95,110 @@ namespace MonkeyBot.Services
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        
+        private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
+
+        protected static async Task<string> GenerateHistoryChartAsync(GameServer discordGameServer, int currentPlayers, int maxPlayers)
+        {
+
+            string id = discordGameServer.ServerIP.ToString().Replace(".", "_").Replace(":", "_");
+
+            var historyPeriod = TimeSpan.FromMinutes(90);
+            const string folder = "Gameservers";
+
+            if (!Directory.Exists(folder))
+            {
+                _ = Directory.CreateDirectory(folder);
+            }
+
+            string baseFilePath = Path.Combine(folder, id);
+            string storedValuesPath = $"{baseFilePath}.txt";
+
+            DateTime now = DateTime.Now;
+            DateTime minTime = now.Subtract(historyPeriod);
+
+            var historicData = new List<HistoricData<int>>();
+            if (File.Exists(storedValuesPath))
+            {
+                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
+                List<HistoricData<int>> loadedData = JsonSerializer.Deserialize<List<HistoricData<int>>>(json);
+                historicData = loadedData
+                    .Where(x => x.Time > minTime)
+                    .ToList();
+            }
+
+            historicData.Add(new HistoricData<int>(now, Math.Min(currentPlayers, maxPlayers)));
+
+            await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonSerializer.Serialize(historicData, new JsonSerializerOptions() { WriteIndented = true }))
+                .ConfigureAwait(false);
+
+            int maxIntervals = 10;
+            int interval = 10;
+
+            for (int i = (int)Math.Ceiling(1.0 * maxPlayers / maxIntervals); i < 10; i++)
+            {
+                if (maxPlayers % i == 0)
+                {
+                    interval = i;
+                    break;
+                }
+            }
+
+            List<int> roundedPlayerCounts = Enumerable
+                .Range(0, 10)
+                .Reverse()
+                .Select(mins => now.Subtract(TimeSpan.FromMinutes(mins * 10))) // Last 90 minutes
+                .Select(t => historicData.FirstOrDefault(hd => Math.Abs(hd.Time.Subtract(t).TotalMinutes) < 1)?.Value ?? 0)
+                .Select(v => (int)Math.Round(v / (1.0 * interval)))
+                .ToList();
+
+            //Bottom up
+            var lines = new List<string>();
+            lines.Add("      minutes ago");
+            lines.Add("   0┊0┊0┊0┊0┊0┊0┊0┊0┊0");
+            lines.Add("   9┊8┊7┊6┊5┊4┊3┊2┊1┊0");
+
+            int maxI = maxPlayers / interval;
+
+            for (int i = 0; i <= maxI; i++)
+            {
+                string line = $"{i * interval, 2}";
+                line += i == 0 ? "┴" : i == maxI ? "┐" : "┤";
+                string joinChar = i == 0 ? "┼" : i == maxI ? "┬" : "┊";
+                line += string.Join(joinChar, 
+                    Enumerable
+                    .Range(0, 10)
+                    .Select(n => roundedPlayerCounts[n])
+                    .Select(cnt => (i, cnt) switch
+                    {
+                        (0,0) => "─",
+                        (_,0) => " ",
+                        (0,_) => "╨",
+                        var (ii, c) when ii < c =>  "║",
+                        var (ii, c) when ii == c => "╥",
+                        _ => " "
+                    })
+                    );
+                line += i == 0 ? "┘" : i == maxI ? "┐" : "│";
+                lines.Add(line);
+            }            
+            lines.Reverse();
+            string table = $"```{string.Join(Environment.NewLine, lines)} ```";
+
+            return table;
+        }
+
+        const string table1 = @"```
+80┐ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┐
+70┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊ ┊ │╥│
+60┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊ ┊╥│║│
+50┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊╥┊║│║│
+40┤ ┊ ┊ ┊ ┊ ┊ ┊╥┊║┊║│║│
+30┤ ┊ ┊ ┊ ┊ ┊╥┊║┊║┊║│║│
+20┤ ┊ ┊ ┊ ┊╥┊║┊║┊║┊║│║│
+10┤ ┊ ┊ ┊╥┊║┊║┊║┊║┊║│║│
+ 0┴─┼─┼─┼╨┼╨┼╨┼╨┼╨┼╨┼╨┘
+   9┊8┊7┊6┊5┊4┊3┊2┊1┊0  
+   0┊0┊0┊0┊0┊0┊0┊0┊0┊0 
+      minutes ago```";
     }
 }
