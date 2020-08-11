@@ -10,20 +10,17 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Services
 {
     public class MineCraftGameServerService : BaseGameServerService
-    {
-        private readonly IPictureUploadService pictureUploadService;
+    {        
         private readonly MonkeyDBContext dbContext;
         private readonly DiscordSocketClient discordClient;
         private readonly ILogger<MineCraftGameServerService> logger;
 
         public MineCraftGameServerService(
-            MonkeyDBContext dbContext,
-            IPictureUploadService pictureUploadService,
+            MonkeyDBContext dbContext,            
             DiscordSocketClient discordClient,
             ILogger<MineCraftGameServerService> logger)
             : base(GameServerType.Minecraft, dbContext, discordClient, logger)
-        {
-            this.pictureUploadService = pictureUploadService;
+        {            
             this.dbContext = dbContext;
             this.discordClient = discordClient;
             this.logger = logger;

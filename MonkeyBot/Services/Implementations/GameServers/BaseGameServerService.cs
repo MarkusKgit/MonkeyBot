@@ -95,8 +95,6 @@ namespace MonkeyBot.Services
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
-
         protected static async Task<string> GenerateHistoryChartAsync(GameServer discordGameServer, int currentPlayers, int maxPlayers)
         {
 
@@ -186,19 +184,5 @@ namespace MonkeyBot.Services
 
             return table;
         }
-
-        const string table1 = @"```
-80┐ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┐
-70┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊ ┊ │╥│
-60┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊ ┊╥│║│
-50┤ ┊ ┊ ┊ ┊ ┊ ┊ ┊╥┊║│║│
-40┤ ┊ ┊ ┊ ┊ ┊ ┊╥┊║┊║│║│
-30┤ ┊ ┊ ┊ ┊ ┊╥┊║┊║┊║│║│
-20┤ ┊ ┊ ┊ ┊╥┊║┊║┊║┊║│║│
-10┤ ┊ ┊ ┊╥┊║┊║┊║┊║┊║│║│
- 0┴─┼─┼─┼╨┼╨┼╨┼╨┼╨┼╨┼╨┘
-   9┊8┊7┊6┊5┊4┊3┊2┊1┊0  
-   0┊0┊0┊0┊0┊0┊0┊0┊0┊0 
-      minutes ago```";
     }
 }

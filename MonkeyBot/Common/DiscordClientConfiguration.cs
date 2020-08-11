@@ -30,10 +30,6 @@ namespace MonkeyBot.Common
         [JsonPropertyName("Token")]
         public string Token { get; set; }
 
-        /// <summary> Api credentials for cloudinary for uploading pictures. </summary>
-        [JsonPropertyName("CloudinaryCredentials")]
-        public CloudinaryCredentials CloudinaryCredentials { get; set; }
-
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
         public static async Task EnsureExistsAsync()
         {
@@ -62,24 +58,6 @@ namespace MonkeyBot.Common
                 else
                 {
                     config.AddOwner(327885109560737793);
-                }
-
-                // Get cloudinary credentials
-                await Console.Out.WriteLineAsync("Do you want to setup cloudinary? (y/n)").ConfigureAwait(false);
-                string ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                if (ans.StartsWith("y", StringComparison.OrdinalIgnoreCase))
-                {
-                    var creds = new CloudinaryCredentials();
-                    await Console.Out.WriteLineAsync("Enter your cloud id").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.Cloud = ans;
-                    await Console.Out.WriteLineAsync("Enter your Api Key").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.ApiKey = ans;
-                    await Console.Out.WriteLineAsync("Enter your Api Secret").ConfigureAwait(false);
-                    ans = await Console.In.ReadLineAsync().ConfigureAwait(false);
-                    creds.ApiSecret = ans;
-                    config.CloudinaryCredentials = creds;
                 }
                 
                 await config.SaveAsync().ConfigureAwait(false); // Save the new configuration object to file.
