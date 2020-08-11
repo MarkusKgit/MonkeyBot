@@ -28,7 +28,7 @@
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="Discord.Net" Version="2.2.0" />
     <PackageReference Include="FluentCommandLineParser-netstandard" Version="1.4.3.13" />
-    <PackageReference Include="FluentScheduler" Version="5.4.0" />
+    <PackageReference Include="FluentScheduler" Version="5.5.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
