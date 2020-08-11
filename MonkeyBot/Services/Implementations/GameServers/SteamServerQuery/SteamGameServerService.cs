@@ -3,6 +3,9 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
+using MonkeyBot.Services.Implementations.GameServers.SteamServerQuery;
+using SteamQueryNet;
+using SteamQueryNet.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,13 +34,15 @@ namespace MonkeyBot.Services
                 return false;
             }
 
-            SteamGameServer server = null;
+            ServerQuery serverQuery = null;
             try
             {
-                server = new SteamGameServer(discordGameServer.ServerIP);
-                SteamServerInfo serverInfo = await (server?.GetServerInfoAsync()).ConfigureAwait(false);
-                List<PlayerInfo> playerInfo = (await (server?.GetPlayersAsync()).ConfigureAwait(false)).Where(x => !x.Name.IsEmpty()).ToList();
-                if (serverInfo == null || playerInfo == null)
+                using var udpClient = new UdpWrapper();
+                serverQuery = new ServerQuery(udpClient, null);
+                serverQuery.Connect(discordGameServer.ServerIP.ToString());
+                ServerInfo serverInfo = await serverQuery.GetServerInfoAsync().ConfigureAwait(false);
+                List<Player> players = (await serverQuery.GetPlayersAsync().ConfigureAwait(false)).Where(p => !p.Name.IsEmptyOrWhiteSpace()).ToList();
+                if (serverInfo == null || players == null)
                 {
                     return false;
                 }
@@ -49,13 +54,13 @@ namespace MonkeyBot.Services
                 }
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
-                    .WithTitle($"{serverInfo.Description} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
+                    .WithTitle($"{serverInfo.Game} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
                     .WithDescription(serverInfo.Name)
-                    .AddField("Online Players", $"{playerInfo.Count}/{serverInfo.MaxPlayers}")
+                    .AddField("Online Players", $"{players.Count}/{serverInfo.MaxPlayers}")
                     .AddField("Current Map", serverInfo.Map);
-                if (playerInfo != null && playerInfo.Count > 0)
+                if (players != null && players.Count > 0)
                 {
-                    _ = builder.AddField("Currently connected players:", string.Join(", ", playerInfo.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
+                    _ = builder.AddField("Currently connected players:", string.Join(", ", players.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
                 }
 
                 //Discord removed support for protocols other than http or https so this currently makes no sense. Leaving it here, in case they re-enable it
@@ -64,15 +69,15 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
-                    discordGameServer.GameVersion = serverInfo.GameVersion;
+                    discordGameServer.GameVersion = serverInfo.Version;
                     _ = dbContext.GameServers.Update(discordGameServer);
                     _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    if (serverInfo.GameVersion != discordGameServer.GameVersion)
+                    if (serverInfo.Version != discordGameServer.GameVersion)
                     {
-                        discordGameServer.GameVersion = serverInfo.GameVersion;
+                        discordGameServer.GameVersion = serverInfo.Version;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         _ = dbContext.GameServers.Update(discordGameServer);
                         _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -86,7 +91,7 @@ namespace MonkeyBot.Services
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 }
 
-                _ = builder.AddField("Server version", $"{serverInfo.GameVersion}{lastServerUpdate}");
+                _ = builder.AddField("Server version", $"{serverInfo.Version}{lastServerUpdate}");
                 _ = builder.WithFooter($"Last check: {DateTime.Now}");
 
                 if (discordGameServer.MessageID.HasValue)
@@ -112,18 +117,18 @@ namespace MonkeyBot.Services
             }
             catch (TimeoutException tex)
             {
-                logger.LogWarning(tex, "Timed out trying to get steam server info");
+                logger.LogInformation(tex, $"Timed out trying to get steam server info for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.ServerIP}");
+                logger.LogWarning(ex, $"Error getting updates for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
                 throw;
             }
             finally
             {
-                if (server != null)
+                if (serverQuery != null)
                 {
-                    server.Dispose();
+                    serverQuery.Dispose();
                 }
             }
             return true;

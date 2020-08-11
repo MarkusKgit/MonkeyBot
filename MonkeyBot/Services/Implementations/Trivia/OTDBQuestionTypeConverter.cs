@@ -12,7 +12,7 @@ namespace MonkeyBot.Services
             {
                 "boolean" => TriviaQuestionType.TrueFalse,
                 "multiple" => TriviaQuestionType.MultipleChoice,
-                _ => throw new ParseException("Unknown question type")
+                _ => throw new NotSupportedException("Unknown question type")
             };
         }
 

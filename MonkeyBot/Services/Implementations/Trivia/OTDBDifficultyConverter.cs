@@ -12,7 +12,7 @@ namespace MonkeyBot.Services
                 "easy" => TriviaQuestionDifficulty.Easy,
                 "medium" => TriviaQuestionDifficulty.Medium,
                 "hard" => TriviaQuestionDifficulty.Hard,
-                _ => throw new ParseException("Unknown question difficulty")
+                _ => throw new NotSupportedException("Unknown question difficulty")
             };
         }
 
