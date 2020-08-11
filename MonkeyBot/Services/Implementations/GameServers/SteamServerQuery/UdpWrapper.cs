@@ -21,20 +21,20 @@ namespace MonkeyBot.Services.Implementations.GameServers.SteamServerQuery
 
         public UdpWrapper() : this(new IPEndPoint(IPAddress.Any, 0), 5000, 5000) { }
 
-        public bool IsConnected 
+        public bool IsConnected
             => _udpClient.Client.Connected;
 
-        public void Close() 
+        public void Close()
             => _udpClient.Close();
 
-        public void Connect(IPEndPoint remoteIpEndpoint) 
+        public void Connect(IPEndPoint remoteIpEndpoint)
             => _udpClient.Connect(remoteIpEndpoint);
 
-        public void Dispose() 
+        public void Dispose()
             => _udpClient.Dispose();
 
         public Task<UdpReceiveResult> ReceiveAsync()
-        {            
+        {
             IAsyncResult asyncResult = _udpClient.BeginReceive(null, null);
             _ = asyncResult.AsyncWaitHandle.WaitOne(_receiveTimeout);
             if (asyncResult.IsCompleted)
@@ -45,7 +45,7 @@ namespace MonkeyBot.Services.Implementations.GameServers.SteamServerQuery
             }
             else
             {
-                return Task.FromException<UdpReceiveResult>(new TimeoutException());                
+                return Task.FromException<UdpReceiveResult>(new TimeoutException());
             }
         }
 
