@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using DSharpPlus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -17,11 +17,11 @@ namespace MonkeyBot.Services
     public class AnnouncementService : IAnnouncementService
     {
         private readonly MonkeyDBContext dbContext;
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly ISchedulingService schedulingService;
         private readonly ILogger<AnnouncementService> logger;
 
-        public AnnouncementService(MonkeyDBContext dbContext, DiscordSocketClient discordClient, ISchedulingService schedulingService, ILogger<AnnouncementService> logger)
+        public AnnouncementService(MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<AnnouncementService> logger)
         {
             this.dbContext = dbContext;
             this.discordClient = discordClient;

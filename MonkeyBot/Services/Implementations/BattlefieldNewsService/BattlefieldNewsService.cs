@@ -1,9 +1,10 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Models;
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,12 +15,12 @@ namespace MonkeyBot.Services
     {
         private const int updateIntervallSeconds = 30 * 60;
 
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly IGuildService guildService;
         private readonly ISchedulingService schedulingService;
         private readonly ILogger<BattlefieldNewsService> logger;
 
-        public BattlefieldNewsService(DiscordSocketClient discordClient, IGuildService guildService, ISchedulingService schedulingService, ILogger<BattlefieldNewsService> logger)
+        public BattlefieldNewsService(DiscordClient discordClient, IGuildService guildService, ISchedulingService schedulingService, ILogger<BattlefieldNewsService> logger)
         {
             this.discordClient = discordClient;
             this.guildService = guildService;
@@ -32,11 +33,15 @@ namespace MonkeyBot.Services
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {
+            if (!discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
+            {
+                return;
+            }
             GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID).ConfigureAwait(false);
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;
             await guildService.UpdateConfigAsync(cfg).ConfigureAwait(false);
-            await GetUpdateForGuildAsync(await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false), discordClient.GetGuild(guildID)).ConfigureAwait(false);
+            await GetUpdateForGuildAsync(await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false), guild).ConfigureAwait(false);
         }
 
         public async Task DisableForGuildAsync(ulong guildID)
@@ -53,20 +58,20 @@ namespace MonkeyBot.Services
         {
             BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false);
 
-            foreach (SocketGuild guild in discordClient?.Guilds)
+            foreach (DiscordGuild guild in discordClient?.Guilds.Values)
             {
                 await GetUpdateForGuildAsync(latestBattlefieldVUpdate, guild).ConfigureAwait(false);
             }
         }
 
-        private async Task GetUpdateForGuildAsync(BattlefieldVUpdate latestBattlefieldVUpdate, SocketGuild guild)
+        private async Task GetUpdateForGuildAsync(BattlefieldVUpdate latestBattlefieldVUpdate, DiscordGuild guild)
         {
             GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guild.Id).ConfigureAwait(false);
             if (cfg == null || !cfg.BattlefieldUpdatesEnabled)
             {
                 return;
             }
-            SocketTextChannel channel = guild.GetTextChannel(cfg.BattlefieldUpdatesChannel);
+            DiscordChannel channel = guild.GetChannel(cfg.BattlefieldUpdatesChannel);
             if (channel == null)
             {
                 logger.LogError($"Battlefield Updates enabled for {guild.Name} but channel {cfg.BattlefieldUpdatesChannel} is invalid");
@@ -78,7 +83,7 @@ namespace MonkeyBot.Services
                 return;
             }
             var builder = new DiscordEmbedBuilder()
-                .WithColor(new Color(21, 26, 35))
+                .WithColor(new DiscordColor(21, 26, 35))
                 .WithTitle("New Battlefield V Update")
                 .WithDescription($"[{latestBattlefieldVUpdate.Title}]({latestBattlefieldVUpdate.UpdateUrl})")
                 .WithFooter(latestBattlefieldVUpdate.UpdateDate.ToString());

@@ -1,5 +1,5 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -21,10 +20,10 @@ namespace MonkeyBot.Services
     {
         private readonly GameServerType gameServerType;
         private readonly MonkeyDBContext dbContext;
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly ILogger<IGameServerService> logger;
 
-        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordSocketClient discordClient, ILogger<IGameServerService> logger)
+        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordClient discordClient, ILogger<IGameServerService> logger)
         {
             this.gameServerType = gameServerType;
             this.dbContext = dbContext;
@@ -79,9 +78,13 @@ namespace MonkeyBot.Services
             {
                 try
                 {
-                    SocketGuild guild = discordClient.GetGuild(serverToRemove.GuildID);
-                    ITextChannel channel = guild?.GetTextChannel(serverToRemove.ChannelID);
-                    if (await (channel?.GetMessageAsync(serverToRemove.MessageID.Value)).ConfigureAwait(false) is Discord.Rest.RestUserMessage msg)
+                    if (!discordClient.Guilds.TryGetValue(serverToRemove.GuildID, out DiscordGuild guild))
+                    {
+                        return;
+                    }
+                    DiscordChannel channel = guild?.GetChannel(serverToRemove.ChannelID);
+                    DiscordMessage msg = await (channel?.GetMessageAsync(serverToRemove.MessageID.Value)).ConfigureAwait(false);
+                    if (msg != null)
                     {
                         await msg.DeleteAsync().ConfigureAwait(false);
                     }
@@ -159,26 +162,26 @@ namespace MonkeyBot.Services
 
             for (int i = 0; i <= maxI; i++)
             {
-                string line = $"{i * interval, 2}";
+                string line = $"{i * interval,2}";
                 line += i == 0 ? "┴" : i == maxI ? "┐" : "┤";
                 string joinChar = i == 0 ? "┼" : i == maxI ? "┬" : "┊";
-                line += string.Join(joinChar, 
+                line += string.Join(joinChar,
                     Enumerable
                     .Range(0, 10)
                     .Select(n => roundedPlayerCounts[n])
                     .Select(cnt => (i, cnt) switch
                     {
-                        (0,0) => "─",
-                        (_,0) => " ",
-                        (0,_) => "╨",
-                        var (ii, c) when ii < c =>  "║",
+                        (0, 0) => "─",
+                        (_, 0) => " ",
+                        (0, _) => "╨",
+                        var (ii, c) when ii < c => "║",
                         var (ii, c) when ii == c => "╥",
                         _ => " "
                     })
                     );
                 line += i == 0 ? "┘" : i == maxI ? "┐" : "│";
                 lines.Add(line);
-            }            
+            }
             lines.Reverse();
             string table = $"```{string.Join(Environment.NewLine, lines)} ```";
 

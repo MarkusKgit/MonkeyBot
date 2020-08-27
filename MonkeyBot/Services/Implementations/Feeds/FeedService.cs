@@ -1,7 +1,7 @@
 ﻿using CodeHollow.FeedReader;
 using CodeHollow.FeedReader.Feeds;
-using Discord;
-using Discord.WebSocket;
+using DSharpPlus;
+using DSharpPlus.Entities;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,11 +20,11 @@ namespace MonkeyBot.Services
         private const int updateIntervallMinutes = 30;
 
         private readonly MonkeyDBContext dbContext;
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly ISchedulingService schedulingService;
         private readonly ILogger<FeedService> logger;
 
-        public FeedService(MonkeyDBContext dbContext, DiscordSocketClient discordClient, ISchedulingService schedulingService, ILogger<FeedService> logger)
+        public FeedService(MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<FeedService> logger)
         {
             this.dbContext = dbContext;
             this.discordClient = discordClient;
@@ -85,13 +85,13 @@ namespace MonkeyBot.Services
 
         private async Task GetAllFeedUpdatesAsync()
         {
-            foreach (SocketGuild guild in discordClient?.Guilds)
+            foreach (DiscordGuild guild in discordClient?.Guilds.Values)
             {
                 await GetGuildFeedUpdatesAsync(guild).ConfigureAwait(false);
             }
         }
 
-        private async Task GetGuildFeedUpdatesAsync(SocketGuild guild)
+        private async Task GetGuildFeedUpdatesAsync(DiscordGuild guild)
         {
             List<Models.Feed> feeds = await GetAllFeedsInternalAsync(guild.Id).ConfigureAwait(false);
             foreach (Models.Feed feed in feeds)
@@ -101,9 +101,12 @@ namespace MonkeyBot.Services
         }
 
         private async Task GetFeedUpdateAsync(Models.Feed guildFeed, bool getLatest = false)
-        {
-            SocketGuild guild = discordClient.GetGuild(guildFeed.GuildID);
-            SocketTextChannel channel = guild?.GetTextChannel(guildFeed.ChannelID);
+        {            
+            if (!discordClient.Guilds.TryGetValue(guildFeed.GuildID, out DiscordGuild guild))
+            {
+                return;
+            }
+            DiscordChannel channel = guild?.GetChannel(guildFeed.ChannelID);
             if (guild == null || channel == null || guildFeed.URL.IsEmpty())
             {
                 return;
@@ -135,7 +138,7 @@ namespace MonkeyBot.Services
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new DiscordEmbedBuilder();
-                _ = builder.WithColor(new Color(21, 26, 35));
+                _ = builder.WithColor(new DiscordColor(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                 {
                     _ = builder.WithImageUrl(feed.ImageUrl);

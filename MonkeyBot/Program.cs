@@ -2,12 +2,15 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
 using Fclp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot;
 using MonkeyBot.Common;
 using MonkeyBot.Models;
+using MonkeyBot.Modules;
 using MonkeyBot.Services;
 using System;
 using System.Reflection;
@@ -16,7 +19,7 @@ using System.Threading.Tasks;
 public static class Program
 {
     private static IServiceProvider services;
-    public static DiscordClient DiscordClient { get; private set; }
+    private static DiscordClient discordClient;
     public static CommandsNextExtension Commands { get; private set; }
 
     private static ILogger<DiscordClient> clientLogger;
@@ -40,12 +43,7 @@ public static class Program
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
         await DiscordClientConfiguration.EnsureExistsAsync().ConfigureAwait(false); // Ensure the configuration file has been created.
-
-        services = await Initializer.InitializeServicesAsync().ConfigureAwait(false);
-
-        clientLogger = services.GetRequiredService<ILogger<DiscordClient>>();
-        guildService = services.GetRequiredService<IGuildService>();
-
+        
         DiscordClientConfiguration cfgJson = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
         DiscordConfiguration discordConfig = new DiscordConfiguration
         {
@@ -55,28 +53,42 @@ public static class Program
             LogLevel = DSharpPlus.LogLevel.Debug,
             UseInternalLogHandler = true
         };
+        discordClient = new DiscordClient(discordConfig);
+
+        services = await Initializer.InitializeServicesAsync(discordClient).ConfigureAwait(false);
+        clientLogger = services.GetRequiredService<ILogger<DiscordClient>>();
+        guildService = services.GetRequiredService<IGuildService>();
 
         CommandsNextConfiguration commandsNextConfig = new CommandsNextConfiguration
         {
-            StringPrefixes = new[] { cfgJson.Token },
+            StringPrefixes = new[] { "!" },
             EnableDms = true,
             EnableMentionPrefix = true,
             Services = services
         };
+        
+        discordClient.Ready += DiscordClient_Ready;
+        discordClient.GuildMemberAdded += DiscordClient_GuildMemberAdded;
+        discordClient.GuildMemberRemoved += DiscordClient_GuildMemberRemoved;
+        discordClient.GuildMemberUpdated += DiscordClient_GuildMemberUpdated;
+        discordClient.GuildCreated += DiscordClient_GuildCreated;
+        discordClient.GuildDeleted += DiscordClient_GuildDeleted;
 
-        DiscordClient = new DiscordClient(discordConfig);
-
-        DiscordClient.Ready += DiscordClient_Ready;
-        DiscordClient.GuildMemberAdded += DiscordClient_GuildMemberAdded;
-        DiscordClient.GuildMemberRemoved += DiscordClient_GuildMemberRemoved;
-        DiscordClient.GuildMemberUpdated += DiscordClient_GuildMemberUpdated;
-        DiscordClient.GuildCreated += DiscordClient_GuildCreated;
-        DiscordClient.GuildDeleted += DiscordClient_GuildDeleted;
-
-        Commands = DiscordClient.UseCommandsNext(commandsNextConfig);
+        Commands = discordClient.UseCommandsNext(commandsNextConfig);
         Commands.RegisterCommands(Assembly.GetExecutingAssembly());
 
-        await DiscordClient.ConnectAsync().ConfigureAwait(false);
+        Commands.CommandErrored += Commands_CommandErrored;
+
+        InteractivityConfiguration interactivityConfig = new InteractivityConfiguration
+        {
+            PaginationBehaviour = PaginationBehaviour.Ignore,
+            Timeout = TimeSpan.FromMinutes(5),
+            PollBehaviour = PollBehaviour.KeepEmojis
+        };
+
+        discordClient.UseInteractivity(interactivityConfig);
+
+        await discordClient.ConnectAsync().ConfigureAwait(false);
 
 
         await Task.Delay(-1).ConfigureAwait(false); // Prevent the console window from closing.
@@ -157,6 +169,11 @@ public static class Program
         await guildService.RemoveConfigAsync(e.Guild.Id).ConfigureAwait(false);
     }
 
+    private static async Task Commands_CommandErrored(CommandErrorEventArgs e)
+    {
+        _ = await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}").ConfigureAwait(false);        
+    }
+
     private static async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception ex)
@@ -172,8 +189,8 @@ public static class Program
 
     private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
     {
-        await DiscordClient.DisconnectAsync().ConfigureAwait(false);
-        DiscordClient.Dispose();
+        await discordClient.DisconnectAsync().ConfigureAwait(false);
+        discordClient.Dispose();
         await Console.Out.WriteLineAsync("Exiting!").ConfigureAwait(false);
     }
 }

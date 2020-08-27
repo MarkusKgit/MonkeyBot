@@ -1,5 +1,5 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -16,10 +16,10 @@ namespace MonkeyBot.Services
     public class SteamGameServerService : BaseGameServerService
     {
         private readonly MonkeyDBContext dbContext;
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly ILogger<SteamGameServerService> logger;
 
-        public SteamGameServerService(MonkeyDBContext dbContext, DiscordSocketClient discordClient, ILogger<SteamGameServerService> logger)
+        public SteamGameServerService(MonkeyDBContext dbContext, DiscordClient discordClient, ILogger<SteamGameServerService> logger)
             : base(GameServerType.Steam, dbContext, discordClient, logger)
         {
             this.dbContext = dbContext;
@@ -47,8 +47,11 @@ namespace MonkeyBot.Services
                 {
                     return false;
                 }
-                SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
-                ITextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
+                if (!discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
+                {
+                    return false;
+                }
+                DiscordChannel channel = guild?.GetChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
                 {
                     return false;
@@ -59,7 +62,7 @@ namespace MonkeyBot.Services
                     : $"{players.Count}/{serverInfo.MaxPlayers}";
 
                 var builder = new DiscordEmbedBuilder()
-                    .WithColor(new Color(21, 26, 35))
+                    .WithColor(new DiscordColor(21, 26, 35))
                     .WithTitle($"{serverInfo.Game} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
                     .WithDescription(serverInfo.Name)
                     .AddField("Online Players", onlinePlayers)
@@ -109,9 +112,10 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.MessageID.HasValue)
                 {
-                    if (await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
+                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false);
+                    if (existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build()).ConfigureAwait(false);
+                        await existingMessage.ModifyAsync(embed: builder.Build()).ConfigureAwait(false);
                     }
                     else
                     {

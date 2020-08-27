@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -9,11 +10,11 @@ namespace MonkeyBot.Services
         /// Get a random cat picture of the given <paramref name="breed"/> or from all cats if <paramref name="breed"/> is left empty
         /// </summary>
         /// <param name="breed">The name of the breed to get a picture for</param>
-        Task<string> GetCatPictureUrlAsync(string breed = "");
+        Task<Uri> GetRandomPictureUrlAsync(string breed = "");
 
         /// <summary>
         /// Get a all cat breeds
         /// </summary>
-        Task<List<string>> GetCatBreedsAsync();
+        Task<List<string>> GetBreedsAsync();
     }
 }

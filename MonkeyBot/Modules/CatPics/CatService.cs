@@ -23,7 +23,7 @@ namespace MonkeyBot.Services
             this.clientFactory = clientFactory;
         }
 
-        public async Task<string> GetCatPictureUrlAsync(string breed = "")
+        public async Task<Uri> GetRandomPictureUrlAsync(string breed = "")
         {
             string breedId = "";
             if (!breed.IsEmpty())
@@ -31,7 +31,7 @@ namespace MonkeyBot.Services
                 breedId = await GetBreedIdAsync(breed).ConfigureAwait(false);
                 if (breedId.IsEmpty())
                 {
-                    return "";
+                    return null;
                 }
             }
             HttpClient httpClient = clientFactory.CreateClient();
@@ -45,10 +45,10 @@ namespace MonkeyBot.Services
                     return cats.First().Url;
                 }
             }
-            return "";
+            return null;
         }
 
-        public async Task<List<string>> GetCatBreedsAsync()
+        public async Task<List<string>> GetBreedsAsync()
         {
             HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);

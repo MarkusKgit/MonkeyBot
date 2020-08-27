@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace MonkeyBot.Services
@@ -12,7 +13,7 @@ namespace MonkeyBot.Services
         public string Id { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public Uri Url { get; set; }
 
         [JsonPropertyName("width")]
         public int Width { get; set; }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -85,6 +87,18 @@ namespace MonkeyBot.Common
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
             return regionalIndicatorLetters[index];
+        }
+
+        internal static Task SendChannelMessageAsync(DiscordClient discordClient, ulong guildID, ulong channelID, string message)
+        {
+            if (discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
+            {
+                if (guild.Channels.TryGetValue(channelID, out var channel))
+                {
+                    return channel.SendMessageAsync(message);
+                }
+            }
+            return Task.CompletedTask;
         }
     }
 }

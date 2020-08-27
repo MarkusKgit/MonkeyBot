@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Humanizer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -22,7 +23,7 @@ namespace MonkeyBot.Services
             this.clientFactory = clientFactory;
         }
         
-        public async Task<string> GetDogPictureUrlAsync(string breed = "")
+        public async Task<Uri> GetRandomPictureUrlAsync(string breed = "")
         {
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
@@ -34,13 +35,13 @@ namespace MonkeyBot.Services
                 DogResponse dogResponse = JsonSerializer.Deserialize<DogResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
-                    return dogResponse.Message;
+                    return new Uri(dogResponse.Message);
                 }
             }
-            return string.Empty;
+            return null;
         }
 
-        public async Task<List<string>> GetDogBreedsAsync()
+        public async Task<List<string>> GetBreedsAsync()
         {
             HttpClient httpClient = clientFactory.CreateClient();
             string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
@@ -50,7 +51,7 @@ namespace MonkeyBot.Services
                 DogBreedsResponse dogResponse = JsonSerializer.Deserialize<DogBreedsResponse>(json);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
-                    return dogResponse.Message.Keys.ToList();
+                    return dogResponse.Message.Keys.Select(breed => breed.Pascalize()).ToList();
                 }
             }
             return Enumerable.Empty<string>().ToList();

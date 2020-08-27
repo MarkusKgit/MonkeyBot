@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DSharpPlus;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Services;
@@ -12,9 +13,9 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task<IServiceProvider> InitializeServicesAsync()
+        public static async Task<IServiceProvider> InitializeServicesAsync(DiscordClient discordClient)
         {
-            IServiceProvider services = ConfigureServices(loggingBuilder =>
+            IServiceProvider services = ConfigureServices(discordClient, loggingBuilder =>
             {
                 _ = loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
                 _ = loggingBuilder.AddNLog(SetupNLogConfig());
@@ -31,12 +32,6 @@ namespace MonkeyBot
 
             MineCraftGameServerService minecraftGameServerService = services.GetService<MineCraftGameServerService>();
             minecraftGameServerService.Initialize();
-
-            IGameSubscriptionService gameSubscriptionService = services.GetService<IGameSubscriptionService>();
-            gameSubscriptionService.Initialize();
-
-            IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
-            roleButtonsService.Initialize();
 
             IFeedService feedService = services.GetService<IFeedService>();
             feedService.Start();
@@ -87,22 +82,20 @@ namespace MonkeyBot
         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        private static IServiceProvider ConfigureServices(Action<ILoggingBuilder> configureLogging)
+        private static IServiceProvider ConfigureServices(DiscordClient discordClient, Action<ILoggingBuilder> configureLogging)
         {
             IServiceCollection services = new ServiceCollection()
                 .AddLogging(configureLogging)
                 .AddHttpClient()
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
+                .AddSingleton(discordClient)
                 .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<ISchedulingService, SchedulingService>()
-                .AddSingleton<IAnnouncementService, AnnouncementService>()
-                .AddSingleton<ITriviaService, OTDBTriviaService>()
+                .AddSingleton<IAnnouncementService, AnnouncementService>()                
                 .AddSingleton<IFeedService, FeedService>()
                 .AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>()
                 .AddSingleton<SteamGameServerService>()
                 .AddSingleton<MineCraftGameServerService>()
-                .AddSingleton<IGameSubscriptionService, GameSubscriptionService>()
-                .AddSingleton<IRoleButtonService, RoleButtonService>()
                 .AddSingleton<IChuckService, ChuckService>()
                 .AddSingleton<ICatService, CatService>()
                 .AddSingleton<IDogService, DogService>()

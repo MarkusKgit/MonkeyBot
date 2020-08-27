@@ -1,6 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using MonkeyBot.Common;
+using DSharpPlus.Entities;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     [Description("Benzen Facts")]
-    public class BenzenFactModule : MonkeyModuleBase
+    public class BenzenFactModule : BaseCommandModule
     {
         private const string name = "benzen";
         private readonly MonkeyDBContext dbContext;
@@ -31,7 +31,11 @@ namespace MonkeyBot.Modules
             string fact = dbContext.BenzenFacts.AsQueryable().Skip(randomOffset).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
             {
-                _ = await ctx.RespondAsync(fact).ConfigureAwait(false);
+                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                    .WithColor(DiscordColor.DarkBlue)
+                    .WithTitle($"Benzen Fact #{randomOffset + 1}")
+                    .WithDescription(fact);
+                _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
             }
         }
 
@@ -42,22 +46,22 @@ namespace MonkeyBot.Modules
             fact = fact.Trim('\"').Trim();
             if (fact.IsEmpty())
             {
-                _ = await ctx.RespondAsync("Please provide a fact!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a fact!").ConfigureAwait(false);
                 return;
             }
             if (!fact.Contains(name, StringComparison.OrdinalIgnoreCase))
             {
-                _ = await ctx.RespondAsync("The fact must include Benzen!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The fact must include Benzen!").ConfigureAwait(false);
                 return;
             }
             if (dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
-                _ = await ctx.RespondAsync("I already know this fact!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("I already know this fact!").ConfigureAwait(false);
                 return;
             }
             _ = dbContext.BenzenFacts.Add(new BenzenFact(fact));
             _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
-            _ = await ctx.RespondAsync("Fact added").ConfigureAwait(false);
+            await ctx.OkAsync("Fact added").ConfigureAwait(false);
         }
     }
 }

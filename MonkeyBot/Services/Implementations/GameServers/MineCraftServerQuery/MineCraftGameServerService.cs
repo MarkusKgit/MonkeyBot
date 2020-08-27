@@ -1,5 +1,5 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -12,12 +12,12 @@ namespace MonkeyBot.Services
     public class MineCraftGameServerService : BaseGameServerService
     {        
         private readonly MonkeyDBContext dbContext;
-        private readonly DiscordSocketClient discordClient;
+        private readonly DiscordClient discordClient;
         private readonly ILogger<MineCraftGameServerService> logger;
 
         public MineCraftGameServerService(
             MonkeyDBContext dbContext,            
-            DiscordSocketClient discordClient,
+            DiscordClient discordClient,
             ILogger<MineCraftGameServerService> logger)
             : base(GameServerType.Minecraft, dbContext, discordClient, logger)
         {            
@@ -41,14 +41,17 @@ namespace MonkeyBot.Services
                 {
                     return false;
                 }
-                SocketGuild guild = discordClient?.GetGuild(discordGameServer.GuildID);
-                SocketTextChannel channel = guild?.GetTextChannel(discordGameServer.ChannelID);
+                if (!discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
+                {
+                    return false;
+                }
+                DiscordChannel channel = guild?.GetChannel(discordGameServer.ChannelID);
                 if (guild == null || channel == null)
                 {
                     return false;
                 }
-                EmbedBuilder builder = new DiscordEmbedBuilder()
-                    .WithColor(new Color(21, 26, 35))
+                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                    .WithColor(new DiscordColor(21, 26, 35))
                     .WithTitle($"Minecraft Server ({discordGameServer.ServerIP.Address}:{discordGameServer.ServerIP.Port})")
                     .WithDescription($"Motd: {serverInfo.Description.Motd}");
 
@@ -93,9 +96,10 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.MessageID.HasValue)
                 {
-                    if (await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false) is IUserMessage existingMessage && existingMessage != null)
+                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false);
+                    if (existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(x => x.Embed = builder.Build()).ConfigureAwait(false);
+                        await existingMessage.ModifyAsync(embed: builder.Build()).ConfigureAwait(false);
                     }
                     else
                     {
@@ -107,7 +111,7 @@ namespace MonkeyBot.Services
                 }
                 else
                 {
-                    IUserMessage message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+                    DiscordMessage message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
                     discordGameServer.MessageID = message.Id;
                     _ = dbContext.GameServers.Update(discordGameServer);
                     _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);

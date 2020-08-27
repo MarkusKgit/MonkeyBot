@@ -12,7 +12,7 @@ namespace MonkeyBot.Services
         private static Random rnd = new Random();
         private static readonly string[] imageExtensions = new string[] { "jpg", "jpeg", "png", "gif" };
 
-        public async Task<string> GetRandomPictureUrlAsync(string searchterm)
+        public async Task<Uri> GetRandomPictureUrlAsync(string searchterm)
         {
             var web = new HtmlWeb
             {
@@ -27,19 +27,19 @@ namespace MonkeyBot.Services
                 .ToList();
 
             if (urls == null && urls.Count < 1)
-                return "";
+                return null;
 
             for (int i = 0; i < urls.Count; i++)
             {
                 string randomImageUrl = urls.ElementAt(rnd.Next(0, urls.Count));
                 if (UrlIsValid(randomImageUrl))
                 {
-                    return randomImageUrl;
+                    return new Uri(randomImageUrl);
                 }
                 _ = urls.Remove(randomImageUrl);
             }
 
-            return "";
+            return null;
         }
 
         /// <summary>
