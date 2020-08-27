@@ -1,5 +1,4 @@
-﻿using Discord.Commands;
-using MonkeyBot.Common;
+﻿using MonkeyBot.Common;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -16,7 +15,7 @@ namespace MonkeyBot.Services
         /// <param name="questionsToPlay">Amount of questions to play</param>
         /// <param name="context">Message context of the channel where the trivia should be hosted</param>
         /// <returns>success</returns>
-        Task<bool> StartTriviaAsync(int questionsToPlay, SocketCommandContext context);
+        Task<bool> StartTriviaAsync(int questionsToPlay);
 
         /// <summary>
         /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
@@ -37,6 +36,6 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="context">Context of the channel where the high score was requested</param>
         /// <returns></returns>
-        Task<string> GetGlobalHighScoresAsync(int amount, SocketCommandContext context);
+        Task<string> GetGlobalHighScoresAsync(int amount);
     }
 }

@@ -58,7 +58,7 @@ namespace MonkeyBot.Services
                     ? $"{serverInfo.MaxPlayers}(+{players.Count - serverInfo.MaxPlayers})/{serverInfo.MaxPlayers}"
                     : $"{players.Count}/{serverInfo.MaxPlayers}";
 
-                var builder = new EmbedBuilder()
+                var builder = new DiscordEmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"{serverInfo.Game} Server ({discordGameServer.ServerIP.Address}:{serverInfo.Port})")
                     .WithDescription(serverInfo.Name)

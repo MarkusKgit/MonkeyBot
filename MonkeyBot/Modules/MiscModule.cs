@@ -6,23 +6,23 @@ using System.Web;
 
 namespace MonkeyBot.Modules
 {
-    [Name("Misc")]
+    [Description("Misc")]
     public class MiscModule : MonkeyModuleBase
     {
         private const string lmgtfyBaseUrl = "https://lmgtfy.com/?q=";
 
         [Command("lmgtfy")]
-        [Remarks("Generate a 'let me google that for you' link")]
+        [Description("Generate a 'let me google that for you' link")]
         [Example("!lmgtfy Monkey Gamers")]
-        public async Task LmgtfyAsync([Remainder] string searchText)
+        public async Task LmgtfyAsync([RemainingText] string searchText)
         {
             if (searchText.IsEmptyOrWhiteSpace())
             {
-                _ = await ReplyAsync("You have to provide a search text").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You have to provide a search text").ConfigureAwait(false);
                 return;
             }
             string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
-            _ = await ReplyAsync(url).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(url).ConfigureAwait(false);
         }
     }
 }

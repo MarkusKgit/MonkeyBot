@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     [MinPermissions(AccessLevel.User)]
-    [RequireContext(ContextType.Guild)]
-    [Name("Picture search")]
+    [RequireGuild]
+    [Description("Picture search")]
     public class PictureSearchModule : MonkeyModuleBase
     {
         private readonly IPictureSearchService pictureSearchService;
@@ -22,27 +22,27 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Picture")]
-        [Alias("Pic")]
-        [Remarks("Gets a random picture for the given search term.")]
-        public async Task GetPicAsync([Remainder][Summary("The term to search for")] string searchterm)
+        [Aliases("Pic")]
+        [Description("Gets a random picture for the given search term.")]
+        public async Task GetPicAsync([RemainingText][Summary("The term to search for")] string searchterm)
         {
             if (searchterm.IsEmpty())
             {
-                _ = await ReplyAsync("Please provide a search term").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide a search term").ConfigureAwait(false);
                 return;
             }
 
             string pictureURL = await (pictureSearchService?.GetRandomPictureUrlAsync(searchterm)).ConfigureAwait(false);
             if (pictureURL.IsEmpty())
             {
-                _ = await ReplyAsync($"Could not get a picture for {searchterm} :(.").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"Could not get a picture for {searchterm} :(.").ConfigureAwait(false);
                 return;
             }
 
-            var builder = new EmbedBuilder()
+            var builder = new DiscordEmbedBuilder()
                 .WithImageUrl(pictureURL);            
 
-            _ = await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(embed: builder.Build()).ConfigureAwait(false);
         }
     }
 }

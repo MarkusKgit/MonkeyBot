@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
-    [Name("Info")]
+    [Description("Info")]
     public class InfoModule : MonkeyModuleBase
     {
         //private readonly MonkeyDBContext dbContext;
@@ -23,14 +23,14 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Rules")]
-        [Remarks("The bot replies with the server rules in a private message")]
-        [RequireContext(ContextType.Guild)]
+        [Description("The bot replies with the server rules in a private message")]
+        [RequireGuild]
         public async Task ListRulesAsync()
         {
             List<string> rules = (await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false)).Rules;
             if (rules == null || rules.Count < 1)
             {
-                _ = await ReplyAsync("No rules set!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("No rules set!").ConfigureAwait(false);
                 return;
             }
             var builder = new EmbedBuilder
@@ -44,13 +44,13 @@ namespace MonkeyBot.Modules
         }
 
         [Command("FindMessageID")]
-        [Remarks("Gets the message id of a message in the current channel with the provided message text")]
-        [RequireContext(ContextType.Guild)]
-        public async Task FindMessageIDAsync([Summary("The content of the message to search for")][Remainder] string messageContent)
+        [Description("Gets the message id of a message in the current channel with the provided message text")]
+        [RequireGuild]
+        public async Task FindMessageIDAsync([Summary("The content of the message to search for")][RemainingText] string messageContent)
         {
             if (messageContent.IsEmptyOrWhiteSpace())
             {
-                _ = await ReplyAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
                 return;
             }
             const int searchDepth = 100;
@@ -58,17 +58,17 @@ namespace MonkeyBot.Modules
             IEnumerable<IMessage> matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
             if (matches == null || !matches.Any())
             {
-                _ = await ReplyAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
                 return;
             }
             else if (matches.Count() > 1)
             {
-                _ = await ReplyAsync($"{matches.Count()} Messages found. Please be more specific").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"{matches.Count()} Messages found. Please be more specific").ConfigureAwait(false);
                 return;
             }
             else
             {
-                _ = await ReplyAsync($"The message Id is: {matches.First().Id}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"The message Id is: {matches.First().Id}").ConfigureAwait(false);
             }
         }
     }

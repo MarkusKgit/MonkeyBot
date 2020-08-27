@@ -134,7 +134,7 @@ namespace MonkeyBot.Services
             }
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
-                var builder = new EmbedBuilder();
+                var builder = new DiscordEmbedBuilder();
                 _ = builder.WithColor(new Color(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                 {

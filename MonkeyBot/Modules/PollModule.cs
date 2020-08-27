@@ -16,8 +16,8 @@ namespace MonkeyBot.Modules
     /// <summary>
     /// Provides a simple voting system
     /// </summary>
-    [Name("Simple poll")]
-    [RequireContext(ContextType.Guild)]
+    [Description("Simple poll")]
+    [RequireGuild]
     [MinPermissions(AccessLevel.User)]
     public class PollModule : InteractiveBase
     {
@@ -28,17 +28,17 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Poll")]
-        [Alias("Vote")]
+        [Aliases("Vote")]
         [Priority(1)]
-        [Remarks("Starts a new poll with the specified question and automatically adds reactions")]
+        [Description("Starts a new poll with the specified question and automatically adds reactions")]
         [Example("!poll \"Is MonkeyBot awesome?\"")]
         [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
-        public async Task StartPollAsync([Summary("The question")][Remainder] string question)
+        public async Task StartPollAsync([Summary("The question")][RemainingText] string question)
         {
             question = question.Trim('\"');
             if (question.IsEmpty())
             {
-                _ = await ReplyAsync("Please enter a question").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
             var poll = new Poll
@@ -57,9 +57,9 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Poll")]
-        [Alias("Vote")]
+        [Aliases("Vote")]
         [Priority(2)]
-        [Remarks("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
+        [Description("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
         [Example("!poll \"How cool is MonkeyBot?\" \"supercool\" \"over 9000\" \"bruh...\"")]
         [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
         public async Task StartPollAsync([Summary("The question")] string question, [Summary("The list of answers")] params string[] answers)
@@ -71,18 +71,18 @@ namespace MonkeyBot.Modules
             }
             if (answers.Length < 2)
             {
-                _ = await ReplyAsync("Please provide at least 2 answers").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide at least 2 answers").ConfigureAwait(false);
                 return;
             }
             if (answers.Length > 7)
             {
-                _ = await ReplyAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
                 return;
             }
             question = question.Trim('\"');
             if (question.IsEmptyOrWhiteSpace())
             {
-                _ = await ReplyAsync("Please enter a question").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
 
@@ -100,7 +100,7 @@ namespace MonkeyBot.Modules
         {
             string answers = string.Join(Environment.NewLine, poll.Answers.Select(x => $"{x.AnswerEmoji} {x.Answer}"));
 
-            var embedBuilder = new EmbedBuilder()
+            var embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle($"New Poll: {poll.Question}")
                 .WithColor(new Color(20, 20, 20))
                 .WithDescription(
@@ -149,7 +149,7 @@ namespace MonkeyBot.Modules
             {
                 participantsString = string.Join(", ", participants?.Select(x => x.Mention));
             }
-            var embedBuilder = new EmbedBuilder()
+            var embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle($"Poll ended: {poll.Question}")
                 .WithColor(new Color(20, 20, 20))
                 .AddField("Results", string.Join(Environment.NewLine, answerCounts))

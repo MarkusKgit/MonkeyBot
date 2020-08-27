@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
-    [Name("Xkcd")]
+    [Description("Xkcd")]
     public class XkcdModule : MonkeyModuleBase
     {
         private readonly IXkcdService xkcdService;
@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("xkcd")]
-        [Remarks("Gets a random xkcd comic or the latest xkcd comic by appending \"latest\" to the command")]
+        [Description("Gets a random xkcd comic or the latest xkcd comic by appending \"latest\" to the command")]
         [Priority(0)]
         [Example("!xkcd latest")]
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
@@ -34,7 +34,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("xkcd")]
-        [Remarks("Gets the xkcd comic with the specified number")]
+        [Description("Gets the xkcd comic with the specified number")]
         [Priority(1)]
         [Example("!xkcd 101")]
         [RequireBotPermission(ChannelPermission.EmbedLinks)]
@@ -47,7 +47,7 @@ namespace MonkeyBot.Modules
             }
             catch (ArgumentOutOfRangeException)
             {
-                _ = await ReplyAsync("The specified comic does not exist!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("The specified comic does not exist!").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
-            var builder = new EmbedBuilder()
+            var builder = new DiscordEmbedBuilder()
                 .WithImageUrl(comic.ImgUrl.ToString())
                 .WithAuthor($"xkcd #{comic.Number}", "https://xkcd.com/s/919f27.ico", comicUrl)
                 .WithTitle(comic.SafeTitle)

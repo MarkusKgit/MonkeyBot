@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
-    [Name("Game Subscriptions")]
+    [Description("Game Subscriptions")]
     [MinPermissions(AccessLevel.User)]
-    [RequireContext(ContextType.Guild)]
+    [RequireGuild]
     public class GameSubscriptionModule : MonkeyModuleBase
     {
         private readonly IGameSubscriptionService gameSubscriptionService;
@@ -27,68 +27,68 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Subscribe")]
-        [Remarks("Subscribes to the specified game. You will get a private message every time someone launches it")]
+        [Description("Subscribes to the specified game. You will get a private message every time someone launches it")]
         [Example("!Subscribe \"Battlefield 1\"")]
-        public async Task SubscribeAsync([Summary("The name of the game to subscribe to.")] [Remainder] string gameName)
+        public async Task SubscribeAsync([Summary("The name of the game to subscribe to.")] [RemainingText] string gameName)
         {
             if (gameName.IsEmpty())
             {
-                _ = await ReplyAsync("You need to specify a game you wish to subscribe to!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You need to specify a game you wish to subscribe to!").ConfigureAwait(false);
                 return;
             }
             try
             {
                 // Add the Subscription to the Service to activate it
                 await gameSubscriptionService.AddSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
-                _ = await ReplyAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"You are now subscribed to {gameName}").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
             {
-                _ = await ReplyAsync(ex.Message).ConfigureAwait(false);                
+                _ = await ctx.RespondAsync(ex.Message).ConfigureAwait(false);                
             }
             catch (Exception ex)
             {
-                _ = await ReplyAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"There was an error while adding the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error adding a game subscription");                
             }            
         }
 
         [Command("Unsubscribe")]
-        [Remarks("Unsubscribes to the specified game")]
+        [Description("Unsubscribes to the specified game")]
         [Example("!Unsubscribe \"Battlefield 1\"")]
-        public async Task UnsubscribeAsync([Summary("The name of the game to unsubscribe from.")] [Remainder] string gameName)
+        public async Task UnsubscribeAsync([Summary("The name of the game to unsubscribe from.")] [RemainingText] string gameName)
         {
             if (gameName.IsEmpty())
             {
-                _ = await ReplyAsync("You need to specify a game you wish to unsubscribe from!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You need to specify a game you wish to unsubscribe from!").ConfigureAwait(false);
                 return;
             }
             try
             {
                 // Remove the subscription from the Service
                 await gameSubscriptionService.RemoveSubscriptionAsync(gameName, Context.Guild.Id, Context.User.Id).ConfigureAwait(false);
-                _ = await ReplyAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"You are now unsubscribed from {gameName}").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
             {
-                _ = await ReplyAsync(ex.Message).ConfigureAwait(false);
+                _ = await ctx.RespondAsync(ex.Message).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _ = await ReplyAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"There was an error while trying to remove the subscription:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a game subscription");                
             }            
         }
 
         [Command("Subscriptions")]
-        [Remarks("Lists all your game subscriptions")]
+        [Description("Lists all your game subscriptions")]
         [Example("!Subscriptions")]
         public async Task ListAllAsync()
         {
             IReadOnlyCollection<GameSubscription> subscriptions = await gameSubscriptionService.GetSubscriptionsForUser(Context.User.Id).ConfigureAwait(false);
             if (subscriptions == null || subscriptions.Count < 1)
             {
-                _ = await ReplyAsync("You are not subscribed to any game").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You are not subscribed to any game").ConfigureAwait(false);
             }
             else
             {

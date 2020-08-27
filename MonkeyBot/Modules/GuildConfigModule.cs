@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     [MinPermissions(AccessLevel.ServerAdmin)]
-    [Name("Guild Configuration")]
-    [RequireContext(ContextType.Guild)]
+    [Description("Guild Configuration")]
+    [RequireGuild]
     public class GuildConfigModule : MonkeyModuleBase
     {
         private readonly IGuildService guildService;
@@ -26,14 +26,14 @@ namespace MonkeyBot.Modules
 
 
         [Command("SetWelcomeMessage")]
-        [Remarks("Sets the welcome message for new users. Can make use of %user% and %server%")]
+        [Description("Sets the welcome message for new users. Can make use of %user% and %server%")]
         [Example("!SetWelcomeMessage \"Hello %user%, welcome to %server%\"")]
-        public async Task SetWelcomeMessageAsync([Summary("The welcome message")][Remainder] string welcomeMsg)
+        public async Task SetWelcomeMessageAsync([Summary("The welcome message")][RemainingText] string welcomeMsg)
         {
             welcomeMsg = welcomeMsg.Trim('\"');
             if (welcomeMsg.IsEmpty())
             {
-                _ = await ReplyAsync("Please provide a welcome message").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide a welcome message").ConfigureAwait(false);
                 return;
             }
 
@@ -44,9 +44,9 @@ namespace MonkeyBot.Modules
         }
 
         [Command("SetDefaultChannel")]
-        [Remarks("Sets the default channel for the guild where info will be posted")]
+        [Description("Sets the default channel for the guild where info will be posted")]
         [Example("!SetDefaultChannel general")]
-        public async Task SetDefaultChannelAsync([Summary("The name of the default channel")][Remainder] string channelName)
+        public async Task SetDefaultChannelAsync([Summary("The name of the default channel")][RemainingText] string channelName)
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
@@ -57,9 +57,9 @@ namespace MonkeyBot.Modules
 
 
         [Command("SetWelcomeChannel")]
-        [Remarks("Sets the channel where the welcome message will be posted")]
+        [Description("Sets the channel where the welcome message will be posted")]
         [Example("!SetWelcomeChannel general")]
-        public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][Remainder] string channelName)
+        public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][RemainingText] string channelName)
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
             GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
@@ -69,14 +69,14 @@ namespace MonkeyBot.Modules
         }
 
         [Command("SetGoodbyeMessage")]
-        [Remarks("Sets the Goodbye message for new users. Can make use of %user% and %server%")]
+        [Description("Sets the Goodbye message for new users. Can make use of %user% and %server%")]
         [Example("!SetGoodbyeMessage \"Goodbye %user%, farewell!\"")]
-        public async Task SetGoodbyeMessageAsync([Summary("The Goodbye message")][Remainder] string goodbyeMsg)
+        public async Task SetGoodbyeMessageAsync([Summary("The Goodbye message")][RemainingText] string goodbyeMsg)
         {
             goodbyeMsg = goodbyeMsg.Trim('\"');
             if (goodbyeMsg.IsEmpty())
             {
-                _ = await ReplyAsync("Please provide a goodbye message").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide a goodbye message").ConfigureAwait(false);
                 return;
             }
 
@@ -87,9 +87,9 @@ namespace MonkeyBot.Modules
         }
 
         [Command("SetGoodbyeChannel")]
-        [Remarks("Sets the channel where the Goodbye message will be posted")]
+        [Description("Sets the channel where the Goodbye message will be posted")]
         [Example("!SetGoodbyeChannel general")]
-        public async Task SetGoodbyeChannelAsync([Summary("The Goodbye message channel")][Remainder] string channelName)
+        public async Task SetGoodbyeChannelAsync([Summary("The Goodbye message channel")][RemainingText] string channelName)
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
 
@@ -100,13 +100,13 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddRule")]
-        [Remarks("Adds a rule to the server.")]
+        [Description("Adds a rule to the server.")]
         [Example("!AddRule \"You shall not pass!\"")]
-        public async Task AddRuleAsync([Summary("The rule to add")][Remainder] string rule)
+        public async Task AddRuleAsync([Summary("The rule to add")][RemainingText] string rule)
         {
             if (rule.IsEmpty())
             {
-                _ = await ReplyAsync("Please enter a rule").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please enter a rule").ConfigureAwait(false);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("RemoveRules")]
-        [Remarks("Removes all rules from a server.")]
+        [Description("Removes all rules from a server.")]
         public async Task RemoveRulesAsync()
         {
             GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
@@ -131,13 +131,13 @@ namespace MonkeyBot.Modules
         }
 
         [Command("EnableBattlefieldUpdates")]
-        [Remarks("Enables automated posting of Battlefield update news in provided channel")]
+        [Description("Enables automated posting of Battlefield update news in provided channel")]
         [Example("!EnableBattlefieldUpdates #general")]
         public async Task EnableBattlefieldUpdatesAsync(ITextChannel channel)
         {
             if (channel == null)
             {
-                _ = await ReplyAsync("Please provide a valid channel").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Please provide a valid channel").ConfigureAwait(false);
                 return;
             }
             await bfService.EnableForGuildAsync(Context.Guild.Id, channel.Id).ConfigureAwait(false);
@@ -145,7 +145,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("DisableBattlefieldUpdates")]
-        [Remarks("Disables automated posting of Battlefield update news")]
+        [Description("Disables automated posting of Battlefield update news")]
         public async Task DisableBattlefieldUpdatesAsync()
         {
             await bfService.DisableForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
@@ -153,7 +153,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("EnableStreamingNotifications")]
-        [Remarks("Enables automated notifications of people that start streaming (if they have enabled it for themselves). Info will be posted in the default channel of the guild")]
+        [Description("Enables automated notifications of people that start streaming (if they have enabled it for themselves). Info will be posted in the default channel of the guild")]
         [Example("!EnableStreamingNotifications")]
         public async Task EnableStreamingNotificationsAsync()
         {
@@ -162,7 +162,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("DisableStreamingNotifications")]
-        [Remarks("Disables automated notifications of people that start streaming")]
+        [Description("Disables automated notifications of people that start streaming")]
         public async Task DisableStreamingNotificationsAsync()
         {
             await ToggleStreamingAnnouncementsAsync(false).ConfigureAwait(false);
@@ -170,7 +170,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AnnounceMyStreams")]
-        [Remarks("Enable automatic posting of your stream info when you start streaming")]
+        [Description("Enable automatic posting of your stream info when you start streaming")]
         [MinPermissions(AccessLevel.User)]
         public async Task AnnounceMyStreamsAsync()
         {

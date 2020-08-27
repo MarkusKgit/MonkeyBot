@@ -31,7 +31,7 @@ namespace MonkeyBot.Common
         public string Token { get; set; }
 
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
-        public static async Task EnsureExistsAsync()
+        public static async Task<DiscordClientConfiguration> EnsureExistsAsync()
         {
             string file = Path.Combine(AppContext.BaseDirectory, fileName);
             if (!File.Exists(file))
@@ -61,8 +61,9 @@ namespace MonkeyBot.Common
                 }
                 
                 await config.SaveAsync().ConfigureAwait(false); // Save the new configuration object to file.
+                return config;
             }
-            await Console.Out.WriteLineAsync("Configuration Loaded").ConfigureAwait(false);
+            return await LoadAsync().ConfigureAwait(false);
         }
 
         public void AddOwner(ulong ownerId)

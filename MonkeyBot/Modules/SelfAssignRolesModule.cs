@@ -11,16 +11,16 @@ namespace MonkeyBot.Modules
 {
     /// <summary>Module that handles role assignments</summary>
     [Group("Roles")]
-    [Name("Roles")]
+    [Description("Roles")]
     [MinPermissions(AccessLevel.User)]
-    [RequireContext(ContextType.Guild)]
+    [RequireGuild]
     [RequireBotPermission(GuildPermission.ManageRoles)]
     public class SelfAssignRolesModule : MonkeyModuleBase
     {
         [Command("Add")]
-        [Remarks("Adds the specified role to your own roles.")]
+        [Description("Adds the specified role to your own roles.")]
         [Example("!roles add bf")]
-        public async Task AddRoleAsync([Summary("The name of the role to add.")] [Remainder] string roleName)
+        public async Task AddRoleAsync([Summary("The name of the role to add.")] [RemainingText] string roleName)
         {
             // Get the role with the specified name
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
@@ -33,13 +33,13 @@ namespace MonkeyBot.Modules
             // The bot's role must be higher than the role to be able to assign it
             if (botRole?.Position <= role.Position)
             {
-                _ = await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Insufficient permissions!").ConfigureAwait(false);
                 return;
             }
             var guser = (IGuildUser)Context.User;
             if (guser.RoleIds.Contains(role.Id))
             {
-                _ = await ReplyAsync("You already have that role").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You already have that role").ConfigureAwait(false);
                 return;
             }
             await guser.AddRoleAsync(role).ConfigureAwait(false);
@@ -47,9 +47,9 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Remove")]
-        [Remarks("Removes the specified role from your roles.")]
+        [Description("Removes the specified role from your roles.")]
         [Example("!roles remove bf")]
-        public async Task RemoveRoleAsync([Summary("The role to remove.")] [Remainder] string roleName = null)
+        public async Task RemoveRoleAsync([Summary("The role to remove.")] [RemainingText] string roleName = null)
         {
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)
@@ -59,20 +59,20 @@ namespace MonkeyBot.Modules
             var guser = (IGuildUser)Context.User;
             if (!guser.RoleIds.Contains(role.Id))
             {
-                _ = await ReplyAsync("You don't have that role").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You don't have that role").ConfigureAwait(false);
             }
             IRole botRole = await GetManageRolesRoleAsync().ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole?.Position <= role.Position)
             {
-                _ = await ReplyAsync("Insufficient permissions!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Insufficient permissions!").ConfigureAwait(false);
             }
             await guser.RemoveRoleAsync(role).ConfigureAwait(false);
             await ReplyAndDeleteAsync($"Role {role.Name} has been removed").ConfigureAwait(false);
         }
 
         [Command("List")]
-        [Remarks("Lists all roles that can be mentioned and assigned.")]
+        [Description("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync()
         {
             var allRoles = new List<string>();
@@ -89,11 +89,11 @@ namespace MonkeyBot.Modules
             string msg = allRoles.Count > 0
                 ? "The following assignable roles exist:" + Environment.NewLine + string.Join(", ", allRoles)
                 : "No assignable roles exist!";
-            _ = await ReplyAsync(msg).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(msg).ConfigureAwait(false);
         }
 
         [Command("ListMembers")]
-        [Remarks("Lists all roles and the users who have these roles")]
+        [Description("Lists all roles and the users who have these roles")]
         public async Task ListMembersAsync()
         {
             var builder = new EmbedBuilder
@@ -128,7 +128,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("ListMembers")]
-        [Remarks("Lists all the members of the specified role")]
+        [Description("Lists all the members of the specified role")]
         [Example("!roles listmembers bf")]
         public async Task ListMembersAsync(string roleName)
         {

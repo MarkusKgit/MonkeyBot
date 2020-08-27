@@ -91,7 +91,7 @@ namespace MonkeyBot.Services
             }
             this.questionsToPlay = questionsToPlay;
             questions?.Clear();
-            var embed = new EmbedBuilder()
+            var embed = new DiscordEmbedBuilder()
                 .WithColor(new Color(26, 137, 185))
                 .WithTitle("Trivia")
                 .WithDescription(
@@ -147,7 +147,7 @@ namespace MonkeyBot.Services
                 return false;
             }
 
-            var embedBuilder = new EmbedBuilder()
+            var embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("The quiz has ended");
 
@@ -182,7 +182,7 @@ namespace MonkeyBot.Services
                 interactiveService.RemoveReactionCallback(currentQuestionMessage);
                 int points = QuestionToPoints(currentQuestion);
 
-                var embedBuilder = new EmbedBuilder()
+                var embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new Color(46, 191, 84))
                     .WithTitle("Time is up")
                     .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");

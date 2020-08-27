@@ -77,7 +77,7 @@ namespace MonkeyBot.Services
             {
                 return;
             }
-            var builder = new EmbedBuilder()
+            var builder = new DiscordEmbedBuilder()
                 .WithColor(new Color(21, 26, 35))
                 .WithTitle("New Battlefield V Update")
                 .WithDescription($"[{latestBattlefieldVUpdate.Title}]({latestBattlefieldVUpdate.UpdateUrl})")

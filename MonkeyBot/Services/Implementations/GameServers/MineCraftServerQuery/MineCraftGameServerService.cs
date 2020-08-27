@@ -47,7 +47,7 @@ namespace MonkeyBot.Services
                 {
                     return false;
                 }
-                EmbedBuilder builder = new EmbedBuilder()
+                EmbedBuilder builder = new DiscordEmbedBuilder()
                     .WithColor(new Color(21, 26, 35))
                     .WithTitle($"Minecraft Server ({discordGameServer.ServerIP.Address}:{discordGameServer.ServerIP.Port})")
                     .WithDescription($"Motd: {serverInfo.Description.Motd}");

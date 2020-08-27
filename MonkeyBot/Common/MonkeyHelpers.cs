@@ -1,5 +1,4 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -60,20 +59,6 @@ namespace MonkeyBot.Common
                 _ = sb.Append(text);
             }
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// Sends the text to the specified guild's channel using a connected Discord client
-        /// </summary>
-        /// <param name="client">Connected Discord Client connection</param>
-        /// <param name="guildID">Id of the Discord guild</param>
-        /// <param name="channelID">Id of the Discord channel</param>
-        /// <param name="text">Text to post</param>
-        public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-        {
-            IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
-            ITextChannel channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);
-            return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)

@@ -12,12 +12,12 @@ namespace MonkeyBot.Modules
     /// Provides moderator level commands
     /// </summary>
     [MinPermissions(AccessLevel.ServerMod)]
-    [Name("Moderator Commands")]
-    [RequireContext(ContextType.Guild)]
+    [Description("Moderator Commands")]
+    [RequireGuild]
     public class ModeratorModule : MonkeyModuleBase
     {
         [Command("Prune")]
-        [Remarks("Deletes the specified amount of messages")]
+        [Description("Deletes the specified amount of messages")]
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Example("!Prune 10")]
@@ -25,7 +25,7 @@ namespace MonkeyBot.Modules
         {
             if (count < 1)
             {
-                _ = await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)
@@ -40,7 +40,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Prune")]
-        [Remarks("Deletes the specified amount of messages for the specified user")]
+        [Description("Deletes the specified amount of messages for the specified user")]
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Example("!Prune JohnDoe 10")]
@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             }
             if (count < 1)
             {
-                _ = await ReplyAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Count has to be at least 1").ConfigureAwait(false);
                 return;
             }
             if (count > 100)

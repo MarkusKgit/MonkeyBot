@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     /// <summary>A module that provides help commands</summary>
-    [Name("Help")]
+    [Description("Help")]
     [MinPermissions(AccessLevel.User)]
     public class HelpModule : MonkeyModuleBase
     {
@@ -24,7 +24,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("help")]
-        [Remarks("List all usable commands.")]
+        [Description("List all usable commands.")]
         public async Task HelpAsync()
         {
             string prefix = await commandManager.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
@@ -68,9 +68,9 @@ namespace MonkeyBot.Modules
         }
 
         [Command("help")]
-        [Remarks("Gets help for the specified command")]
+        [Description("Gets help for the specified command")]
         [Example("!help Chuck")]
-        public async Task HelpAsync([Summary("The command to get help for.")] [Remainder]string command)
+        public async Task HelpAsync([Summary("The command to get help for.")] [RemainingText]string command)
         {
             SearchResult result = commandService.Search(Context, command);
 

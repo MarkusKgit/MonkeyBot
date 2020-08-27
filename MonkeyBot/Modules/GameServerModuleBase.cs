@@ -40,12 +40,12 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                _ = await ReplyAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"There was an error while adding the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error adding a gameserver");
             }
             _ = success
-                ? await ReplyAsync("GameServer added").ConfigureAwait(false)
-                : await ReplyAsync("GameServer could not be added").ConfigureAwait(false);
+                ? await ctx.RespondAsync("GameServer added").ConfigureAwait(false)
+                : await ctx.RespondAsync("GameServer could not be added").ConfigureAwait(false);
         }
 
         protected async Task ListGameServersInternalAsync(GameServerType gameServerType)
@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             List<GameServer> servers = (await gameServerService.ListServers(Context.Guild.Id).ConfigureAwait(false)).Where(s => s.GameServerType == gameServerType).ToList();
             if (servers == null || servers.Count < 1)
             {
-                _ = await ReplyAsync("No servers have been added yet.").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("No servers have been added yet.").ConfigureAwait(false);
                 return;
             }
             var sb = new StringBuilder();
@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules
                 ITextChannel feedChannel = await Context.Guild.GetTextChannelAsync(server.ChannelID).ConfigureAwait(false);
                 _ = sb.AppendLine($"{feedChannel.Mention}: {server.ServerIP}");
             }
-            _ = await ReplyAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb}").ConfigureAwait(false);
+            _ = await ctx.RespondAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb}").ConfigureAwait(false);
         }
 
         protected async Task RemoveGameServerInternalAsync(string ip)
@@ -81,11 +81,11 @@ namespace MonkeyBot.Modules
             }
             catch (Exception ex)
             {
-                _ = await ReplyAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
+                _ = await ctx.RespondAsync($"There was an error while trying to remove the game server:{Environment.NewLine}{ex.Message}").ConfigureAwait(false);
                 logger.LogWarning(ex, "Error removing a gameserver");
                 return;
             }
-            _ = await ReplyAsync("GameServer removed").ConfigureAwait(false);
+            _ = await ctx.RespondAsync("GameServer removed").ConfigureAwait(false);
         }
 
         //TODO: move the parsing into the command handler
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
             string[] splitIP = ip?.Split(':');
             if (ip.IsEmpty() || splitIP == null || splitIP.Length != 2 || !IPAddress.TryParse(splitIP[0], out IPAddress parsedIP) || !int.TryParse(splitIP[1], out int port))
             {
-                _ = await ReplyAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You need to specify an IP-Adress + Port for the server! For example 127.0.0.1:1234").ConfigureAwait(false);
                 return null;
             }
             var endPoint = new IPEndPoint(parsedIP, port);
