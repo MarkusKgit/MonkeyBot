@@ -1,11 +1,13 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using MonkeyBot.Common;
 using MonkeyBot.Models;
-using MonkeyBot.Preconditions;
 using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -13,7 +15,7 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.ServerAdmin)]
     [Description("Guild Configuration")]
     [RequireGuild]
-    public class GuildConfigModule : MonkeyModuleBase
+    public class GuildConfigModule : BaseCommandModule
     {
         private readonly IGuildService guildService;
         private readonly IBattlefieldNewsService bfService;
@@ -24,11 +26,21 @@ namespace MonkeyBot.Modules
             this.bfService = bfService;
         }
 
+        [Command("SetDefaultChannel")]
+        [Description("Sets the default channel for the guild where info will be posted")]
+        [Example("!SetDefaultChannel general")]
+        public async Task SetDefaultChannelAsync(CommandContext ctx, [Description("The channel which should become the default")][RemainingText] DiscordChannel channel)
+        {
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
+            config.DefaultChannelId = channel.Id;
+            await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
+            _ = await ctx.OkAsync("Default channel set").ConfigureAwait(false);
+        }
 
         [Command("SetWelcomeMessage")]
         [Description("Sets the welcome message for new users. Can make use of %user% and %server%")]
         [Example("!SetWelcomeMessage \"Hello %user%, welcome to %server%\"")]
-        public async Task SetWelcomeMessageAsync([Summary("The welcome message")][RemainingText] string welcomeMsg)
+        public async Task SetWelcomeMessageAsync(CommandContext ctx, [RemainingText, Description("The welcome message")] string welcomeMsg)
         {
             welcomeMsg = welcomeMsg.Trim('\"');
             if (welcomeMsg.IsEmpty())
@@ -37,41 +49,27 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageText = welcomeMsg;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
+            _ = await ctx.OkAsync("Welcome Message set").ConfigureAwait(false);
         }
-
-        [Command("SetDefaultChannel")]
-        [Description("Sets the default channel for the guild where info will be posted")]
-        [Example("!SetDefaultChannel general")]
-        public async Task SetDefaultChannelAsync([Summary("The name of the default channel")][RemainingText] string channelName)
-        {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
-            config.DefaultChannelId = channel.Id;
-            await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
-        }
-
 
         [Command("SetWelcomeChannel")]
         [Description("Sets the channel where the welcome message will be posted")]
         [Example("!SetWelcomeChannel general")]
-        public async Task SetWelcomeChannelAsync([Summary("The welcome message channel")][RemainingText] string channelName)
+        public async Task SetWelcomeChannelAsync(CommandContext ctx, [Description("The channel where the welcome message should be posted")] DiscordChannel channel)
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageChannelId = channel.Id;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
+            await ctx.OkAsync("Welcome channel set").ConfigureAwait(false);
         }
 
         [Command("SetGoodbyeMessage")]
         [Description("Sets the Goodbye message for new users. Can make use of %user% and %server%")]
         [Example("!SetGoodbyeMessage \"Goodbye %user%, farewell!\"")]
-        public async Task SetGoodbyeMessageAsync([Summary("The Goodbye message")][RemainingText] string goodbyeMsg)
+        public async Task SetGoodbyeMessageAsync([Description("The Goodbye message")][RemainingText] string goodbyeMsg)
         {
             goodbyeMsg = goodbyeMsg.Trim('\"');
             if (goodbyeMsg.IsEmpty())
@@ -89,7 +87,7 @@ namespace MonkeyBot.Modules
         [Command("SetGoodbyeChannel")]
         [Description("Sets the channel where the Goodbye message will be posted")]
         [Example("!SetGoodbyeChannel general")]
-        public async Task SetGoodbyeChannelAsync([Summary("The Goodbye message channel")][RemainingText] string channelName)
+        public async Task SetGoodbyeChannelAsync([Description("The Goodbye message channel")][RemainingText] string channelName)
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
 
@@ -102,7 +100,7 @@ namespace MonkeyBot.Modules
         [Command("AddRule")]
         [Description("Adds a rule to the server.")]
         [Example("!AddRule \"You shall not pass!\"")]
-        public async Task AddRuleAsync([Summary("The rule to add")][RemainingText] string rule)
+        public async Task AddRuleAsync([Description("The rule to add")][RemainingText] string rule)
         {
             if (rule.IsEmpty())
             {

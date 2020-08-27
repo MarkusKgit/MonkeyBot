@@ -20,7 +20,7 @@ namespace MonkeyBot.Modules
         [Command("Add")]
         [Description("Adds the specified role to your own roles.")]
         [Example("!roles add bf")]
-        public async Task AddRoleAsync([Summary("The name of the role to add.")] [RemainingText] string roleName)
+        public async Task AddRoleAsync([Description("The name of the role to add.")] [RemainingText] string roleName)
         {
             // Get the role with the specified name
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
@@ -49,7 +49,7 @@ namespace MonkeyBot.Modules
         [Command("Remove")]
         [Description("Removes the specified role from your roles.")]
         [Example("!roles remove bf")]
-        public async Task RemoveRoleAsync([Summary("The role to remove.")] [RemainingText] string roleName = null)
+        public async Task RemoveRoleAsync([Description("The role to remove.")] [RemainingText] string roleName = null)
         {
             IRole role = await GetRoleInGuildAsync(roleName).ConfigureAwait(false);
             if (role == null)

@@ -29,7 +29,7 @@ namespace MonkeyBot.Modules
         [Command("Add")]
         [Description("Adds an atom or RSS feed to the list of listened feeds.")]
         [Example("!Feeds add https://blogs.msdn.microsoft.com/dotnet/feed/")]
-        public async Task AddFeedUrlAsync([Summary("The name/title of the feed")] string name, [Summary("The url to the feed (Atom/RSS)")] string url, [Summary("Optional: The name of the channel where the Feed updates should be posted. Defaults to current channel")] string channelName = "")
+        public async Task AddFeedUrlAsync([Description("The name/title of the feed")] string name, [Description("The url to the feed (Atom/RSS)")] string url, [Description("Optional: The name of the channel where the Feed updates should be posted. Defaults to current channel")] string channelName = "")
         {
             if (name.IsEmpty())
             {
@@ -75,7 +75,7 @@ namespace MonkeyBot.Modules
         [Command("Remove")]
         [Description("Removes the specified feed from the list of feeds.")]
         [Example("!Feeds remove https://blogs.msdn.microsoft.com/dotnet/feed/")]
-        public async Task RemoveFeedUrlAsync([Summary("The name or the url of the feed")] string nameOrUrl, [Summary("Optional: The name of the channel where the Feed url should be removed. Defaults to current channel")] string channelName = "")
+        public async Task RemoveFeedUrlAsync([Description("The name or the url of the feed")] string nameOrUrl, [Description("Optional: The name of the channel where the Feed url should be removed. Defaults to current channel")] string channelName = "")
         {
             if (nameOrUrl.IsEmpty())
             {
@@ -101,7 +101,7 @@ namespace MonkeyBot.Modules
 
         [Command("List")]
         [Description("List all current feed urls")]
-        public async Task ListFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
+        public async Task ListFeedUrlsAsync([Description("Optional: The name of the channel where the Feed urls should be listed for. Defaults to all channels")] string channelName = "")
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
             List<(string name, string feedUrl, ulong feedChannelId)> feeds = await feedService.GetFeedsForGuildAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);
@@ -131,7 +131,7 @@ namespace MonkeyBot.Modules
 
         [Command("RemoveAll")]
         [Description("Removes all feed urls")]
-        public async Task RemoveFeedUrlsAsync([Summary("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
+        public async Task RemoveFeedUrlsAsync([Description("Optional: The name of the channel where the Feed urls should be removed. Defaults to all channels")] string channelName = "")
         {
             ITextChannel channel = await GetTextChannelInGuildAsync(channelName, false).ConfigureAwait(false);
             await feedService.RemoveAllFeedsAsync(Context.Guild.Id, channel?.Id).ConfigureAwait(false);

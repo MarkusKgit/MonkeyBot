@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddLink")]
         [Description("Adds a reaction to the specified message with a link to the specified role")]
-        public async Task AddLinkAsync([Summary("Id of the message to set up the link for")] ulong messageId, [Summary("Name of the role to link")] string roleName, [Summary("Emote to link")] string emoteString)
+        public async Task AddLinkAsync([Description("Id of the message to set up the link for")] ulong messageId, [Description("Name of the role to link")] string roleName, [Description("Emote to link")] string emoteString)
         {
             IMessage msg = await Context.Channel.GetMessageAsync(messageId).ConfigureAwait(false);
             if (msg == null)
@@ -56,7 +56,7 @@ namespace MonkeyBot.Modules
 
         [Command("RemoveLink")]
         [Description("Removes a reaction from the specified message with a link to the specified role")]
-        public async Task RemoveLinkAsync([Summary("Id of the message to remove the link from")] ulong messageId, [Summary("Name of the role to remove the link from")] string roleName)
+        public async Task RemoveLinkAsync([Description("Id of the message to remove the link from")] ulong messageId, [Description("Name of the role to remove the link from")] string roleName)
         {
             IMessage msg = await Context.Channel.GetMessageAsync(messageId).ConfigureAwait(false);
             if (msg == null)

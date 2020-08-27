@@ -13,9 +13,9 @@ namespace DSharpPlus.CommandsNext
         {
             DiscordMessage msg = await ctx.RespondAsync(content, isTTS, embed).ConfigureAwait(false);
             await msg.CreateReactionAsync(trashCan).ConfigureAwait(false);
-            var interactivity = ctx.Client.GetInteractivity();
+            var interactivity = ctx.Client.GetInteractivity();           
             var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30)).ConfigureAwait(false);
-            if (interactivityResult.TimedOut )
+            if (interactivityResult.TimedOut)
             {
                 await msg.DeleteOwnReactionAsync(trashCan).ConfigureAwait(false);                
             }
