@@ -33,6 +33,9 @@ namespace MonkeyBot
             MineCraftGameServerService minecraftGameServerService = services.GetService<MineCraftGameServerService>();
             minecraftGameServerService.Initialize();
 
+            IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
+            roleButtonsService.Initialize();
+
             IFeedService feedService = services.GetService<IFeedService>();
             feedService.Start();
 
@@ -96,6 +99,7 @@ namespace MonkeyBot
                 .AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>()
                 .AddSingleton<SteamGameServerService>()
                 .AddSingleton<MineCraftGameServerService>()
+                .AddSingleton<IRoleButtonService, RoleButtonService>()
                 .AddSingleton<IChuckService, ChuckService>()
                 .AddSingleton<ICatService, CatService>()
                 .AddSingleton<IDogService, DogService>()
