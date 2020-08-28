@@ -46,12 +46,12 @@ namespace MonkeyBot.Modules
                 _ = await ctx.RespondAsync("Emoji not found.").ConfigureAwait(false);
                 return;
             }
-            if (await roleButtonService.ExistsAsync(ctx.Guild.Id, message.Id, role.Id).ConfigureAwait(false))
+            if (await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false))
             {
                 _ = await ctx.RespondAsync("The specified link already exists").ConfigureAwait(false);
                 return;
             }
-            await roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, message.Id, role.Id, emoji.ToString()).ConfigureAwait(false);
+            await roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString()).ConfigureAwait(false);
             _ = await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role").ConfigureAwait(false);
         }
 
@@ -70,12 +70,12 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("Role not found.").ConfigureAwait(false);
                 return;
             }
-            if (!(await roleButtonService.ExistsAsync(ctx.Guild.Id, message.Id, role.Id).ConfigureAwait(false)))
+            if (!(await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false)))
             {
                 _ = await ctx.ErrorAsync("The specified link does not exist").ConfigureAwait(false);
                 return;
             }
-            await roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, message.Id, role.Id).ConfigureAwait(false);
+            await roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false);
             _ = await ctx.OkAsync($"Role {role.Name} successfully unlinked.").ConfigureAwait(false);
         }
 
