@@ -13,12 +13,12 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.ServerAdmin)]
     [Description("Guild Configuration")]
     [RequireGuild]
-    public class GuildConfigModule : BaseCommandModule
+    public class GuildModule : BaseCommandModule
     {
         private readonly IGuildService guildService;
         private readonly IBattlefieldNewsService bfService;
 
-        public GuildConfigModule(IGuildService guildService, IBattlefieldNewsService bfService)
+        public GuildModule(IGuildService guildService, IBattlefieldNewsService bfService)
         {
             this.guildService = guildService;
             this.bfService = bfService;

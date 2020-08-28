@@ -53,10 +53,6 @@
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />		
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Contracts\" />
-  </ItemGroup>
   
   <PropertyGroup>
   <RuntimeIdentifiers>win10-x64;linux-x64</RuntimeIdentifiers>
