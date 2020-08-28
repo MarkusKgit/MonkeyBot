@@ -3,6 +3,8 @@
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
 
+using System.Diagnostics.CodeAnalysis;
+
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0001:You should use 'var' whenever possible.")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0105:You should use 'var' whenever possible.")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "CC0013:Use ternary operator")]
@@ -25,3 +27,4 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "EF Core can't translate culture aware overloads", Scope = "member", Target = "~M:MonkeyBot.Services.GameSubscriptionService.Client_GuildMemberUpdatedAsync(Discord.WebSocket.SocketUser,Discord.WebSocket.SocketUser)~System.Threading.Tasks.Task")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Scope = "namespaceanddescendants", Target = "MonkeyBot.Services")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0067:Dispose objects before losing scope", Scope = "namespaceanddescendants", Target = "MonkeyBot.Services")]
+[assembly: SuppressMessage("Performance", "CA1822:Mark members as static")]

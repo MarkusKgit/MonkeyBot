@@ -1,5 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using MonkeyBot.Common;
@@ -7,7 +6,6 @@ using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -63,130 +61,123 @@ namespace MonkeyBot.Modules
             GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.WelcomeMessageChannelId = channel.Id;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ctx.OkAsync("Welcome channel set").ConfigureAwait(false);
+            _ = await ctx.OkAsync("Welcome channel set").ConfigureAwait(false);
         }
 
         [Command("SetGoodbyeMessage")]
         [Description("Sets the Goodbye message for new users. Can make use of %user% and %server%")]
         [Example("!SetGoodbyeMessage \"Goodbye %user%, farewell!\"")]
-        public async Task SetGoodbyeMessageAsync([Description("The Goodbye message")][RemainingText] string goodbyeMsg)
+        public async Task SetGoodbyeMessageAsync(CommandContext ctx, [RemainingText, Description("The Goodbye message")] string goodbyeMsg)
         {
             goodbyeMsg = goodbyeMsg.Trim('\"');
             if (goodbyeMsg.IsEmpty())
             {
-                _ = await ctx.RespondAsync("Please provide a goodbye message").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a goodbye message").ConfigureAwait(false);
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.GoodbyeMessageText = goodbyeMsg;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Message set").ConfigureAwait(false);
+            _ = await ctx.OkAsync("Goodbye Message set").ConfigureAwait(false);
         }
 
         [Command("SetGoodbyeChannel")]
         [Description("Sets the channel where the Goodbye message will be posted")]
         [Example("!SetGoodbyeChannel general")]
-        public async Task SetGoodbyeChannelAsync([Description("The Goodbye message channel")][RemainingText] string channelName)
+        public async Task SetGoodbyeChannelAsync(CommandContext ctx, [Description("The channel where the goodbye message should be posted")] DiscordChannel channel)
         {
-            ITextChannel channel = await GetTextChannelInGuildAsync(channelName.Trim('\"'), false).ConfigureAwait(false);
-
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.GoodbyeMessageChannelId = channel.Id;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Channel set").ConfigureAwait(false);
+            _ = await ctx.OkAsync("Goodbye Channel set").ConfigureAwait(false);
         }
 
         [Command("AddRule")]
         [Description("Adds a rule to the server.")]
         [Example("!AddRule \"You shall not pass!\"")]
-        public async Task AddRuleAsync([Description("The rule to add")][RemainingText] string rule)
+        public async Task AddRuleAsync(CommandContext ctx, [RemainingText, Description("The rule to add")] string rule)
         {
             if (rule.IsEmpty())
             {
-                _ = await ctx.RespondAsync("Please enter a rule").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a rule").ConfigureAwait(false);
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             config.Rules ??= new List<string>();
             config.Rules.Add(rule);
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Rule added").ConfigureAwait(false);
+            _ = await ctx.OkAsync("Rule added").ConfigureAwait(false);
         }
 
         [Command("RemoveRules")]
         [Description("Removes all rules from a server.")]
-        public async Task RemoveRulesAsync()
+        public async Task RemoveRulesAsync(CommandContext ctx)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             if (config.Rules != null)
             {
                 config.Rules.Clear();
             }
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Rules removed").ConfigureAwait(false);
+            _ = await ctx.OkAsync("All rules removed").ConfigureAwait(false);
         }
 
         [Command("EnableBattlefieldUpdates")]
         [Description("Enables automated posting of Battlefield update news in provided channel")]
         [Example("!EnableBattlefieldUpdates #general")]
-        public async Task EnableBattlefieldUpdatesAsync(ITextChannel channel)
+        public async Task EnableBattlefieldUpdatesAsync(CommandContext ctx, [Description("The channel where the Battlefield updates should be posted")] DiscordChannel channel)
         {
-            if (channel == null)
-            {
-                _ = await ctx.RespondAsync("Please provide a valid channel").ConfigureAwait(false);
-                return;
-            }
-            await bfService.EnableForGuildAsync(Context.Guild.Id, channel.Id).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Battlefield Updates enabled!").ConfigureAwait(false);
+            await bfService.EnableForGuildAsync(ctx.Guild.Id, channel.Id).ConfigureAwait(false);
+            _ = await ctx.OkAsync("Battlefield Updates enabled!").ConfigureAwait(false);
         }
 
         [Command("DisableBattlefieldUpdates")]
         [Description("Disables automated posting of Battlefield update news")]
-        public async Task DisableBattlefieldUpdatesAsync()
+        public async Task DisableBattlefieldUpdatesAsync(CommandContext ctx)
         {
-            await bfService.DisableForGuildAsync(Context.Guild.Id).ConfigureAwait(false);
-            await ReplyAndDeleteAsync("Battlefield Updates disabled!").ConfigureAwait(false);
+            await bfService.DisableForGuildAsync(ctx.Guild.Id).ConfigureAwait(false);
+            _ = await ctx.OkAsync("Battlefield Updates disabled!").ConfigureAwait(false);
         }
 
         [Command("EnableStreamingNotifications")]
         [Description("Enables automated notifications of people that start streaming (if they have enabled it for themselves). Info will be posted in the default channel of the guild")]
         [Example("!EnableStreamingNotifications")]
-        public async Task EnableStreamingNotificationsAsync()
+        public async Task EnableStreamingNotificationsAsync(CommandContext ctx)
         {
-            await ToggleStreamingAnnouncementsAsync(true).ConfigureAwait(false);
-            await ReplyAndDeleteAsync($"Streaming Notifications enabled! {Environment.NewLine}Use !AnnounceMyStreams to automatically have your streams broadcasted when you start streaming").ConfigureAwait(false);
+            await ToggleStreamingAnnouncementsAsync(ctx.Guild.Id, true).ConfigureAwait(false);
+            _ = await ctx.OkAsync($"Streaming Notifications enabled! {Environment.NewLine}Use {ctx.Prefix}AnnounceMyStreams to automatically have your streams broadcasted when you start streaming").ConfigureAwait(false);
         }
 
         [Command("DisableStreamingNotifications")]
         [Description("Disables automated notifications of people that start streaming")]
-        public async Task DisableStreamingNotificationsAsync()
+        public async Task DisableStreamingNotificationsAsync(CommandContext ctx)
         {
-            await ToggleStreamingAnnouncementsAsync(false).ConfigureAwait(false);
-            await ReplyAndDeleteAsync($"Streaming Notifications disabled!").ConfigureAwait(false);
+            await ToggleStreamingAnnouncementsAsync(ctx.Guild.Id, false).ConfigureAwait(false);
+            _ = await ctx.OkAsync($"Streaming Notifications disabled!").ConfigureAwait(false);
         }
 
         [Command("AnnounceMyStreams")]
         [Description("Enable automatic posting of your stream info when you start streaming")]
         [MinPermissions(AccessLevel.User)]
-        public async Task AnnounceMyStreamsAsync()
+        public async Task AnnounceMyStreamsAsync(CommandContext ctx)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false);
             if (!config.StreamAnnouncementsEnabled)
             {
-                await ReplyAndDeleteAsync($"Stream broadcasting is disabled in this guild. An admin has to enable it first with !EnableStreamingNotifications").ConfigureAwait(false);
+                await ctx.ErrorAsync($"Stream broadcasting is disabled in this guild. An admin has to enable it first with {ctx.Prefix}EnableStreamingNotifications").ConfigureAwait(false);
                 return;
             }
             config.ConfirmedStreamerIds ??= new List<ulong>();
-            config.ConfirmedStreamerIds.Add(Context.User.Id);
+            config.ConfirmedStreamerIds.Add(ctx.User.Id);
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
-            await ReplyAndDeleteAsync($"Your streams will now be broadcasted!").ConfigureAwait(false);
+            _ = await ctx.OkAsync($"Your streams will now be announced!").ConfigureAwait(false);
         }
 
-        private async Task ToggleStreamingAnnouncementsAsync(bool enable)
+        private async Task ToggleStreamingAnnouncementsAsync(ulong guildId, bool enable)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(Context.Guild.Id).ConfigureAwait(false);
+            GuildConfig config = await guildService.GetOrCreateConfigAsync(guildId).ConfigureAwait(false);
             config.StreamAnnouncementsEnabled = enable;
             await guildService.UpdateConfigAsync(config).ConfigureAwait(false);
         }
