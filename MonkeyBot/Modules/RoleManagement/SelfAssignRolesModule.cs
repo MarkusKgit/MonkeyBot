@@ -27,12 +27,12 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("Invalid role").ConfigureAwait(false);
                 return;
             }
-            DiscordRole botRole = GetBotRole(ctx);
+            DiscordRole botRole = await GetBotRoleAsync(ctx).ConfigureAwait(false);
 
             // The bot's role must be higher than the role to be able to assign it
-            if (botRole?.Position <= role.Position)
+            if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("I don't have sufficient permissions to give you this role!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to give you this role!").ConfigureAwait(false);
                 return;
             }
 
@@ -55,11 +55,11 @@ namespace MonkeyBot.Modules
             {
                 _ = await ctx.ErrorAsync("You don't have that role").ConfigureAwait(false);
             }
-            DiscordRole botRole = GetBotRole(ctx);
+            DiscordRole botRole = await GetBotRoleAsync(ctx).ConfigureAwait(false);
             // The bot's role must be higher than the role to be able to remove it
-            if (botRole?.Position <= role.Position)
+            if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("I don't have sufficient permissions to take this role from you!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!").ConfigureAwait(false);
             }
             await ctx.Member.RevokeRoleAsync(role).ConfigureAwait(false);
             _ = await ctx.OkAsync($"Role {role.Name} has been revoked").ConfigureAwait(false);
@@ -113,26 +113,25 @@ namespace MonkeyBot.Modules
             }
             var builder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(114, 137, 218))
-                .WithDescription($"These are the users assigned to the {role.Name} role:");
-
-            _ = builder.AddField(role.Name, string.Join(", ", roleUsers), false);
+                .WithTitle($"These are the users assigned to the {role.Name} role:")
+                .WithDescription(string.Join(", ", roleUsers));
 
             _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
         }
 
-        private static DiscordRole GetBotRole(CommandContext ctx)
+        private static async Task<DiscordRole> GetBotRoleAsync(CommandContext ctx)
         {
-            // Get the role of the bot with permission manage roles
-            return ctx.Guild.Roles.Values.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
+            // Get the role of the bot with permission manage roles            
+            DiscordMember bot = await ctx.Guild.GetMemberAsync(ctx.Client.CurrentUser.Id).ConfigureAwait(false);
+            return bot.Roles.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
         }
 
         private static IEnumerable<DiscordRole> GetAssignableRoles(CommandContext ctx)
         {
-            // Get the role of the bot with permission manage roles
-            DiscordRole botRole = GetBotRole(ctx);
+            DiscordRole highestRole = ctx.Guild.Roles.Values.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
             // Get all roles that are lower than the bot's role (roles the bot can assign)
             return ctx.Guild.Roles.Values
-                .Where(role => role.IsMentionable && role != ctx.Guild.EveryoneRole && botRole.Position > role.Position);
+                .Where(role => role.IsMentionable && role != ctx.Guild.EveryoneRole && highestRole.Position > role.Position);
 
         }
     }
