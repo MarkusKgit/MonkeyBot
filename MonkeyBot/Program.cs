@@ -83,7 +83,7 @@ public static class Program
         {
             PaginationBehaviour = PaginationBehaviour.Ignore,
             Timeout = TimeSpan.FromMinutes(5),
-            PollBehaviour = PollBehaviour.KeepEmojis
+            PollBehaviour = PollBehaviour.KeepEmojis,
         };
 
         discordClient.UseInteractivity(interactivityConfig);

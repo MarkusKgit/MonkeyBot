@@ -104,7 +104,8 @@ namespace MonkeyBot
                 .AddSingleton<ICatService, CatService>()
                 .AddSingleton<IDogService, DogService>()
                 .AddSingleton<IXkcdService, XkcdService>()
-                .AddSingleton<IPictureSearchService, GoogleImageSearchService>();
+                .AddSingleton<IPictureSearchService, GoogleImageSearchService>()
+                .AddSingleton<ITriviaService, TriviaService>();
 
             IServiceProvider provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;

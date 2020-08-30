@@ -1,4 +1,6 @@
 ﻿using MonkeyBot.Common;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -12,30 +14,26 @@ namespace MonkeyBot.Services
         /// Start a new trivia with the specified amount of questions in the specified Discord Channel
         /// Returns boolean success
         /// </summary>
+        /// <param name="guildId">Id of the guild where the trivia will be started</param>
+        /// <param name="channelId">Id of the channel where the trivia will be started</param>
         /// <param name="questionsToPlay">Amount of questions to play</param>
-        /// <param name="context">Message context of the channel where the trivia should be hosted</param>
         /// <returns>success</returns>
-        Task<bool> StartTriviaAsync(int questionsToPlay);
-
-        /// <summary>
-        /// Skips the trivia in the specified guild's channel if a trivia is running, otherwise returns false
-        /// </summary>
-        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
-        /// <returns>success</returns>
-        Task<bool> SkipQuestionAsync(DiscordId id);
+        Task<bool> StartTriviaAsync(ulong guildId, ulong channelId, int questionsToPlay);
 
         /// <summary>
         /// Stops the trivia in the specified guild's channel if a trivia is running, otherwise returns false
         /// </summary>
-        /// <param name="id">Combined Id of the Discord Guild and channel for the trivia</param>
+        /// <param name="guildId">Id of the guild where the trivia is running</param>
+        /// <param name="channelId">Id of the channel where the trivia is running</param>
         /// <returns>success</returns>
-        Task<bool> StopTriviaAsync(DiscordId id);
+        Task<bool> StopTriviaAsync(ulong guildId, ulong channelId);
 
         /// <summary>
         /// Gets the current global high scores for the guild
-        /// </summary>
-        /// <param name="context">Context of the channel where the high score was requested</param>
-        /// <returns></returns>
-        Task<string> GetGlobalHighScoresAsync(int amount);
+        /// </summary> 
+        /// <param name="guildId">Id of the guild for which the high score is requested</param>
+        /// <param name="amount">Max. number of scores to get</param>
+        /// <returns>List of users with associated score</returns>
+        Task<IEnumerable<(ulong userId, int score)>> GetGlobalHighScoresAsync(ulong guildId, int amount);
     }
 }

@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,15 +26,8 @@ namespace MonkeyBot.Common
                 }
             }
 
-            byte[] encodedText = Encoding.UTF8.GetBytes(text);
-
-            using var sourceStream = new FileStream(filePath,
-                                                     append ? FileMode.Append : FileMode.Create,
-                                                     FileAccess.Write,
-                                                     FileShare.None,
-                                                     bufferSize: 4096,
-                                                     useAsync: true);
-            await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);
+            using var streamWriter = new StreamWriter(filePath, append);
+            await streamWriter.WriteAsync(text).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -43,24 +35,10 @@ namespace MonkeyBot.Common
         /// </summary>
         /// <param name="filePath">Path of the file to read</param>
         /// <returns>Contents of the text file</returns>
-        public static async Task<string> ReadTextAsync(string filePath)
+        public static Task<string> ReadTextAsync(string filePath)
         {
-            using var sourceStream = new FileStream(filePath,
-                                                    FileMode.Open,
-                                                    FileAccess.Read,
-                                                    FileShare.Read,
-                                                    bufferSize: 4096,
-                                                    useAsync: true);
-            var sb = new StringBuilder();
-
-            byte[] buffer = new byte[0x1000];
-            int numRead;
-            while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
-            {
-                string text = Encoding.UTF8.GetString(buffer, 0, numRead);
-                _ = sb.Append(text);
-            }
-            return sb.ToString();
+            using var streamReader = new StreamReader(filePath);
+            return streamReader.ReadToEndAsync();
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
@@ -89,16 +67,16 @@ namespace MonkeyBot.Common
             return regionalIndicatorLetters[index];
         }
 
-        internal static Task SendChannelMessageAsync(DiscordClient discordClient, ulong guildID, ulong channelID, string message)
+        internal static Task<DiscordMessage> SendChannelMessageAsync(DiscordClient discordClient, ulong guildID, ulong channelID, string message = null, DiscordEmbed embed = null)
         {
             if (discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
             {
-                if (guild.Channels.TryGetValue(channelID, out var channel))
+                if (guild.Channels.TryGetValue(channelID, out DiscordChannel channel))
                 {
-                    return channel.SendMessageAsync(message);
+                    return channel.SendMessageAsync(content: message, embed: embed);
                 }
             }
-            return Task.CompletedTask;
+            return Task.FromResult<DiscordMessage>(null);
         }
     }
 }
