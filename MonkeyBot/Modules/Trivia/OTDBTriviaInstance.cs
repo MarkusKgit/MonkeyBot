@@ -20,7 +20,7 @@ namespace MonkeyBot.Services
     /// <summary>
     /// Manages a single instance of a trivia game in a Discord channel. Uses Open trivia database https://opentdb.com
     /// </summary>
-    internal sealed class OTDBTriviaInstance
+    internal sealed class OTDBTriviaInstance : IDisposable
     {
         private readonly Uri tokenUri = new Uri("https://opentdb.com/api_token.php?command=request");
         private readonly Uri baseApiUri = new Uri("https://opentdb.com/api.php");
@@ -434,5 +434,9 @@ namespace MonkeyBot.Services
                 Type = x.Type,
                 Difficulty = x.Difficulty
             };
+        public void Dispose()
+        {
+            cancellation.Dispose();
+        }
     }
 }

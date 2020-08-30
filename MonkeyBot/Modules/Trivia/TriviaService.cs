@@ -39,7 +39,9 @@ namespace MonkeyBot.Services
             if (trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance triviaInstance))
             {
                 await triviaInstance.EndTriviaAsync().ConfigureAwait(false);
-                return trivias.TryRemove((guildId, channelId), out var _);
+                _ = trivias.TryRemove((guildId, channelId), out OTDBTriviaInstance trivia);
+                trivia.Dispose();
+                return true;
             }
             return false;
         }
