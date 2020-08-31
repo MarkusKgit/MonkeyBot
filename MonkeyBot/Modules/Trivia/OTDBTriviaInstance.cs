@@ -106,12 +106,11 @@ namespace MonkeyBot.Services
                 .WithColor(new DiscordColor(26, 137, 185))
                 .WithTitle("Trivia")
                 .WithDescription(
-                     $"Starting trivia with {questionsToPlay} question{ (questionsToPlay == 1 ? "" : "s")}." + Environment.NewLine
-                    + "- Answer each question by clicking on the corresponding Emoji" + Environment.NewLine
-                    + "- Each question has a value of 1-3 points" + Environment.NewLine
-                    + $"- You have {timeout.TotalSeconds} seconds for each question."
-                    + "- Only your first answer counts!" + Environment.NewLine
-                    + "- Each wrong answer will reduce your points by 1 until you are back to zero" + Environment.NewLine
+                     $"Starting trivia with {questionsToPlay} question{ (questionsToPlay == 1 ? "" : "s")}. \n"
+                    + "- Answer each question by clicking on the corresponding Emoji \n"
+                    + "- Each question has a value of 1-3 points \n"
+                    + $"- You have {timeout.TotalSeconds} seconds for each question. \n"                    
+                    + "- Each wrong answer will reduce your points by 1 until you are back to zero"
                     )
                 .Build();
             _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embed).ConfigureAwait(false);
