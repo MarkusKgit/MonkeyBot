@@ -1,11 +1,11 @@
-﻿using Discord;
-using Discord.Addons.Interactive;
-using Discord.Commands;
-using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
 using Humanizer;
 using MonkeyBot.Common;
-using MonkeyBot.Preconditions;
-using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,21 +19,26 @@ namespace MonkeyBot.Modules
     [Description("Simple poll")]
     [RequireGuild]
     [MinPermissions(AccessLevel.User)]
-    public class PollModule : InteractiveBase
+    public class PollModule : BaseCommandModule
     {
         private static readonly TimeSpan pollDuration = TimeSpan.FromHours(1);
 
-        public PollModule()
+        private static InteractivityExtension interactivity;
+
+        private static readonly Dictionary<DiscordEmoji, string> yesNoPollAnswers = new Dictionary<DiscordEmoji, string>()
         {
-        }
+            {DiscordEmoji.FromUnicode("👍"), "Yes" },
+            {DiscordEmoji.FromUnicode("👎"), "No" },
+            {DiscordEmoji.FromUnicode("🤷"), "Don't care" }
+        };
 
         [Command("Poll")]
         [Aliases("Vote")]
         [Priority(1)]
         [Description("Starts a new poll with the specified question and automatically adds reactions")]
         [Example("!poll \"Is MonkeyBot awesome?\"")]
-        [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
-        public async Task StartPollAsync([Description("The question")][RemainingText] string question)
+        [RequireBotPermissions(Permissions.AddReactions | Permissions.ManageMessages)]
+        public async Task StartPollAsync(CommandContext ctx, [Description("The question")][RemainingText] string question)
         {
             question = question.Trim('\"');
             if (question.IsEmpty())
@@ -41,121 +46,77 @@ namespace MonkeyBot.Modules
                 _ = await ctx.RespondAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
-            var poll = new Poll
-            {
-                GuildId = Context.Guild.Id,
-                ChannelId = Context.Channel.Id,
-                Question = question,
-                Answers = new List<PollAnswer>
-                {
-                    new PollAnswer("Yes", new Emoji("👍")),
-                    new PollAnswer("No", new Emoji("👎")),
-                    new PollAnswer("Don't care", new Emoji("🤷"))
-                }
-            };
-            _ = await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
-        }
+
+            Dictionary<DiscordEmoji, string> possibleAnswers = yesNoPollAnswers;
+
+            await DoPollInternalAsync(ctx, question, possibleAnswers).ConfigureAwait(false);
+        }        
 
         [Command("Poll")]
         [Aliases("Vote")]
         [Priority(2)]
         [Description("Starts a new poll with the specified question and the list answers and automatically adds reactions")]
         [Example("!poll \"How cool is MonkeyBot?\" \"supercool\" \"over 9000\" \"bruh...\"")]
-        [RequireBotPermission(ChannelPermission.AddReactions | ChannelPermission.ManageMessages)]
-        public async Task StartPollAsync([Description("The question")] string question, [Description("The list of answers")] params string[] answers)
+        [RequireBotPermissions(Permissions.AddReactions | Permissions.ManageMessages)]
+        public async Task StartPollAsync(CommandContext ctx, [Description("The question")] string question, [Description("The list of answers")] params string[] answers)
         {
-            if (answers == null || answers.Length <= 0)
+            if (answers == null || answers.Length <= 2)
             {
-                await StartPollAsync(question).ConfigureAwait(false);
-                return;
-            }
-            if (answers.Length < 2)
-            {
-                _ = await ctx.RespondAsync("Please provide at least 2 answers").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide at least 2 answers").ConfigureAwait(false);
                 return;
             }
             if (answers.Length > 7)
             {
-                _ = await ctx.RespondAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a maximum of 7 answers").ConfigureAwait(false);
                 return;
             }
             question = question.Trim('\"');
             if (question.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.RespondAsync("Please enter a question").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please enter a question").ConfigureAwait(false);
                 return;
             }
 
-            var poll = new Poll
-            {
-                GuildId = Context.Guild.Id,
-                ChannelId = Context.Channel.Id,
-                Question = question,
-                Answers = answers.Select((ans, i) => new PollAnswer(ans, new Emoji(MonkeyHelpers.GetUnicodeRegionalLetter(i)))).ToList()
-            };
-            _ = await InlineReactionReplyAsync(GeneratePoll(poll), false).ConfigureAwait(false);
+            var possibleAnswers = answers.Select((ans, i) => (DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(i)), ans)).ToDictionary(x => x.Item1, x => x.ans);
+
+            await DoPollInternalAsync(ctx, question, possibleAnswers).ConfigureAwait(false);
         }
 
-        private static ReactionCallbackData GeneratePoll(Poll poll)
+        private async Task DoPollInternalAsync(CommandContext ctx, string question, Dictionary<DiscordEmoji, string> possibleAnswers)
         {
-            string answers = string.Join(Environment.NewLine, poll.Answers.Select(x => $"{x.AnswerEmoji} {x.Answer}"));
-
             var embedBuilder = new DiscordEmbedBuilder()
-                .WithTitle($"New Poll: {poll.Question}")
-                .WithColor(new Color(20, 20, 20))
-                .WithDescription(
-                    "- Pick an option by clicking on the corresponding Emoji" + Environment.NewLine
-                    + "- Only your first pick counts!" + Environment.NewLine
-                    + $"- You have {pollDuration.Humanize()} to cast your vote"
-                    )
-                .AddField("Pick one", answers);
+                            .WithTitle($"New Poll: {question}")
+                            .WithColor(new DiscordColor(20, 20, 20))
+                            .WithDescription(
+                                "- Pick an option by clicking on the corresponding Emoji" + Environment.NewLine
+                                + "- You can only select one option" + Environment.NewLine
+                                + $"- You have {pollDuration.Humanize()} to cast your vote"
+                                )
+                            .AddField("Pick one", string.Join("\n", possibleAnswers.Select(x => $"{x.Key}: {x.Value}")));
 
-            var rcbd = new ReactionCallbackData("", embedBuilder.Build(), false, true, true, pollDuration, async c => await PollEndedAsync(c, poll).ConfigureAwait(false));
-            foreach (Emoji answerEmoji in poll.Answers.Select(x => x.AnswerEmoji))
-            {
-                _ = rcbd.WithCallback(answerEmoji, (c, r) => AddVoteCount(r, poll));
-            }
-            return rcbd;
-        }
+            DiscordMessage m = await ctx.RespondAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
 
-        private static Task AddVoteCount(SocketReaction reaction, Poll poll)
-        {
-            PollAnswer answer = poll.Answers.SingleOrDefault(e => e.AnswerEmoji.Equals(reaction.Emote));
-            if (answer != null && reaction.User.IsSpecified)
-            {
-                _ = poll.ReactionUsers.AddOrUpdate(
-                        answer,
-                        new List<IUser> { reaction.User.Value },
-                        (_, list) =>
-                          {
-                              list.Add(reaction.User.Value);
-                              return list;
-                          }
-                );
-            }
-            return Task.CompletedTask;
-        }
+            interactivity ??= ctx.Client.GetInteractivity();
 
-        private static async Task PollEndedAsync(SocketCommandContext context, Poll poll)
-        {
-            if (poll == null)
+            var pollResult = await interactivity.DoPollAsync(m, possibleAnswers.Keys.ToArray(), PollBehaviour.DeleteEmojis, pollDuration).ConfigureAwait(false);
+
+            IEnumerable<string> answerCounts = possibleAnswers.Select(x => $"{x.Value}: {pollResult.SingleOrDefault(pr => pr.Emoji == x.Key)?.Total ?? 0}");
+
+            IEnumerable<string> participants = pollResult.SelectMany(x => x.Voted).Select(x => x.Mention).Distinct();
+
+            if (!participants.Any())
             {
+                _ = await ctx.RespondAsync($"Not a single person voted on \"{question}\"").ConfigureAwait(false);
                 return;
             }
-            IEnumerable<string> answerCounts = poll.Answers.Select(answer => $"{answer.Answer}: { poll.ReactionUsers.FirstOrDefault(x => x.Key.Equals(answer)).Value?.Count.ToString() ?? "0"}");
-            List<IUser> participants = poll.ReactionUsers.Select(x => x.Value).SelectMany(x => x).ToList();
-            string participantsString = "-";
-            if (participants != null && participants.Count > 0)
-            {
-                participantsString = string.Join(", ", participants?.Select(x => x.Mention));
-            }
-            var embedBuilder = new DiscordEmbedBuilder()
-                .WithTitle($"Poll ended: {poll.Question}")
-                .WithColor(new Color(20, 20, 20))
-                .AddField("Results", string.Join(Environment.NewLine, answerCounts))
-                .AddField("Voters", participantsString);
+            embedBuilder = new DiscordEmbedBuilder()
+                .WithTitle($"Poll \"{question}\" ended")
+                .WithColor(new DiscordColor(20, 20, 20))
+                .AddField("Results", string.Join('\n', answerCounts))
+                .AddField("Voters", string.Join(", ", participants));
 
-            _ = await context.Channel.SendMessageAsync("", embed: embedBuilder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
+
     }
 }
