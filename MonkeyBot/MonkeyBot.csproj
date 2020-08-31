@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Chronic-netstandard" Version="0.3.2.4" />
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00712" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00712" />

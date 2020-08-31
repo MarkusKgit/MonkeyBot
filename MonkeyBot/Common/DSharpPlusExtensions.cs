@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DSharpPlus.CommandsNext
 {
-    public static class CommandsNextExtensions
+    public static class DSharpPlusExtensions
     {
         private static DiscordEmoji trashCan = DiscordEmoji.FromUnicode("🗑");
 
