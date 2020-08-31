@@ -35,10 +35,10 @@ namespace MonkeyBot.Common
         /// </summary>
         /// <param name="filePath">Path of the file to read</param>
         /// <returns>Contents of the text file</returns>
-        public static Task<string> ReadTextAsync(string filePath)
+        public static async Task<string> ReadTextAsync(string filePath)
         {
             using var streamReader = new StreamReader(filePath);
-            return streamReader.ReadToEndAsync();
+            return await streamReader.ReadToEndAsync().ConfigureAwait(false);
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)

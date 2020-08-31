@@ -13,7 +13,7 @@ namespace MonkeyBot.Common
     public class DiscordClientConfiguration
     {
         /// <summary> The location and name of the bot's configuration file. </summary>
-        private const string fileName = "config/configuration.json";
+        private static readonly string configFilePath = Path.Combine(AppContext.BaseDirectory, "config", "configuration.json");
 
         /// <summary> Ids of users who will have owner access to the bot. </summary>
         private List<ulong> owners = new List<ulong>();
@@ -33,10 +33,9 @@ namespace MonkeyBot.Common
         /// <summary>Makes sure that a config file exists and asks for the token on first run</summary>
         public static async Task<DiscordClientConfiguration> EnsureExistsAsync()
         {
-            string file = Path.Combine(AppContext.BaseDirectory, fileName);
-            if (!File.Exists(file))
+            if (!File.Exists(configFilePath))
             {
-                string path = Path.GetDirectoryName(file);
+                string path = Path.GetDirectoryName(configFilePath);
                 if (!Directory.Exists(path))
                 {
                     _ = Directory.CreateDirectory(path);
@@ -83,17 +82,13 @@ namespace MonkeyBot.Common
         }
 
         /// <summary> Save the configuration to the path specified in FileName. </summary>
-        public Task SaveAsync()
-        {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            return MonkeyHelpers.WriteTextAsync(filePath, ToJson());
-        }
+        public Task SaveAsync() 
+            => MonkeyHelpers.WriteTextAsync(configFilePath, ToJson());
 
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<DiscordClientConfiguration> LoadAsync()
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            string json = await MonkeyHelpers.ReadTextAsync(filePath).ConfigureAwait(false);
+            string json = await MonkeyHelpers.ReadTextAsync(configFilePath).ConfigureAwait(false);
             DiscordClientConfiguration config = JsonSerializer.Deserialize<DiscordClientConfiguration>(json);
             return config;
         }

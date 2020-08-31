@@ -22,6 +22,7 @@ namespace MonkeyBot.Services
             this.discordClient = discordClient;
             this.dbContext = dbContext;
             this.clientFactory = clientFactory;
+            trivias = new ConcurrentDictionary<(ulong guildId, ulong channelId), OTDBTriviaInstance>();
         }
 
         public async Task<bool> StartTriviaAsync(ulong guildId, ulong channelId, int questionsToPlay)

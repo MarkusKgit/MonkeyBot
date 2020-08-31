@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
         private readonly MonkeyDBContext dbContext;
         private readonly InteractivityExtension interactivityExtension;
         private readonly IHttpClientFactory clientFactory;
-        private readonly CancellationTokenSource cancellation;
+        private CancellationTokenSource cancellation;
 
         private int questionsToPlay;
         private List<OTDBQuestion> questions;
@@ -72,8 +72,7 @@ namespace MonkeyBot.Services
             this.discordClient = discordClient;
             this.dbContext = dbContext;
             this.interactivityExtension = discordClient.GetInteractivity();
-            this.clientFactory = clientFactory;
-            this.cancellation = new CancellationTokenSource();
+            this.clientFactory = clientFactory;            
         }
 
         /// <summary>
@@ -83,6 +82,8 @@ namespace MonkeyBot.Services
         /// <returns>success</returns>
         public async Task<bool> StartTriviaAsync(int questionsToPlay)
         {
+            cancellation = new CancellationTokenSource();
+
             if (questionsToPlay < 1)
             {
                 _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "At least one question has to be played").ConfigureAwait(false);
@@ -133,7 +134,10 @@ namespace MonkeyBot.Services
                 return;
             }
 
-            cancellation.Cancel();
+            if (cancellation != null)
+            {
+                cancellation.Cancel();
+            }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new DiscordColor(46, 191, 84))
@@ -205,7 +209,10 @@ namespace MonkeyBot.Services
                 }
 
                 m = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: builder.Build()).ConfigureAwait(false);
-                var results = await interactivityExtension.DoPollAsync(m, answerEmojis, PollBehaviour.DeleteEmojis, timeout).ConfigureAwait(false);
+                var results = await interactivityExtension
+                    .DoPollAsync(m, answerEmojis, PollBehaviour.DeleteEmojis, timeout)
+                    .WithCancellationAsync(cancellation.Token)
+                    .ConfigureAwait(false);
                 List<DiscordUser> correctAnswerUsers = results.Where(x => x.Emoji == correctAnswerEmoji)
                                                               .SelectMany(x => x.Voted)
                                                               .ToList();
@@ -250,7 +257,7 @@ namespace MonkeyBot.Services
 
                 currentIndex++;
             }
-
+            
             await EndTriviaAsync().ConfigureAwait(false);
         }
 
@@ -364,7 +371,7 @@ namespace MonkeyBot.Services
             IEnumerable<string> sortedScores = userScoresAllTime
                 .OrderByDescending(x => x.Score)
                 .Take(correctedCount)
-                .Select((score, pos) => $"**#{pos + 1}: {(guild.Members[score.UserID])?.Username}** - {score.Score} point{(score.Score == 1 ? "" : "s")}");
+                .Select((score, pos) => $"**#{pos + 1}: {(guild.Members[score.UserID])?.Username}**: {score.Score} point{(score.Score == 1 ? "" : "s")}");
 
             return string.Join(Environment.NewLine, sortedScores);
         }

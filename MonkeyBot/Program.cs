@@ -42,9 +42,8 @@ public static class Program
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
-        await DiscordClientConfiguration.EnsureExistsAsync().ConfigureAwait(false); // Ensure the configuration file has been created.
-        
-        DiscordClientConfiguration cfgJson = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
+        DiscordClientConfiguration cfgJson =  await DiscordClientConfiguration.EnsureExistsAsync().ConfigureAwait(false); // Ensure the configuration file has been created.
+
         DiscordConfiguration discordConfig = new DiscordConfiguration
         {
             Token = cfgJson.Token,
@@ -171,7 +170,14 @@ public static class Program
 
     private static async Task Commands_CommandErrored(CommandErrorEventArgs e)
     {
-        _ = await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}").ConfigureAwait(false);        
+        if (e.Exception is OperationCanceledException cex)
+        {
+            clientLogger.LogWarning(cex, $"Command {e?.Command?.Name ?? ""} was cancelled");
+        }
+        else
+        {
+            _ = await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}").ConfigureAwait(false);
+        }
     }
 
     private static async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
