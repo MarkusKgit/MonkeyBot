@@ -22,6 +22,19 @@
     <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.Designer.cs" />
     <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.cs" />
     <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.Designer.cs" />
+    <Compile Remove="Modules\Announcements\AnnouncementsModule.cs" />
+    <Compile Remove="Modules\Feeds\FeedModule.cs" />
+    <Compile Remove="Modules\GameServers\GameServerModuleBase.cs" />
+    <Compile Remove="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
+    <Compile Remove="Modules\GameServers\Steam\SteamGameServerModule.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Modules\Announcements\AnnouncementsModule.cs" />
+    <None Include="Modules\Feeds\FeedModule.cs" />
+    <None Include="Modules\GameServers\GameServerModuleBase.cs" />
+    <None Include="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
+    <None Include="Modules\GameServers\Steam\SteamGameServerModule.cs" />
   </ItemGroup>
 
   <ItemGroup>
