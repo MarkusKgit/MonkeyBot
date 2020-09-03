@@ -3,11 +3,9 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Enums;
-using Fclp.Internals.Extensions;
-using Humanizer;
-using Microsoft.EntityFrameworkCore.Internal;
 using MonkeyBot.Common;
+using MonkeyBot.Models;
+using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +21,11 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class PollModule : BaseCommandModule
     {
+        private readonly IPollService pollService;
+
         private static InteractivityExtension interactivity;
         private static Chronic.Parser timeParser;
+
         private static readonly DiscordEmoji okEmoji = DiscordEmoji.FromUnicode("👍");
         private const int timeOutSeconds = 60;
         private readonly TimeSpan timeOut = TimeSpan.FromSeconds(timeOutSeconds);
@@ -40,6 +41,11 @@ namespace MonkeyBot.Modules
             "*Tomorrow 17:00* \n" +
             "*Monday 17:00* \n";
         private const string thirdInstruction = "**3. Now enter at least 2 poll answers by sending a message for each answer. Once you are done click \"👍\" to start the poll**";
+
+        public PollModule(IPollService pollService)
+        {
+            this.pollService = pollService;
+        }
 
         [Command("Poll")]
         [Aliases("Vote")]
@@ -73,7 +79,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             string pollQuestion = questionReponse.Result.Content.Trim();
-            if (pollQuestion.IsNullOrEmpty())
+            if (pollQuestion.IsEmptyOrWhiteSpace())
             {
                 _ = await ctx.ErrorAsync("You didn't provide a proper poll question. Please start over", "Empty question").ConfigureAwait(false);
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
@@ -120,7 +126,7 @@ namespace MonkeyBot.Modules
             await setupMessage.ModifyAsync(embed: setupEmbed.Build()).ConfigureAwait(false);
             await setupMessage.CreateReactionAsync(okEmoji).ConfigureAwait(false);
 
-            var pollAnswers = new Dictionary<DiscordEmoji, string>();
+            var pollAnswers = new List<string>();
             while (true)
             {
                 var addAnswerTask = interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
@@ -143,9 +149,9 @@ namespace MonkeyBot.Modules
                             return;
                         }
                     }
-                    pollAnswers.Add(DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(pollAnswers.Count)), pollOptionResponse.Result.Content);
+                    pollAnswers.Add(pollOptionResponse.Result.Content);
                     await ctx.Channel.DeleteMessageAsync(pollOptionResponse.Result).ConfigureAwait(false);
-                    pollEmbed.WithDescription(string.Join("\n", pollAnswers.Select(ans => $"{ans.Key} {ans.Value}")));
+                    pollEmbed.WithDescription(string.Join("\n", pollService.GetEmojiMapping(pollAnswers).Select(ans => $"{ans.Key} {ans.Value}")));
                     pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build()).ConfigureAwait(false);
                 }
                 else
@@ -162,30 +168,9 @@ namespace MonkeyBot.Modules
             }
             await ctx.Channel.DeleteMessageAsync(setupMessage).ConfigureAwait(false);
 
-            foreach (DiscordEmoji pollEmoji in pollAnswers.Keys)
-            {
-                await pollMessage.CreateReactionAsync(pollEmoji).ConfigureAwait(false);
-            }
-            await pollMessage.PinAsync().ConfigureAwait(false);
-
-            TimeSpan pollDuration = endTime - DateTime.Now;
-            var pollResult = await interactivity.DoPollAsync(pollMessage, pollAnswers.Keys.ToArray(), PollBehaviour.KeepEmojis, pollDuration).ConfigureAwait(false);
-            await pollMessage.UnpinAsync().ConfigureAwait(false);
-            if (!pollResult.Any(x => x.Total > 0))
-            {
-                _ = await ctx.RespondAsync($"No one participated in the poll {pollQuestion} :(").ConfigureAwait(false);
-                return;
-            }
-            int totalVotes = pollResult.Sum(r => r.Total);
-            var pollResultEmbed = new DiscordEmbedBuilder()
-                .WithTitle($"Poll results: {pollQuestion}")
-                .WithColor(DiscordColor.Azure)
-                .WithDescription($"**{ctx.Member.Mention}{(ctx.Member.Username.EndsWith('s') ? "'" : "'s")} poll ended. Here are the results:**\n\n" +
-                string.Join("\n", pollAnswers
-                    .Select(ans => new {Answer = ans.Value, Votes = pollResult.Single(r => r.Emoji == ans.Key).Total})
-                    .Select(ans => $"**{ans.Answer}**: {"vote".ToQuantity(ans.Votes)} ({100.0 * ans.Votes / totalVotes:F1} %)"))
-                );
-            _ = await ctx.RespondAsync(embed: pollResultEmbed.Build()).ConfigureAwait(false);
+            //Add it to the service which starts monitoring for poll reactions and adds the poll to the DB to be able to recover from Bot restarts
+            Poll poll = new Poll(ctx.Guild.Id, ctx.Channel.Id, pollMessage.Id, ctx.Member.Id, pollQuestion, pollAnswers, endTime.ToUniversalTime());
+            await pollService.AddAndStartPollAsync(poll).ConfigureAwait(false);
         }
     }
 }

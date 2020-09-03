@@ -18,8 +18,8 @@ namespace MonkeyBot.Database
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
-        public DbSet<GameSubscription> GameSubscriptions { get; set; }
         public DbSet<RoleButtonLink> RoleButtonLinks { get; set; }
+        public DbSet<Poll> Polls { get; set; }
 
         public MonkeyDBContext() : base()
         {
@@ -80,12 +80,6 @@ namespace MonkeyBot.Database
                     x => x.ToString(),
                     x => System.Net.IPEndPoint.Parse(x));
 
-            //GameSubscriptions
-            _ = modelBuilder.Entity<GameSubscription>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<GameSubscription>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<GameSubscription>().Property(x => x.UserID).IsRequired();
-            _ = modelBuilder.Entity<GameSubscription>().Property(x => x.GameName).IsRequired();
-
             //TriviaScores
             _ = modelBuilder.Entity<TriviaScore>().HasKey(x => x.ID);
             _ = modelBuilder.Entity<TriviaScore>().Property(x => x.GuildID).IsRequired();
@@ -106,6 +100,16 @@ namespace MonkeyBot.Database
             _ = modelBuilder.Entity<Announcement>().Property(x => x.Type).IsRequired().HasConversion<string>();
             _ = modelBuilder.Entity<Announcement>().Property(x => x.Message).IsRequired();
             _ = modelBuilder.Entity<Announcement>().Property(x => x.Name).IsRequired();
+
+            //Polls
+            _ = modelBuilder.Entity<Poll>().HasKey(x => x.Id);
+            _ = modelBuilder.Entity<Poll>().Property(x => x.GuildId).IsRequired();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.ChannelId).IsRequired();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.MessageId).IsRequired();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.CreatorId).IsRequired();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.Question).IsRequired();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.PossibleAnswers).IsRequired().HasJsonConversion();
+            _ = modelBuilder.Entity<Poll>().Property(x => x.EndTimeUTC).IsRequired();
         }
     }
 }

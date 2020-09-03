@@ -22,6 +22,8 @@
     <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.Designer.cs" />
     <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.cs" />
     <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.Designer.cs" />
+    <Compile Remove="Migrations\20200902071111_Polls.cs" />
+    <Compile Remove="Migrations\20200902071111_Polls.Designer.cs" />
     <Compile Remove="Modules\Announcements\AnnouncementsModule.cs" />
     <Compile Remove="Modules\Feeds\FeedModule.cs" />
     <Compile Remove="Modules\GameServers\GameServerModuleBase.cs" />

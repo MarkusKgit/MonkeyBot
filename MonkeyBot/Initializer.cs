@@ -13,14 +13,8 @@ namespace MonkeyBot
 {
     public static class Initializer
     {
-        public static async Task<IServiceProvider> InitializeServicesAsync(DiscordClient discordClient)
+        public static async Task InitializeServicesAsync(IServiceProvider services)
         {
-            IServiceProvider services = ConfigureServices(discordClient, loggingBuilder =>
-            {
-                _ = loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
-                _ = loggingBuilder.AddNLog(SetupNLogConfig());
-            });
-
             MonkeyDBContext dbContext = services.GetRequiredService<MonkeyDBContext>();
             await DBInitializer.InitializeAsync(dbContext).ConfigureAwait(false);
 
@@ -42,7 +36,10 @@ namespace MonkeyBot
             IBattlefieldNewsService battlefieldNewsService = services.GetService<IBattlefieldNewsService>();
             battlefieldNewsService.Start();
 
-            return services;
+            IPollService pollService = services.GetService<IPollService>();
+            await pollService.InitializeAsync().ConfigureAwait(false);
+
+            return;
         }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -85,10 +82,14 @@ namespace MonkeyBot
         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        private static IServiceProvider ConfigureServices(DiscordClient discordClient, Action<ILoggingBuilder> configureLogging)
+        public static IServiceProvider ConfigureServices(DiscordClient discordClient)
         {
             IServiceCollection services = new ServiceCollection()
-                .AddLogging(configureLogging)
+                .AddLogging(loggingBuilder => 
+                    {
+                        _ = loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                        _ = loggingBuilder.AddNLog(SetupNLogConfig());
+                    })
                 .AddHttpClient()
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
                 .AddSingleton(discordClient)
@@ -105,7 +106,8 @@ namespace MonkeyBot
                 .AddSingleton<IDogService, DogService>()
                 .AddSingleton<IXkcdService, XkcdService>()
                 .AddSingleton<IPictureSearchService, GoogleImageSearchService>()
-                .AddSingleton<ITriviaService, TriviaService>();
+                .AddSingleton<ITriviaService, TriviaService>()
+                .AddSingleton<IPollService, PollService>();
 
             IServiceProvider provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
             return provider;

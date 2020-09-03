@@ -20,7 +20,7 @@ public static class Program
 {
     private static IServiceProvider services;
     private static DiscordClient discordClient;
-    public static CommandsNextExtension Commands { get; private set; }
+    private static CommandsNextExtension commands;
 
     private static ILogger<DiscordClient> clientLogger;
     private static IGuildService guildService;
@@ -54,7 +54,15 @@ public static class Program
         };
         discordClient = new DiscordClient(discordConfig);
 
-        services = await Initializer.InitializeServicesAsync(discordClient).ConfigureAwait(false);
+        InteractivityConfiguration interactivityConfig = new InteractivityConfiguration
+        {
+            PaginationBehaviour = PaginationBehaviour.Ignore,
+            Timeout = TimeSpan.FromMinutes(5),
+            PollBehaviour = PollBehaviour.KeepEmojis,
+        };
+        discordClient.UseInteractivity(interactivityConfig);
+
+        services = Initializer.ConfigureServices(discordClient);
         clientLogger = services.GetRequiredService<ILogger<DiscordClient>>();
         guildService = services.GetRequiredService<IGuildService>();
 
@@ -73,22 +81,14 @@ public static class Program
         discordClient.GuildCreated += DiscordClient_GuildCreated;
         discordClient.GuildDeleted += DiscordClient_GuildDeleted;
 
-        Commands = discordClient.UseCommandsNext(commandsNextConfig);
-        Commands.RegisterCommands(Assembly.GetExecutingAssembly());
+        commands = discordClient.UseCommandsNext(commandsNextConfig);
+        commands.RegisterCommands(Assembly.GetExecutingAssembly());
 
-        Commands.CommandErrored += Commands_CommandErrored;
-
-        InteractivityConfiguration interactivityConfig = new InteractivityConfiguration
-        {
-            PaginationBehaviour = PaginationBehaviour.Ignore,
-            Timeout = TimeSpan.FromMinutes(5),
-            PollBehaviour = PollBehaviour.KeepEmojis,
-        };
-
-        discordClient.UseInteractivity(interactivityConfig);
+        commands.CommandErrored += Commands_CommandErrored;
 
         await discordClient.ConnectAsync().ConfigureAwait(false);
 
+        await Initializer.InitializeServicesAsync(services).ConfigureAwait(false);
 
         await Task.Delay(-1).ConfigureAwait(false); // Prevent the console window from closing.
     }
