@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-	<LangVersion>latest</LangVersion>
+	  <LangVersion>latest</LangVersion>
     <ApplicationIcon />
-    <OutputTypeEx>exe</OutputTypeEx>
-    <StartupObject />
+    <OutputTypeEx>exe</OutputTypeEx>    
+    <RuntimeIdentifiers>win10-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,27 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20190729063336_BattlefieldUpdates.cs" />
-    <Compile Remove="Migrations\20190729063336_BattlefieldUpdates.Designer.cs" />
-    <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.cs" />
-    <Compile Remove="Migrations\20190729063550_BattlefieldUpdates.Designer.cs" />
-    <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.cs" />
-    <Compile Remove="Migrations\20190729063913_BattlefieldUpdates.Designer.cs" />
-    <Compile Remove="Migrations\20200902071111_Polls.cs" />
-    <Compile Remove="Migrations\20200902071111_Polls.Designer.cs" />
     <Compile Remove="Modules\Announcements\AnnouncementsModule.cs" />
     <Compile Remove="Modules\Feeds\FeedModule.cs" />
     <Compile Remove="Modules\GameServers\GameServerModuleBase.cs" />
     <Compile Remove="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
     <Compile Remove="Modules\GameServers\Steam\SteamGameServerModule.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Modules\Announcements\AnnouncementsModule.cs" />
-    <None Include="Modules\Feeds\FeedModule.cs" />
-    <None Include="Modules\GameServers\GameServerModuleBase.cs" />
-    <None Include="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
-    <None Include="Modules\GameServers\Steam\SteamGameServerModule.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,8 +54,4 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />		
   </ItemGroup>
   
-  <PropertyGroup>
-  <RuntimeIdentifiers>win10-x64;linux-x64</RuntimeIdentifiers>
-</PropertyGroup>
-
 </Project>
