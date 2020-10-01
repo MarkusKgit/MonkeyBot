@@ -87,7 +87,7 @@ namespace MonkeyBot
             IServiceCollection services = new ServiceCollection()
                 .AddLogging(loggingBuilder => 
                     {
-                        _ = loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                        _ = loggingBuilder.SetMinimumLevel(LogLevel.Trace);
                         _ = loggingBuilder.AddNLog(SetupNLogConfig());
                     })
                 .AddHttpClient()

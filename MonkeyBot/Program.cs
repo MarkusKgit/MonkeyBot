@@ -49,8 +49,8 @@ public static class Program
             Token = cfgJson.Token,
             TokenType = TokenType.Bot,
             AutoReconnect = true,
-            LogLevel = DSharpPlus.LogLevel.Debug,
-            UseInternalLogHandler = true
+            MinimumLogLevel = LogLevel.Debug,
+            // TODO: Add NLog here... LoggerFactory = 
         };
         discordClient = new DiscordClient(discordConfig);
 
@@ -62,7 +62,7 @@ public static class Program
         };
         discordClient.UseInteractivity(interactivityConfig);
 
-        services = Initializer.ConfigureServices(discordClient);
+        services = Initializer.ConfigureServices(discordClient);        
         clientLogger = services.GetRequiredService<ILogger<DiscordClient>>();
         guildService = services.GetRequiredService<IGuildService>();
 
