@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <Compile Remove="Modules\Announcements\AnnouncementsModule.cs" />
-    <Compile Remove="Modules\Feeds\FeedModule.cs" />
+    <!--<Compile Remove="Modules\Feeds\FeedModule.cs" />-->
     <Compile Remove="Modules\GameServers\GameServerModuleBase.cs" />
     <Compile Remove="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
     <Compile Remove="Modules\GameServers\Steam\SteamGameServerModule.cs" />

@@ -27,7 +27,7 @@ namespace MonkeyBot.Services
         /// <param name="guildId"></param>
         /// <param name="channelId"></param>
         /// <returns></returns>
-        Task RemoveFeedAsync(string nameOrUrl, ulong guildId, ulong channelId);
+        Task RemoveFeedAsync(string nameOrUrl, ulong guildId);
 
         /// <summary>
         /// Removes all feeds. If a channel is provided only the feeds in this channel are removed
@@ -43,6 +43,6 @@ namespace MonkeyBot.Services
         /// <param name="guildId"></param>
         /// <param name="channelId"></param>
         /// <returns></returns>
-        Task<List<(string name, string feedUrl, ulong feedChannelId)>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null);
+        Task<List<GuildFeed>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null);
     }
 }
