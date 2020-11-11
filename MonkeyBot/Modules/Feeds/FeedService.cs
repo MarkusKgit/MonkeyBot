@@ -141,7 +141,7 @@ namespace MonkeyBot.Services
                 _ = builder.WithColor(new DiscordColor(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                 {
-                    _ = builder.WithImageUrl(feed.ImageUrl);
+                    _ = builder.WithImageUrl(new Uri(feed.ImageUrl));
                 }
                 _ = builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
                 DateTime latestUpdateUTC = DateTime.MinValue;

@@ -173,10 +173,10 @@ namespace MonkeyBot.Services
             return sb.ToString();
         }
 
-        private Task DiscordClient_MessageReactionAdded(MessageReactionAddEventArgs e)
+        private Task DiscordClient_MessageReactionAdded(DiscordClient client, MessageReactionAddEventArgs e)
             => AddOrRemoveRoleAsync(AddOrRemove.Add, e.Message, e.Channel, e.User, e.Emoji);
 
-        private Task DiscordClient_MessageReactionRemoved(MessageReactionRemoveEventArgs e)
+        private Task DiscordClient_MessageReactionRemoved(DiscordClient client, MessageReactionRemoveEventArgs e)
             => AddOrRemoveRoleAsync(AddOrRemove.Remove, e.Message, e.Channel, e.User, e.Emoji);
 
 

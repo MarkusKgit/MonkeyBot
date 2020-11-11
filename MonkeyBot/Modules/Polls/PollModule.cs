@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using MonkeyBot.Common;
 using MonkeyBot.Models;
 using MonkeyBot.Services;
@@ -103,7 +104,7 @@ namespace MonkeyBot.Modules
             }
             timeParser ??= new Chronic.Parser(new Chronic.Options() { Context = Chronic.Pointer.Type.Future, EndianPrecedence = Chronic.EndianPrecedence.Little, FirstDayOfWeek = DayOfWeek.Monday });
             Chronic.Span parsedTime = timeParser.Parse(timeResponse.Result.Content);
-            if (parsedTime == null || parsedTime.ToTime() == null)
+            if (parsedTime == null)
             {
                 _ = await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time").ConfigureAwait(false);
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);

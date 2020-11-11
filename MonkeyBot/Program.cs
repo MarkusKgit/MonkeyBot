@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using Fclp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -59,7 +60,7 @@ public static class Program
             PaginationBehaviour = PaginationBehaviour.Ignore,
             Timeout = TimeSpan.FromMinutes(5),
             PollBehaviour = PollBehaviour.KeepEmojis,
-        };
+        };        
         discordClient.UseInteractivity(interactivityConfig);
 
         services = Initializer.ConfigureServices(discordClient);        
@@ -93,13 +94,13 @@ public static class Program
         await Task.Delay(-1).ConfigureAwait(false); // Prevent the console window from closing.
     }
 
-    private static Task DiscordClient_Ready(ReadyEventArgs e)
+    private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
     {
         clientLogger.LogInformation("Client Connected");
         return Task.CompletedTask;
     }
 
-    private static async Task DiscordClient_GuildMemberAdded(GuildMemberAddEventArgs e)
+    private static async Task DiscordClient_GuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
     {
         GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
         string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
@@ -117,7 +118,7 @@ public static class Program
         }
     }
 
-    private static async Task DiscordClient_GuildMemberRemoved(GuildMemberRemoveEventArgs e)
+    private static async Task DiscordClient_GuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
     {
         GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
         string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
@@ -135,7 +136,7 @@ public static class Program
         }
     }
 
-    private static async Task DiscordClient_GuildMemberUpdated(GuildMemberUpdateEventArgs e)
+    private static async Task DiscordClient_GuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
     {
         GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
         if (config == null || !config.StreamAnnouncementsEnabled || config.ConfirmedStreamerIds == null || !config.ConfirmedStreamerIds.Contains(e.Member.Id))
@@ -155,20 +156,20 @@ public static class Program
         }
     }
 
-    private static async Task DiscordClient_GuildCreated(GuildCreateEventArgs e)
+    private static async Task DiscordClient_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
     {
         clientLogger.LogInformation($"Joined guild {e.Guild.Name}");
         // Make sure to create the config;
         _ = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
     }
 
-    private static async Task DiscordClient_GuildDeleted(GuildDeleteEventArgs e)
+    private static async Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)
     {
         clientLogger.LogInformation($"Left guild {e.Guild.Name}");
         await guildService.RemoveConfigAsync(e.Guild.Id).ConfigureAwait(false);
     }
 
-    private static async Task Commands_CommandErrored(CommandErrorEventArgs e)
+    private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
     {
         if (e.Exception is OperationCanceledException cex)
         {

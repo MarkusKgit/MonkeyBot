@@ -22,7 +22,7 @@ namespace MonkeyBot.Services
             HtmlDocument document = await web.LoadFromWebAsync(url).ConfigureAwait(false);
             var urls = document.DocumentNode.InnerHtml.Split("[", StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => l.Trim('"'))
-                .Where(l => l.StartsWith("http") && imageExtensions.Contains(l.Split('"')[0].Split('.').Last()))
+                .Where(l => l.StartsWith("http", StringComparison.OrdinalIgnoreCase) && imageExtensions.Contains(l.Split('"')[0].Split('.').Last()))
                 .Select(l => l.Split('"')[0])
                 .ToList();
 

@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
