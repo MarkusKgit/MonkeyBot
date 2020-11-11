@@ -15,9 +15,7 @@
     <None Remove="Dependencies\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Modules\Announcements\AnnouncementsModule.cs" />
-    <!--<Compile Remove="Modules\Feeds\FeedModule.cs" />-->
+  <ItemGroup>       
     <Compile Remove="Modules\GameServers\GameServerModuleBase.cs" />
     <Compile Remove="Modules\GameServers\MineCraft\MineCraftGameServerModule.cs" />
     <Compile Remove="Modules\GameServers\Steam\SteamGameServerModule.cs" />
