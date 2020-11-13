@@ -51,6 +51,7 @@ public static class Program
             TokenType = TokenType.Bot,
             AutoReconnect = true,
             MinimumLogLevel = LogLevel.Debug,
+            Intents = DiscordIntents.All
             // TODO: Add NLog here... LoggerFactory = 
         };
         discordClient = new DiscordClient(discordConfig);
