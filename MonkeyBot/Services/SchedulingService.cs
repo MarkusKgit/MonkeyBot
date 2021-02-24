@@ -25,7 +25,7 @@ namespace MonkeyBot.Services
 
         public async void ScheduleJobRecurring(string jobID, int intervalSeconds, Action job, int delaySeconds)
         {
-            await Task.Delay(TimeSpan.FromSeconds(delaySeconds)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
             JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunNow().AndEvery(intervalSeconds).Seconds());
         }
 

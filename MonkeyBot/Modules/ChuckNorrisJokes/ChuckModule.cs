@@ -24,30 +24,30 @@ namespace MonkeyBot.Modules
         [Description("Gets a random Chuck Norris fact.")]
         public async Task GetChuckFactAsync(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
-            string fact = await (chuckService?.GetChuckFactAsync()).ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
+            string fact = await (chuckService?.GetChuckFactAsync());
             _ = fact.IsEmpty()
-                ? await ctx.ErrorAsync("Could not get a chuck fact :(").ConfigureAwait(false)
-                : await ctx.OkAsync(fact, "Random Chuck Norris fact").ConfigureAwait(false);
+                ? await ctx.ErrorAsync("Could not get a chuck fact :(")
+                : await ctx.OkAsync(fact, "Random Chuck Norris fact");
         }
 
         [Command("Chuck")]
         [Description("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
         public async Task GetChuckFactAsync(CommandContext ctx, [RemainingText][Description("The person to chuck")] DiscordUser user)
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
             if (user == null)
             {
-                _ = await ctx.ErrorAsync("Invalid User").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Invalid User");
             }
-            string fact = await (chuckService?.GetChuckFactAsync(user.Username)).ConfigureAwait(false);
+            string fact = await (chuckService?.GetChuckFactAsync(user.Username));
             if (fact.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Could not get a chuck fact :(").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Could not get a chuck fact :(");
                 return;
             }
             fact = fact.Replace(user.Username, user.Mention);
-            _ = await ctx.OkAsync(fact, $"Random {user.Username} Norris fact").ConfigureAwait(false);
+            _ = await ctx.OkAsync(fact, $"Random {user.Username} Norris fact");
         }
     }
 }

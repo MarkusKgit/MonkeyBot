@@ -23,10 +23,10 @@ namespace MonkeyBot.Modules
         [RequireGuild]
         public async Task ListRulesAsync(CommandContext ctx)
         {
-            List<string> rules = (await guildService.GetOrCreateConfigAsync(ctx.Guild.Id).ConfigureAwait(false)).Rules;
+            List<string> rules = (await guildService.GetOrCreateConfigAsync(ctx.Guild.Id)).Rules;
             if (rules == null || rules.Count < 1)
             {
-                _ = await ctx.RespondAsync("No rules set!").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("No rules set!");
                 return;
             }
             var builder = new DiscordEmbedBuilder()
@@ -34,7 +34,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"Rules of {ctx.Guild.Name}")
                 .WithDescription(string.Join(Environment.NewLine, rules));
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
 
         }
     }

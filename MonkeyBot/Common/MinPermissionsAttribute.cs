@@ -24,7 +24,7 @@ namespace MonkeyBot.Common
 
         public override async Task<bool> ExecuteCheckAsync(CommandContext ctx, bool help)
         {
-            AccessLevel access = await GetPermissionAsync(ctx).ConfigureAwait(false); // Get the acccesslevel for this context
+            AccessLevel access = await GetPermissionAsync(ctx); // Get the acccesslevel for this context
 
             return access >= AccessLevel;
         }
@@ -36,7 +36,7 @@ namespace MonkeyBot.Common
                 return AccessLevel.Blocked;
             }
 
-            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
+            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync();
             IReadOnlyList<ulong> owners = config.Owners;
             if (owners != null && owners.Contains(ctx.User.Id)) // Give configured owners special access.
             {

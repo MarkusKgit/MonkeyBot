@@ -21,19 +21,19 @@ namespace MonkeyBot.Modules
         [Description("Say something in a specific guild's channel")]
         public async Task SayAsync(CommandContext ctx, ulong guildId, ulong channelId, [RemainingText] string message)
         {
-            DiscordGuild guild = await ctx.Client.GetGuildAsync(guildId).ConfigureAwait(false);
+            DiscordGuild guild = await ctx.Client.GetGuildAsync(guildId);
             if (guild == null)
             {
-                _ = await ctx.ErrorAsync("Guild not found").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Guild not found");
                 return;
             }
             DiscordChannel channel = guild.GetChannel(channelId);
             if (channel == null)
             {
-                _ = await ctx.ErrorAsync("Channel not found").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Channel not found");
                 return;
             }
-            _ = await channel.SendMessageAsync(message).ConfigureAwait(false);
+            _ = await channel.SendMessageAsync(message);
         }
 
         [Command("ListGuilds")]
@@ -46,8 +46,8 @@ namespace MonkeyBot.Modules
                 .WithTitle("Currently connected guilds");
             foreach (DiscordGuild guild in guilds)
             {
-                int channelCount = (await guild.GetChannelsAsync().ConfigureAwait(false)).Count;
-                int userCount = (await guild.GetAllMembersAsync().ConfigureAwait(false)).Count;
+                int channelCount = (await guild.GetChannelsAsync()).Count;
+                int userCount = (await guild.GetAllMembersAsync()).Count;
                 string guildInfo = $"{channelCount} Channels, {userCount} Users, Owned by {guild.Owner.Username}, Created at {guild.CreationTimestamp}";
                 if (!guild.Description.IsEmptyOrWhiteSpace())
                 {
@@ -55,7 +55,7 @@ namespace MonkeyBot.Modules
                 }
                 _ = builder.AddField(guild.Name, guildInfo);
             }
-            _ = await ctx.RespondAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(embed: builder.Build());
         }
 
         [Command("AddOwner")]
@@ -64,19 +64,19 @@ namespace MonkeyBot.Modules
         {
             if (user == null)
             {
-                await ctx.ErrorAsync("Invalid user").ConfigureAwait(false);
+                await ctx.ErrorAsync("Invalid user");
                 return;
             }
-            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
+            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync();
             if (!config.Owners.Contains(user.Id))
             {
                 config.AddOwner(user.Id);
-                await config.SaveAsync().ConfigureAwait(false);
-                _ = await ctx.OkAsync($"{user.Username} has been added to the list of bot owners!").ConfigureAwait(false);
+                await config.SaveAsync();
+                _ = await ctx.OkAsync($"{user.Username} has been added to the list of bot owners!");
             }
             else
             {
-                _ = await ctx.ErrorAsync($"{user.Username} already is a bot owner!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"{user.Username} already is a bot owner!");
             }
         }
 
@@ -87,19 +87,19 @@ namespace MonkeyBot.Modules
         {
             if (user == null)
             {
-                await ctx.ErrorAsync("Invalid user").ConfigureAwait(false);
+                await ctx.ErrorAsync("Invalid user");
                 return;
             }
-            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync().ConfigureAwait(false);
+            DiscordClientConfiguration config = await DiscordClientConfiguration.LoadAsync();
             if (config.Owners.Contains(user.Id))
             {
                 config.RemoveOwner(user.Id);
-                await config.SaveAsync().ConfigureAwait(false);
-                _ = await ctx.OkAsync($"{user.Username} has been removed from the list of bot owners!").ConfigureAwait(false);
+                await config.SaveAsync();
+                _ = await ctx.OkAsync($"{user.Username} has been removed from the list of bot owners!");
             }
             else
             {
-                _ = await ctx.ErrorAsync($"{user.Username} is not a bot owner!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"{user.Username} is not a bot owner!");
             }
         }
     }

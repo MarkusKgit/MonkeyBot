@@ -32,16 +32,16 @@ namespace MonkeyBot.Services
         }
 
         public void Initialize()
-            => JobManager.AddJob(async () => await PostAllServerInfoAsync().ConfigureAwait(false), (x) => x.ToRunNow().AndEvery(1).Minutes());
+            => JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunNow().AndEvery(1).Minutes());
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
             var server = new GameServer { GameServerType = gameServerType, ServerIP = endpoint, GuildID = guildID, ChannelID = channelID };
-            bool success = await PostServerInfoAsync(server).ConfigureAwait(false);
+            bool success = await PostServerInfoAsync(server);
             if (success && !dbContext.GameServers.Contains(server))
             {
                 _ = dbContext.Add(server);
-                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = await dbContext.SaveChangesAsync();
             }
             return success;
         }
@@ -50,12 +50,12 @@ namespace MonkeyBot.Services
 
         private async Task PostAllServerInfoAsync()
         {
-            List<GameServer> servers = await dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == gameServerType).ToListAsync().ConfigureAwait(false);
+            List<GameServer> servers = await dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == gameServerType).ToListAsync();
             foreach (GameServer server in servers)
             {
                 try
                 {
-                    _ = await PostServerInfoAsync(server).ConfigureAwait(false);
+                    _ = await PostServerInfoAsync(server);
                 }
                 catch (Exception ex)
                 {
@@ -65,11 +65,11 @@ namespace MonkeyBot.Services
         }
 
         public async Task<List<GameServer>> ListServers(ulong guildID)
-            => await dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync().ConfigureAwait(false);
+            => await dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync();
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            GameServer serverToRemove = (await dbContext.GameServers.AsQueryable().ToListAsync().ConfigureAwait(false)).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
+            GameServer serverToRemove = (await dbContext.GameServers.AsQueryable().ToListAsync()).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
             if (serverToRemove == null)
             {
                 throw new ArgumentException("The specified server does not exist");
@@ -83,10 +83,10 @@ namespace MonkeyBot.Services
                         return;
                     }
                     DiscordChannel channel = guild?.GetChannel(serverToRemove.ChannelID);
-                    DiscordMessage msg = await (channel?.GetMessageAsync(serverToRemove.MessageID.Value)).ConfigureAwait(false);
+                    DiscordMessage msg = await (channel?.GetMessageAsync(serverToRemove.MessageID.Value));
                     if (msg != null)
                     {
-                        await msg.DeleteAsync().ConfigureAwait(false);
+                        await msg.DeleteAsync();
                     }
                 }
                 catch (Exception e)
@@ -95,7 +95,7 @@ namespace MonkeyBot.Services
                 }
             }
             _ = dbContext.GameServers.Remove(serverToRemove);
-            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync();
         }
 
         protected static async Task<string> GenerateHistoryChartAsync(GameServer discordGameServer, int currentPlayers, int maxPlayers)
@@ -120,7 +120,7 @@ namespace MonkeyBot.Services
             var historicData = new List<HistoricData<int>>();
             if (File.Exists(storedValuesPath))
             {
-                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath).ConfigureAwait(false);
+                string json = await MonkeyHelpers.ReadTextAsync(storedValuesPath);
                 List<HistoricData<int>> loadedData = JsonSerializer.Deserialize<List<HistoricData<int>>>(json);
                 historicData = loadedData
                     .Where(x => x.Time > minTime)
@@ -130,7 +130,7 @@ namespace MonkeyBot.Services
             historicData.Add(new HistoricData<int>(now, Math.Min(currentPlayers, maxPlayers)));
 
             await MonkeyHelpers.WriteTextAsync(storedValuesPath, JsonSerializer.Serialize(historicData, new JsonSerializerOptions() { WriteIndented = true }))
-                .ConfigureAwait(false);
+                ;
 
             int maxIntervals = 10;
             int interval = 10;

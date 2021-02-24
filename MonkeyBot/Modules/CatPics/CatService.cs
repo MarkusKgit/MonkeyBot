@@ -28,14 +28,14 @@ namespace MonkeyBot.Services
             string breedId = "";
             if (!breed.IsEmpty())
             {
-                breedId = await GetBreedIdAsync(breed).ConfigureAwait(false);
+                breedId = await GetBreedIdAsync(breed);
                 if (breedId.IsEmpty())
                 {
                     return null;
                 }
             }
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(GetRandomPictureForBreedUri(breedId)).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(GetRandomPictureForBreedUri(breedId));
 
             if (!json.IsEmpty())
             {
@@ -51,7 +51,7 @@ namespace MonkeyBot.Services
         public async Task<List<string>> GetBreedsAsync()
         {
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(breedsUri);
 
             if (!json.IsEmpty())
             {
@@ -69,7 +69,7 @@ namespace MonkeyBot.Services
             if (!breed.IsEmpty())
             {
                 HttpClient httpClient = clientFactory.CreateClient();
-                string json = await httpClient.GetStringAsync(SearchBreedUri(breed)).ConfigureAwait(false);
+                string json = await httpClient.GetStringAsync(SearchBreedUri(breed));
 
                 if (!json.IsEmpty())
                 {

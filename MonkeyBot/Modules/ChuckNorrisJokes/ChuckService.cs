@@ -30,7 +30,7 @@ namespace MonkeyBot.Services
         private async Task<string> GetJokeAsync(Uri uri)
         {
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(uri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(uri);
             if (!json.IsEmpty())
             {
                 ChuckResponse chuckResponse = JsonSerializer.Deserialize<ChuckResponse>(json);

@@ -19,7 +19,7 @@ namespace MonkeyBot.Services
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
             };
             string url = $"https://www.google.com/search?q={HttpUtility.UrlEncode(searchterm)}&tbm=isch";
-            HtmlDocument document = await web.LoadFromWebAsync(url).ConfigureAwait(false);
+            HtmlDocument document = await web.LoadFromWebAsync(url);
             var urls = document.DocumentNode.InnerHtml.Split("[", StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => l.Trim('"'))
                 .Where(l => l.StartsWith("http", StringComparison.OrdinalIgnoreCase) && imageExtensions.Contains(l.Split('"')[0].Split('.').Last()))

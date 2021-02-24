@@ -29,19 +29,19 @@ namespace MonkeyBot.Modules
         [Description("Gets a random Dog picture. Optionally a breed can be provided.")]
         public async Task GetDogPicAsync(CommandContext ctx, [RemainingText][Description("Optional: The breed of the dogger")] string breed = "")
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
             Uri pictureURL = breed.IsEmpty() ?
-                await (dogService?.GetRandomPictureUrlAsync()).ConfigureAwait(false) :
-                await (dogService?.GetRandomPictureUrlAsync(breed.ToLowerInvariant())).ConfigureAwait(false);
+                await (dogService?.GetRandomPictureUrlAsync()) :
+                await (dogService?.GetRandomPictureUrlAsync(breed.ToLowerInvariant()));
             if (pictureURL == null)
             {
-                _ = await ctx.ErrorAsync($"Could not get a dog pic :(. Try using {ctx.Prefix}dogbreeds to get a list of dog breeds I can show you").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"Could not get a dog pic :(. Try using {ctx.Prefix}dogbreeds to get a list of dog breeds I can show you");
                 return;
             }
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(dogColor)
                 .WithImageUrl(pictureURL);
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
 
         [Command("Dogbreeds")]
@@ -49,18 +49,18 @@ namespace MonkeyBot.Modules
         [Description("Gets a list of available dog breeds.")]
         public async Task GetDogBreedsAsync(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
-            List<string> breeds = await (dogService?.GetBreedsAsync()).ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
+            List<string> breeds = await (dogService?.GetBreedsAsync());
             if (breeds == null || !breeds.Any())
             {
-                _ = await ctx.ErrorAsync("Could not get the dog breeds :(").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Could not get the dog breeds :(");
                 return;
             }
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(dogColor)
                 .WithTitle("Here's a list of available dog breeds:")
                 .WithDescription(string.Join(", ", breeds));
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
     }
 }

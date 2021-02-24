@@ -28,7 +28,7 @@ namespace MonkeyBot.Services
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(apiUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(apiUri);
 
             if (!json.IsEmpty())
             {
@@ -44,7 +44,7 @@ namespace MonkeyBot.Services
         public async Task<List<string>> GetBreedsAsync()
         {
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(breedsUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(breedsUri);
 
             if (!json.IsEmpty())
             {

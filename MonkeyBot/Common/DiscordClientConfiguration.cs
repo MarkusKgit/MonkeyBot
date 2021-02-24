@@ -44,12 +44,12 @@ namespace MonkeyBot.Common
                 var config = new DiscordClientConfiguration();
 
                 // Get the token
-                await Console.Out.WriteLineAsync("Please enter the bot's access token: ").ConfigureAwait(false);
-                config.Token = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("Please enter the bot's access token: ");
+                config.Token = await Console.In.ReadLineAsync();
 
                 // Get owner
-                await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ").ConfigureAwait(false);
-                string sOwnerId = await Console.In.ReadLineAsync().ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("Please enter the Discord Id of the Bot owner (leave blank for default): ");
+                string sOwnerId = await Console.In.ReadLineAsync();
                 if (ulong.TryParse(sOwnerId, out ulong ownerId) && ownerId > 0)
                 {
                     config.AddOwner(ownerId);
@@ -59,10 +59,10 @@ namespace MonkeyBot.Common
                     config.AddOwner(327885109560737793);
                 }
                 
-                await config.SaveAsync().ConfigureAwait(false); // Save the new configuration object to file.
+                await config.SaveAsync(); // Save the new configuration object to file.
                 return config;
             }
-            return await LoadAsync().ConfigureAwait(false);
+            return await LoadAsync();
         }
 
         public void AddOwner(ulong ownerId)
@@ -88,7 +88,7 @@ namespace MonkeyBot.Common
         /// <summary> Load the configuration from the path specified in FileName. </summary>
         public static async Task<DiscordClientConfiguration> LoadAsync()
         {
-            string json = await MonkeyHelpers.ReadTextAsync(configFilePath).ConfigureAwait(false);
+            string json = await MonkeyHelpers.ReadTextAsync(configFilePath);
             DiscordClientConfiguration config = JsonSerializer.Deserialize<DiscordClientConfiguration>(json);
             return config;
         }

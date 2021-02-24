@@ -25,18 +25,18 @@ namespace MonkeyBot.Modules
         [Description("Gets a random picture for the given search term.")]
         public async Task GetPicAsync(CommandContext ctx, [RemainingText, Description("The term to search for")] string searchterm)
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
 
             if (searchterm.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please provide a search term").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a search term");
                 return;
             }
 
-            Uri pictureURL = await (pictureSearchService?.GetRandomPictureUrlAsync(searchterm)).ConfigureAwait(false);
+            Uri pictureURL = await (pictureSearchService?.GetRandomPictureUrlAsync(searchterm));
             if (pictureURL == null)
             {
-                _ = await ctx.ErrorAsync($"Could not get a picture for {searchterm} :(.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"Could not get a picture for {searchterm} :(.");
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"Random image for \"{searchterm}\"")
                 .WithImageUrl(pictureURL);
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
     }
 }

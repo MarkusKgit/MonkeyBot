@@ -16,10 +16,10 @@ namespace MonkeyBot
         public static async Task InitializeServicesAsync(IServiceProvider services)
         {
             MonkeyDBContext dbContext = services.GetRequiredService<MonkeyDBContext>();
-            await DBInitializer.InitializeAsync(dbContext).ConfigureAwait(false);
+            await DBInitializer.InitializeAsync(dbContext);
 
             IAnnouncementService announcements = services.GetService<IAnnouncementService>();
-            await announcements.InitializeAsync().ConfigureAwait(false);
+            await announcements.InitializeAsync();
 
             SteamGameServerService steamGameServerService = services.GetService<SteamGameServerService>();
             steamGameServerService.Initialize();
@@ -37,7 +37,7 @@ namespace MonkeyBot
             battlefieldNewsService.Start();
 
             IPollService pollService = services.GetService<IPollService>();
-            await pollService.InitializeAsync().ConfigureAwait(false);
+            await pollService.InitializeAsync();
 
             return;
         }

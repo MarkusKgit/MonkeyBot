@@ -19,25 +19,25 @@ namespace MonkeyBot.Modules
         {
             if (messageContent.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.ErrorAsync("You need to specify the text of the message to search for").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify the text of the message to search for");
                 return;
             }
             const int searchDepth = 100;
-            var messages = await ctx.Channel.GetMessagesAsync(searchDepth).ConfigureAwait(false);
+            var messages = await ctx.Channel.GetMessagesAsync(searchDepth);
             IEnumerable<DiscordMessage> matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
             if (matches == null || !matches.Any())
             {
-                _ = await ctx.ErrorAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.");
                 return;
             }
             else if (matches.Count() > 1)
             {
-                _ = await ctx.ErrorAsync($"{matches.Count()} Messages found. Please be more specific").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync($"{matches.Count()} Messages found. Please be more specific");
                 return;
             }
             else
             {
-                _ = await ctx.OkAsync($"The message Id is: {matches.First().Id}").ConfigureAwait(false);
+                _ = await ctx.OkAsync($"The message Id is: {matches.First().Id}");
             }
         }
 
@@ -50,11 +50,11 @@ namespace MonkeyBot.Modules
         {
             if (searchText.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.RespondAsync("You have to provide a search text").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("You have to provide a search text");
                 return;
             }
             string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
-            _ = await ctx.RespondAsync(url).ConfigureAwait(false);
+            _ = await ctx.RespondAsync(url);
         }
     }
 }

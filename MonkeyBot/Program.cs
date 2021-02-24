@@ -43,7 +43,7 @@ public static class Program
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
-        DiscordClientConfiguration cfgJson =  await DiscordClientConfiguration.EnsureExistsAsync().ConfigureAwait(false); // Ensure the configuration file has been created.
+        DiscordClientConfiguration cfgJson =  await DiscordClientConfiguration.EnsureExistsAsync(); // Ensure the configuration file has been created.
 
         DiscordConfiguration discordConfig = new DiscordConfiguration
         {
@@ -88,11 +88,11 @@ public static class Program
 
         commands.CommandErrored += Commands_CommandErrored;
 
-        await discordClient.ConnectAsync().ConfigureAwait(false);
+        await discordClient.ConnectAsync();
 
-        await Initializer.InitializeServicesAsync(services).ConfigureAwait(false);
+        await Initializer.InitializeServicesAsync(services);
 
-        await Task.Delay(-1).ConfigureAwait(false); // Prevent the console window from closing.
+        await Task.Delay(-1); // Prevent the console window from closing.
     }
 
     private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
@@ -103,7 +103,7 @@ public static class Program
 
     private static async Task DiscordClient_GuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
     {
-        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
+        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id);
         string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
         if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
         {
@@ -115,13 +115,13 @@ public static class Program
                 .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
                 .WithTimestamp(DateTime.Now);
 
-            _ = await (channel?.SendMessageAsync(embed: builder.Build())).ConfigureAwait(false);
+            _ = await (channel?.SendMessageAsync(embed: builder.Build()));
         }
     }
 
     private static async Task DiscordClient_GuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
     {
-        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
+        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id);
         string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
         if (config?.GoodbyeMessageChannelId != null && !goodbyeMessage.IsEmpty())
         {
@@ -133,13 +133,13 @@ public static class Program
                 .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
                 .WithTimestamp(DateTime.Now);
 
-            _ = await (channel?.SendMessageAsync(embed: builder.Build())).ConfigureAwait(false);
+            _ = await (channel?.SendMessageAsync(embed: builder.Build()));
         }
     }
 
     private static async Task DiscordClient_GuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
     {
-        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
+        GuildConfig config = await guildService.GetOrCreateConfigAsync(e.Guild.Id);
         if (config == null || !config.StreamAnnouncementsEnabled || config.ConfirmedStreamerIds == null || !config.ConfirmedStreamerIds.Contains(e.Member.Id))
         {
             // Streaming announcements has to be enabled for the guild and the streamer must first opt in to have it announced
@@ -153,7 +153,7 @@ public static class Program
             {
                 channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? channel;
             }
-            _ = await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) ")).ConfigureAwait(false);
+            _ = await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
         }
     }
 
@@ -161,13 +161,13 @@ public static class Program
     {
         clientLogger.LogInformation($"Joined guild {e.Guild.Name}");
         // Make sure to create the config;
-        _ = await guildService.GetOrCreateConfigAsync(e.Guild.Id).ConfigureAwait(false);
+        _ = await guildService.GetOrCreateConfigAsync(e.Guild.Id);
     }
 
     private static async Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)
     {
         clientLogger.LogInformation($"Left guild {e.Guild.Name}");
-        await guildService.RemoveConfigAsync(e.Guild.Id).ConfigureAwait(false);
+        await guildService.RemoveConfigAsync(e.Guild.Id);
     }
 
     private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
@@ -178,7 +178,7 @@ public static class Program
         }
         else
         {
-            _ = await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}").ConfigureAwait(false);
+            _ = await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}");
         }
     }
 
@@ -186,19 +186,19 @@ public static class Program
     {
         if (e.ExceptionObject is Exception ex)
         {
-            await Console.Out.WriteLineAsync($"Unhandled exception: {ex.Message}").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync($"Unhandled exception: {ex.Message}");
         }
 
         if (e.IsTerminating)
         {
-            await Console.Out.WriteLineAsync("Terminating!").ConfigureAwait(false);
+            await Console.Out.WriteLineAsync("Terminating!");
         }
     }
 
     private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
     {
-        await discordClient.DisconnectAsync().ConfigureAwait(false);
+        await discordClient.DisconnectAsync();
         discordClient.Dispose();
-        await Console.Out.WriteLineAsync("Exiting!").ConfigureAwait(false);
+        await Console.Out.WriteLineAsync("Exiting!");
     }
 }

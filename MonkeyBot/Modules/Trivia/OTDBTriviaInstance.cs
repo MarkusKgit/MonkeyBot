@@ -87,19 +87,19 @@ namespace MonkeyBot.Services
 
             if (questionsToPlay < 1)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "At least one question has to be played").ConfigureAwait(false);
+                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "At least one question has to be played");
                 return false;
             }
             if (status == TriviaStatus.Running)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "There is already a quiz running").ConfigureAwait(false);
+                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "There is already a quiz running");
                 return false;
             }
             this.questionsToPlay = questionsToPlay;
-            questions = new List<OTDBQuestion>(await LoadQuestionsAsync(questionsToPlay).ConfigureAwait(false));
+            questions = new List<OTDBQuestion>(await LoadQuestionsAsync(questionsToPlay));
             if (questions == null || questions.Count == 0)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "Questions could not be loaded").ConfigureAwait(false);
+                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, "Questions could not be loaded");
                 return false;
             }
 
@@ -114,12 +114,12 @@ namespace MonkeyBot.Services
                     + "- Each wrong answer will reduce your points by 1 until you are back to zero"
                     )
                 .Build();
-            _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embed).ConfigureAwait(false);
+            _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embed);
 
 
             userScoresCurrent = new Dictionary<ulong, int>();
             status = TriviaStatus.Running;
-            await PlayTriviaAsync().ConfigureAwait(false);
+            await PlayTriviaAsync();
             return true;
         }
 
@@ -149,13 +149,13 @@ namespace MonkeyBot.Services
                 _ = embedBuilder.AddField("Final scores:", currentScores, true);
             }
 
-            string globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildId).ConfigureAwait(false);
+            string globalScores = await GetGlobalHighScoresAsync(int.MaxValue, guildId);
             if (!globalScores.IsEmptyOrWhiteSpace())
             {
                 _ = embedBuilder.AddField("Global top scores:", globalScores);
             }
 
-            _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embedBuilder.Build()).ConfigureAwait(false);
+            _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embedBuilder.Build());
 
             userScoresCurrent.Clear();
             status = TriviaStatus.Stopped;
@@ -173,7 +173,7 @@ namespace MonkeyBot.Services
             {
                 if (currentIndex >= questions.Count) // we want to play more questions than available
                 {
-                    questions.AddRange(await LoadQuestionsAsync(10).ConfigureAwait(false)); // load more questions
+                    questions.AddRange(await LoadQuestionsAsync(10)); // load more questions
                 }
 
                 OTDBQuestion currentQuestion = questions.ElementAt(currentIndex);
@@ -208,11 +208,11 @@ namespace MonkeyBot.Services
                     answerEmojis = multipleChoiceEmojis;
                 }
 
-                m = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: builder.Build()).ConfigureAwait(false);
+                m = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: builder.Build());
                 var results = await interactivityExtension
                     .DoPollAsync(m, answerEmojis, PollBehaviour.DeleteEmojis, timeout)
                     .WithCancellationAsync(cancellation.Token)
-                    .ConfigureAwait(false);
+                    ;
                 List<DiscordUser> correctAnswerUsers = results.Where(x => x.Emoji == correctAnswerEmoji)
                                                               .SelectMany(x => x.Voted)
                                                               .ToList();
@@ -228,7 +228,7 @@ namespace MonkeyBot.Services
                 string msg;
                 if (correctAnswerUsers.Count > 0)
                 {
-                    correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points).ConfigureAwait(false));
+                    correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points));
                     msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.Username))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
                 }
                 else
@@ -238,7 +238,7 @@ namespace MonkeyBot.Services
                 _ = embedBuilder.AddField("Correct answers", msg, true);
                 if (wrongAnswerUsers.Count > 0)
                 {
-                    wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1).ConfigureAwait(false));
+                    wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
                     msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.Username))}* had it wrong! You lose 1 point.";
                 }
                 else
@@ -253,12 +253,12 @@ namespace MonkeyBot.Services
                     _ = embedBuilder.AddField("Top 3:", highScores, true);
                 }
 
-                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embedBuilder.Build()).ConfigureAwait(false);
+                _ = await MonkeyHelpers.SendChannelMessageAsync(discordClient, guildId, channelId, embed: embedBuilder.Build());
 
                 currentIndex++;
             }
             
-            await EndTriviaAsync().ConfigureAwait(false);
+            await EndTriviaAsync();
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)
@@ -286,7 +286,7 @@ namespace MonkeyBot.Services
             TriviaScore currentScore = await dbContext.TriviaScores
                 .AsQueryable()
                 .FirstOrDefaultAsync(s => s.GuildID == guildId && s.UserID == user.Id)
-                .ConfigureAwait(false);
+                ;
             //pointsToAdd can be negative -> prevent less than zero points
             if (currentScore == null && pointsToAdd < 0)
             {
@@ -298,14 +298,14 @@ namespace MonkeyBot.Services
             }
             if (currentScore == null)
             {
-                _ = await dbContext.AddAsync(new TriviaScore { GuildID = guildId, UserID = user.Id, Score = pointsToAdd }).ConfigureAwait(false);
+                _ = await dbContext.AddAsync(new TriviaScore { GuildID = guildId, UserID = user.Id, Score = pointsToAdd });
             }
             else
             {
                 currentScore.Score += pointsToAdd;
                 _ = dbContext.Update(currentScore);
             }
-            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync();
 
         }
 
@@ -355,7 +355,7 @@ namespace MonkeyBot.Services
                 .AsQueryable()
                 .Where(s => s.GuildID == guildID)
                 .ToListAsync()
-                .ConfigureAwait(false);
+                ;
             if (userScoresAllTime == null)
             {
                 return null;
@@ -367,7 +367,7 @@ namespace MonkeyBot.Services
                 return null;
             }
 
-            DiscordGuild guild = await discordClient.GetGuildAsync(guildId).ConfigureAwait(false);
+            DiscordGuild guild = await discordClient.GetGuildAsync(guildId);
             IEnumerable<string> sortedScores = userScoresAllTime
                 .OrderByDescending(x => x.Score)
                 .Take(correctedCount)
@@ -381,7 +381,7 @@ namespace MonkeyBot.Services
         {
             if (apiToken.IsEmpty())
             {
-                apiToken = await GetTokenAsync().ConfigureAwait(false);
+                apiToken = await GetTokenAsync();
             }
             // Amount of questions per request is limited to 50 by the API
             if (count > 50)
@@ -395,7 +395,7 @@ namespace MonkeyBot.Services
             query["token"] = apiToken;
             builder.Query = query.ToString();
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(builder.Uri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(builder.Uri);
 
             if (!json.IsEmpty())
             {
@@ -410,8 +410,8 @@ namespace MonkeyBot.Services
                 }
                 else if ((otdbResponse.Response == TriviaApiResponse.TokenEmpty || otdbResponse.Response == TriviaApiResponse.TokenNotFound) && loadingRetries <= 2)
                 {
-                    apiToken = await GetTokenAsync().ConfigureAwait(false);
-                    return await LoadQuestionsAsync(count).ConfigureAwait(false);
+                    apiToken = await GetTokenAsync();
+                    return await LoadQuestionsAsync(count);
                 }
                 loadingRetries++;
             }
@@ -422,7 +422,7 @@ namespace MonkeyBot.Services
         private async Task<string> GetTokenAsync()
         {
             HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(tokenUri).ConfigureAwait(false);
+            string json = await httpClient.GetStringAsync(tokenUri);
             if (!json.IsEmpty())
             {
                 var jDocument = JsonDocument.Parse(json);

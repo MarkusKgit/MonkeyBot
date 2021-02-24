@@ -12,18 +12,18 @@ namespace DSharpPlus.CommandsNext
 
         public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, bool isTTS = false, DiscordEmbed embed = null)
         {
-            DiscordMessage msg = await ctx.RespondAsync(content, isTTS, embed).ConfigureAwait(false);
-            await msg.CreateReactionAsync(trashCan).ConfigureAwait(false);
+            DiscordMessage msg = await ctx.RespondAsync(content, isTTS, embed);
+            await msg.CreateReactionAsync(trashCan);
             var interactivity = ctx.Client.GetInteractivity();
-            var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+            var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30));
             if (interactivityResult.TimedOut)
             {
-                await msg.DeleteOwnReactionAsync(trashCan).ConfigureAwait(false);                
+                await msg.DeleteOwnReactionAsync(trashCan);                
             }
             else
             {
-                await ctx.Message.DeleteAsync().ConfigureAwait(false);
-                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync();
+                await msg.DeleteAsync();
             }
             return msg;
         }
@@ -34,7 +34,7 @@ namespace DSharpPlus.CommandsNext
                 .WithColor(DiscordColor.Green)
                 .WithTitle(title.IsEmptyOrWhiteSpace() ? "👍" : title)
                 .WithDescription(message);
-            return await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            return await ctx.RespondDeletableAsync(embed: builder.Build());
         }
 
         public static async Task<DiscordMessage> ErrorAsync(this CommandContext ctx, string message, string title = "")
@@ -43,7 +43,7 @@ namespace DSharpPlus.CommandsNext
                 .WithColor(DiscordColor.Red)
                 .WithTitle(title.IsEmptyOrWhiteSpace() ? "🚫" : title)
                 .WithDescription(message);
-            return await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            return await ctx.RespondDeletableAsync(embed: builder.Build());
         }
     }
 }

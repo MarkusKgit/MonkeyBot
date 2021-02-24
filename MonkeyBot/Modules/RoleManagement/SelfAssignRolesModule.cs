@@ -24,25 +24,25 @@ namespace MonkeyBot.Modules
         {
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Invalid role").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Invalid role");
                 return;
             }
-            DiscordRole botRole = await GetBotRoleAsync(ctx).ConfigureAwait(false);
+            DiscordRole botRole = await GetBotRoleAsync(ctx);
 
             // The bot's role must be higher than the role to be able to assign it
             if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to give you this role!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to give you this role!");
                 return;
             }
 
             if (ctx.Member.Roles.Contains(role))
             {
-                _ = await ctx.ErrorAsync("You already have that role").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You already have that role");
                 return;
             }
-            await ctx.Member.GrantRoleAsync(role).ConfigureAwait(false);
-            _ = await ctx.OkAsync($"Role {role.Name} has been added").ConfigureAwait(false);
+            await ctx.Member.GrantRoleAsync(role);
+            _ = await ctx.OkAsync($"Role {role.Name} has been added");
         }
 
         [Command("RemoveRole")]
@@ -53,16 +53,16 @@ namespace MonkeyBot.Modules
         {
             if (!ctx.Member.Roles.Contains(role))
             {
-                _ = await ctx.ErrorAsync("You don't have that role").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You don't have that role");
             }
-            DiscordRole botRole = await GetBotRoleAsync(ctx).ConfigureAwait(false);
+            DiscordRole botRole = await GetBotRoleAsync(ctx);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!");
             }
-            await ctx.Member.RevokeRoleAsync(role).ConfigureAwait(false);
-            _ = await ctx.OkAsync($"Role {role.Name} has been revoked").ConfigureAwait(false);
+            await ctx.Member.RevokeRoleAsync(role);
+            _ = await ctx.OkAsync($"Role {role.Name} has been revoked");
         }
 
         [Command("ListRoles")]
@@ -71,8 +71,8 @@ namespace MonkeyBot.Modules
         {
             IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(ctx);
             _ = assignableRoles.Any()
-                ? await ctx.OkAsync(string.Join(", ", assignableRoles.Select(role => role.Name)), "The following assignable roles exist").ConfigureAwait(false)
-                : await ctx.ErrorAsync("No assignable roles exist!").ConfigureAwait(false);
+                ? await ctx.OkAsync(string.Join(", ", assignableRoles.Select(role => role.Name)), "The following assignable roles exist")
+                : await ctx.ErrorAsync("No assignable roles exist!");
         }
 
         [Command("ListRolesWithMembers")]
@@ -84,7 +84,7 @@ namespace MonkeyBot.Modules
                 .WithDescription("These are the are all the assignable roles and the users assigned to them:");
 
             IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(ctx);
-            IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync().ConfigureAwait(false);
+            IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             foreach (DiscordRole role in assignableRoles)
             {
                 IOrderedEnumerable<string> roleUsers = guildMembers?.Where(m => m.Roles.Contains(role))
@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
                     ? builder.AddField(role.Name, string.Join(", ", roleUsers), false)
                     : builder.AddField(role.Name, "-", false);
             }
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
 
         [Command("ListRoleMembers")]
@@ -102,13 +102,13 @@ namespace MonkeyBot.Modules
         [Example("!listrolemembers bf")]
         public async Task ListMembersAsync(CommandContext ctx, [Description("The role to display members for")] DiscordRole role)
         {
-            IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync().ConfigureAwait(false);
+            IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             IOrderedEnumerable<string> roleUsers = guildMembers?.Where(x => x.Roles.Contains(role))
                                                               .Select(x => x.Username)
                                                               .OrderBy(x => x);
             if (roleUsers == null || !roleUsers.Any())
             {
-                _ = await ctx.ErrorAsync("This role does not have any members!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("This role does not have any members!");
                 return;
             }
             var builder = new DiscordEmbedBuilder()
@@ -116,13 +116,13 @@ namespace MonkeyBot.Modules
                 .WithTitle($"These are the users assigned to the {role.Name} role:")
                 .WithDescription(string.Join(", ", roleUsers));
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
 
         private static async Task<DiscordRole> GetBotRoleAsync(CommandContext ctx)
         {
             // Get the role of the bot with permission manage roles            
-            DiscordMember bot = await ctx.Guild.GetMemberAsync(ctx.Client.CurrentUser.Id).ConfigureAwait(false);
+            DiscordMember bot = await ctx.Guild.GetMemberAsync(ctx.Client.CurrentUser.Id);
             return bot.Roles.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
         }
 

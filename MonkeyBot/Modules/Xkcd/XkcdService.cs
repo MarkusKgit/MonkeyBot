@@ -25,33 +25,33 @@ namespace MonkeyBot.Services
 
         public async Task<XkcdResponse> GetComicAsync(int number)
         {
-            int maxNumer = await GetLatestComicNumberAsync().ConfigureAwait(false);
+            int maxNumer = await GetLatestComicNumberAsync();
             if (number < 1 || number > maxNumer || number == 404)
             {
                 throw new ArgumentOutOfRangeException(nameof(number), "The specified comic does not exist!");
             }
-            return await GetComicAsync(GetComicApiUrl(number)).ConfigureAwait(false);
+            return await GetComicAsync(GetComicApiUrl(number));
         }
 
-        public async Task<XkcdResponse> GetLatestComicAsync() => await GetComicAsync(latestComicApiUrl).ConfigureAwait(false);
+        public async Task<XkcdResponse> GetLatestComicAsync() => await GetComicAsync(latestComicApiUrl);
 
         public async Task<XkcdResponse> GetRandomComicAsync()
         {
-            int max = await GetLatestComicNumberAsync().ConfigureAwait(false);
+            int max = await GetLatestComicNumberAsync();
             var rnd = new Random();
             int rndNumber;
             while ((rndNumber = rnd.Next(1, max)) == 404) { } // xkcd 404 does not exist  
-            return await GetComicAsync(rndNumber).ConfigureAwait(false);
+            return await GetComicAsync(rndNumber);
         }
 
-        private async Task<int> GetLatestComicNumberAsync() => (await GetLatestComicAsync().ConfigureAwait(false))?.Number ?? 0;
+        private async Task<int> GetLatestComicNumberAsync() => (await GetLatestComicAsync())?.Number ?? 0;
 
         private async Task<XkcdResponse> GetComicAsync(Uri apiEndPoint)
         {
             HttpClient httpClient = clientFactory.CreateClient();
             try
             {
-                string response = await httpClient.GetStringAsync(apiEndPoint).ConfigureAwait(false);
+                string response = await httpClient.GetStringAsync(apiEndPoint);
                 return JsonSerializer.Deserialize<XkcdResponse>(response);
             }
             catch

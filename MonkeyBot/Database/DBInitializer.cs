@@ -9,9 +9,9 @@ namespace MonkeyBot.Database
     {
         public static async Task InitializeAsync(MonkeyDBContext context)
         {
-            if ((await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false)).Any())
+            if ((await context.Database.GetPendingMigrationsAsync()).Any())
             {
-                await context.Database.MigrateAsync().ConfigureAwait(false);
+                await context.Database.MigrateAsync();
             }
 
             if (!context.BenzenFacts.Any())
@@ -61,7 +61,7 @@ namespace MonkeyBot.Database
                     new BenzenFact("Pop culture: \"The 300\" was heavily modified from its original script \"The 1\" as it was deemed too unbelievable. Who was \"The 1\" referred to in the original title? Benzen!" )
                 };
                 context.BenzenFacts.AddRange(benzenFacs);
-                _ = await context.SaveChangesAsync().ConfigureAwait(false);
+                _ = await context.SaveChangesAsync();
             }
         }
     }

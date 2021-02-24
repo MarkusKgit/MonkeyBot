@@ -32,17 +32,17 @@ namespace MonkeyBot.Modules
 
             if (arg.Equals("latest", StringComparison.OrdinalIgnoreCase))
             {
-                comic = await xkcdService.GetLatestComicAsync().ConfigureAwait(false);
+                comic = await xkcdService.GetLatestComicAsync();
             }
             else if (int.TryParse(arg, out int comicNumber))
             {
                 try
                 {
-                    comic = await xkcdService.GetComicAsync(comicNumber).ConfigureAwait(false);
+                    comic = await xkcdService.GetComicAsync(comicNumber);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    _ = await ctx.ErrorAsync("The specified comic does not exist!").ConfigureAwait(false);
+                    _ = await ctx.ErrorAsync("The specified comic does not exist!");
                     return;
                 }
                 catch (Exception ex)
@@ -53,7 +53,7 @@ namespace MonkeyBot.Modules
             }
             else
             {
-                comic = await xkcdService.GetRandomComicAsync().ConfigureAwait(false);
+                comic = await xkcdService.GetRandomComicAsync();
             }
 
             string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
@@ -67,7 +67,7 @@ namespace MonkeyBot.Modules
                 var date = new DateTime(year, month, day);
                 _ = builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
         }
     }
 }

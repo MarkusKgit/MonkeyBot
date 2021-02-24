@@ -24,7 +24,7 @@ namespace MonkeyBot.Modules
         [Description("Returns a random fact about Benzen")]
         public async Task GetBenzenFactAsync(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync().ConfigureAwait(false);
+            await ctx.TriggerTypingAsync();
             int totalFacts = dbContext.BenzenFacts.Count();
             var r = new Random();
             int randomOffset = r.Next(0, totalFacts);
@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                     .WithColor(DiscordColor.DarkBlue)
                     .WithTitle($"Benzen Fact #{randomOffset + 1}")
                     .WithDescription(fact);
-                _ = await ctx.RespondDeletableAsync(embed: builder.Build()).ConfigureAwait(false);
+                _ = await ctx.RespondDeletableAsync(embed: builder.Build());
             }
         }
 
@@ -46,22 +46,22 @@ namespace MonkeyBot.Modules
             fact = fact.Trim('\"').Trim();
             if (fact.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please provide a fact!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Please provide a fact!");
                 return;
             }
             if (!fact.Contains(name, StringComparison.OrdinalIgnoreCase))
             {
-                _ = await ctx.ErrorAsync("The fact must include Benzen!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The fact must include Benzen!");
                 return;
             }
             if (dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
-                _ = await ctx.ErrorAsync("I already know this fact!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("I already know this fact!");
                 return;
             }
             _ = dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
-            await ctx.OkAsync("Fact added").ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync();
+            await ctx.OkAsync("Fact added");
         }
     }
 }

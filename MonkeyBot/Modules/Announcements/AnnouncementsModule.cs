@@ -35,27 +35,27 @@ namespace MonkeyBot.Modules
         {            
             if (announcementId.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!");
                 return;
             }
 
             if (cronExpression.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify a Cron expression that sets the interval for the Announcement!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify a Cron expression that sets the interval for the Announcement!");
                 return;
             }
 
             if (announcement.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify a message to announce!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify a message to announce!");
                 return;
             }
 
             // ID must be unique per guild -> check if it already exists
-            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id);
             if (announcements != null && announcements.Any(x => x.Name == announcementId))
             {
-                _ = await ctx.ErrorAsync("The ID is already in use").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The ID is already in use");
                 return;
             }
 
@@ -64,13 +64,13 @@ namespace MonkeyBot.Modules
             try
             {
                 // Add the announcement to the Service to activate it
-                await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, ctx.Guild.Id, channel.Id).ConfigureAwait(false);
-                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, ctx.Guild.Id).ConfigureAwait(false);
-                _ = await ctx.OkAsync($"The announcement has been added. The next run is on {nextRun}").ConfigureAwait(false);
+                await announcementService.AddRecurringAnnouncementAsync(announcementId, cronExpression, announcement, ctx.Guild.Id, channel.Id);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, ctx.Guild.Id);
+                _ = await ctx.OkAsync($"The announcement has been added. The next run is on {nextRun}");
             }
             catch (ArgumentException ex)
             {
-                _ = await ctx.ErrorAsync(ex.Message).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync(ex.Message);
                 logger.LogWarning(ex, "Wrong argument while adding a recurring announcement");
             }
         }
@@ -83,37 +83,37 @@ namespace MonkeyBot.Modules
             // Do parameter checks
             if (announcementId.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!");
                 return;
             }
             if (time.IsEmpty() || !DateTime.TryParse(time, out DateTime parsedTime) || parsedTime < DateTime.Now)
             {
-                _ = await ctx.ErrorAsync("You need to specify a date and time for the Announcement that lies in the future!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify a date and time for the Announcement that lies in the future!");
                 return;
             }
             if (announcement.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify a message to announce!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify a message to announce!");
                 return;
             }
             // ID must be unique per guild -> check if it already exists
-            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id);
             if (announcements.Any(x => x.Name == announcementId))
             {
-                _ = await ctx.ErrorAsync("The ID is already in use").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The ID is already in use");
                 return;
             }
             channel ??= ctx.Channel ?? ctx.Guild.GetDefaultChannel();
             try
             {
                 // Add the announcement to the Service to activate it
-                await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, ctx.Guild.Id, channel.Id).ConfigureAwait(false);
-                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, ctx.Guild.Id).ConfigureAwait(false);
-                _ = await ctx.OkAsync($"The announcement has been added. It will be broadcasted on {nextRun}").ConfigureAwait(false);
+                await announcementService.AddSingleAnnouncementAsync(announcementId, parsedTime, announcement, ctx.Guild.Id, channel.Id);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcementId, ctx.Guild.Id);
+                _ = await ctx.OkAsync($"The announcement has been added. It will be broadcasted on {nextRun}");
             }
             catch (ArgumentException ex)
             {
-                _ = await ctx.ErrorAsync(ex.Message).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync(ex.Message);
                 logger.LogWarning(ex, "Wrong argument while adding a single announcement");
             }
         }
@@ -122,13 +122,13 @@ namespace MonkeyBot.Modules
         [Description("Lists all upcoming announcements")]
         public async Task ListAsync(CommandContext ctx)
         {
-            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id).ConfigureAwait(false);
+            List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id);
             string message = announcements.Count == 0 ? "No upcoming announcements" : "The following upcoming announcements exist:";
             var builder = new System.Text.StringBuilder();
             _ = builder.Append(message);
             foreach (Announcement announcement in announcements)
             {
-                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, ctx.Guild.Id).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(announcement.Name, ctx.Guild.Id);
                 DiscordChannel channel = ctx.Guild.GetChannel(announcement.ChannelID);
                 if (announcement.Type == AnnouncementType.Recurring)
                 {
@@ -140,7 +140,7 @@ namespace MonkeyBot.Modules
                 }
             }
             message = builder.ToString();
-            _ = await ctx.RespondDeletableAsync(message).ConfigureAwait(false);            
+            _ = await ctx.RespondDeletableAsync(message);            
         }
 
         [Command("Remove")]
@@ -151,17 +151,17 @@ namespace MonkeyBot.Modules
             string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (cleanID.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify the ID of the Announcement you wish to remove!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify the ID of the Announcement you wish to remove!");
                 return;
             }
             try
             {
-                await announcementService.RemoveAsync(cleanID, ctx.Guild.Id).ConfigureAwait(false);
-                _ = await ctx.OkAsync("The announcement has been removed!").ConfigureAwait(false);
+                await announcementService.RemoveAsync(cleanID, ctx.Guild.Id);
+                _ = await ctx.OkAsync("The announcement has been removed!");
             }
             catch (Exception ex)
             {
-                _ = await ctx.ErrorAsync(ex.Message).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync(ex.Message);
             }
         }
 
@@ -173,37 +173,37 @@ namespace MonkeyBot.Modules
             string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
             if (cleanID.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You need to specify an ID for the Announcement!");
                 return;
             }
             try
             {
-                List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id).ConfigureAwait(false);
+                List<Announcement> announcements = await announcementService.GetAnnouncementsForGuildAsync(ctx.Guild.Id);
                 Announcement announcement = announcements?.SingleOrDefault(announcement => announcement.Name == cleanID);
 
                 if (announcement == null)
                 {
-                    _ = await ctx.ErrorAsync("The specified announcement does not exist").ConfigureAwait(false);
+                    _ = await ctx.ErrorAsync("The specified announcement does not exist");
                     return;
                 }
 
-                DateTime nextRun = await announcementService.GetNextOccurenceAsync(cleanID, ctx.Guild.Id).ConfigureAwait(false);
-                _ = await ctx.RespondAsync(nextRun.ToString()).ConfigureAwait(false);
+                DateTime nextRun = await announcementService.GetNextOccurenceAsync(cleanID, ctx.Guild.Id);
+                _ = await ctx.RespondAsync(nextRun.ToString());
 
                 DiscordChannel channel = ctx.Guild.GetChannel(announcement.ChannelID);
 
                 if (announcement.Type == AnnouncementType.Recurring)
                 {
-                    _ = await ctx.RespondAsync($"Recurring announcement with ID: \"{announcement.Name}\" will run next at {nextRun} in channel {channel?.Name} with message: \"{announcement.Message}\"").ConfigureAwait(false);
+                    _ = await ctx.RespondAsync($"Recurring announcement with ID: \"{announcement.Name}\" will run next at {nextRun} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
                 else if (announcement.Type == AnnouncementType.Once)
                 {
-                    _ = await ctx.RespondAsync($"Single announcement with ID: \"{announcement.Name}\" will run once at {nextRun} in channel {channel?.Name} with message: \"{announcement.Message}\"").ConfigureAwait(false);
+                    _ = await ctx.RespondAsync($"Single announcement with ID: \"{announcement.Name}\" will run once at {nextRun} in channel {channel?.Name} with message: \"{announcement.Message}\"");
                 }
             }
             catch (Exception ex)
             {
-                _ = await ctx.ErrorAsync(ex.Message).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync(ex.Message);
             }
         }
     }

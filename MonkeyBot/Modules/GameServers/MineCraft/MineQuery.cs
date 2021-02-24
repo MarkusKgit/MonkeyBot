@@ -31,7 +31,7 @@ namespace MonkeyBot.Services
 
         public async Task<MineQueryResult> GetServerInfoAsync()
         {
-            await client.ConnectAsync(Address, Port).ConfigureAwait(false);
+            await client.ConnectAsync(Address, Port);
             if (!client.Connected)
             {
                 return null;
@@ -56,7 +56,7 @@ namespace MonkeyBot.Services
             int numberOfBytesRead;
             do
             {
-                numberOfBytesRead = await stream.ReadAsync(readBuffer).ConfigureAwait(false);
+                numberOfBytesRead = await stream.ReadAsync(readBuffer);
                 completeBuffer.AddRange(readBuffer.Take(numberOfBytesRead));
             }
             while (numberOfBytesRead > 0);

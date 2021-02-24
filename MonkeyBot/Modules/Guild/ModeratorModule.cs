@@ -25,7 +25,7 @@ namespace MonkeyBot.Modules
         {
             if (count < 1)
             {
-                _ = await ctx.ErrorAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Count has to be at least 1");
                 return;
             }
             if (count > 100)
@@ -34,8 +34,8 @@ namespace MonkeyBot.Modules
             }
             if (ctx.Channel.Type == ChannelType.Text)
             {
-                IEnumerable<DiscordMessage> msgs = await ctx.Channel.GetMessagesAsync(count).ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
+                IEnumerable<DiscordMessage> msgs = await ctx.Channel.GetMessagesAsync(count);
+                await ctx.Channel.DeleteMessagesAsync(msgs);
             }
         }
 
@@ -47,12 +47,12 @@ namespace MonkeyBot.Modules
         {
             if (user == null)
             {
-                await ctx.ErrorAsync("Invalid user").ConfigureAwait(false);
+                await ctx.ErrorAsync("Invalid user");
                 return;
             }
             if (count < 1)
             {
-                _ = await ctx.ErrorAsync("Count has to be at least 1").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Count has to be at least 1");
                 return;
             }
             if (count > 100)
@@ -61,8 +61,8 @@ namespace MonkeyBot.Modules
             }
             if (ctx.Channel.Type == ChannelType.Text)
             {
-                IEnumerable<DiscordMessage> msgs = (await ctx.Channel.GetMessagesAsync(100).ConfigureAwait(false)).Where(msg => msg.Author.Id == user.Id).Take(count);
-                await ctx.Channel.DeleteMessagesAsync(msgs).ConfigureAwait(false);
+                IEnumerable<DiscordMessage> msgs = (await ctx.Channel.GetMessagesAsync(100)).Where(msg => msg.Author.Id == user.Id).Take(count);
+                await ctx.Channel.DeleteMessagesAsync(msgs);
             }
         }
     }

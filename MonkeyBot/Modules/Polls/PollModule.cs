@@ -60,7 +60,7 @@ namespace MonkeyBot.Modules
                 .WithDescription("...")
                 .WithAuthor(ctx.Member.Username, iconUrl: ctx.Member.AvatarUrl);
 
-            DiscordMessage pollMessage = await ctx.RespondAsync(embed: pollEmbed.Build()).ConfigureAwait(false);
+            DiscordMessage pollMessage = await ctx.RespondAsync(embed: pollEmbed.Build());
 
             var setupEmbed = new DiscordEmbedBuilder()
                 .WithTitle("Poll Configuration")
@@ -68,71 +68,71 @@ namespace MonkeyBot.Modules
                 .WithDescription(introText + firstInstruction)
                 .WithAuthor(ctx.Client.CurrentUser.Username, iconUrl: ctx.Client.CurrentUser.AvatarUrl);
 
-            DiscordMessage setupMessage = await ctx.RespondAsync(embed: setupEmbed.Build()).ConfigureAwait(false);
+            DiscordMessage setupMessage = await ctx.RespondAsync(embed: setupEmbed.Build());
 
             interactivity ??= ctx.Client.GetInteractivity();
 
-            var questionReponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut).ConfigureAwait(false);
+            var questionReponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
             if (questionReponse.TimedOut)
             {
-                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out").ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
+                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
             string pollQuestion = questionReponse.Result.Content.Trim();
             if (pollQuestion.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.ErrorAsync("You didn't provide a proper poll question. Please start over", "Empty question").ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You didn't provide a proper poll question. Please start over", "Empty question");
+                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
 
             pollEmbed.WithTitle($"**Poll: {pollQuestion}**");
-            pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build()).ConfigureAwait(false);
+            pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build());
 
-            await ctx.Channel.DeleteMessageAsync(questionReponse.Result).ConfigureAwait(false);
+            await ctx.Channel.DeleteMessageAsync(questionReponse.Result);
 
             setupEmbed.WithDescription(introText + secondInstruction);
-            await setupMessage.ModifyAsync(embed: setupEmbed.Build()).ConfigureAwait(false);
+            await setupMessage.ModifyAsync(embed: setupEmbed.Build());
 
-            var timeResponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut).ConfigureAwait(false);
+            var timeResponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
             if (timeResponse.TimedOut)
             {
-                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out").ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
+                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
             timeParser ??= new Chronic.Parser(new Chronic.Options() { Context = Chronic.Pointer.Type.Future, EndianPrecedence = Chronic.EndianPrecedence.Little, FirstDayOfWeek = DayOfWeek.Monday });
             Chronic.Span parsedTime = timeParser.Parse(timeResponse.Result.Content);
             if (parsedTime == null)
             {
-                _ = await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time").ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time");
+                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
             DateTime endTime = parsedTime.ToTime();
             if (endTime < DateTime.Now)
             {
-                _ = await ctx.ErrorAsync("The provided time is in the past. Please start over", "Invalid Time").ConfigureAwait(false);
-                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The provided time is in the past. Please start over", "Invalid Time");
+                await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
 
             pollEmbed.WithFooter($"Poll will end on {endTime:dd.MM.yyyy} at {endTime:HH:mm \"UTC\"zz}");
-            pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build()).ConfigureAwait(false);
+            pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build());
 
-            await ctx.Channel.DeleteMessageAsync(timeResponse.Result).ConfigureAwait(false);
+            await ctx.Channel.DeleteMessageAsync(timeResponse.Result);
 
             setupEmbed.WithDescription(introText + thirdInstruction);
-            await setupMessage.ModifyAsync(embed: setupEmbed.Build()).ConfigureAwait(false);
-            await setupMessage.CreateReactionAsync(okEmoji).ConfigureAwait(false);
+            await setupMessage.ModifyAsync(embed: setupEmbed.Build());
+            await setupMessage.CreateReactionAsync(okEmoji);
 
             var pollAnswers = new List<string>();
             while (true)
             {
                 var addAnswerTask = interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
                 var okTask = interactivity.WaitForReactionAsync(r => r.User == ctx.Member && r.Emoji == okEmoji, timeOut);
-                var result = await Task.WhenAny(addAnswerTask, okTask).ConfigureAwait(false);
+                var result = await Task.WhenAny(addAnswerTask, okTask);
 
                 if (result == addAnswerTask)
                 {
@@ -145,21 +145,21 @@ namespace MonkeyBot.Modules
                         }
                         else
                         {
-                            _ = await ctx.ErrorAsync("You didn't provide enough answers in time. Please start over", "Timed out").ConfigureAwait(false);
-                            await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage }).ConfigureAwait(false);
+                            _ = await ctx.ErrorAsync("You didn't provide enough answers in time. Please start over", "Timed out");
+                            await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                             return;
                         }
                     }
                     pollAnswers.Add(pollOptionResponse.Result.Content);
-                    await ctx.Channel.DeleteMessageAsync(pollOptionResponse.Result).ConfigureAwait(false);
+                    await ctx.Channel.DeleteMessageAsync(pollOptionResponse.Result);
                     pollEmbed.WithDescription(string.Join("\n", pollService.GetEmojiMapping(pollAnswers).Select(ans => $"{ans.Key} {ans.Value}")));
-                    pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build()).ConfigureAwait(false);
+                    pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build());
                 }
                 else
                 {
                     if (pollAnswers.Count < 2)
                     {
-                        _ = await ctx.ErrorAsync("Not enough answer options! Please add more first!").ConfigureAwait(false);
+                        _ = await ctx.ErrorAsync("Not enough answer options! Please add more first!");
                     }
                     else
                     {
@@ -167,11 +167,11 @@ namespace MonkeyBot.Modules
                     }
                 }
             }
-            await ctx.Channel.DeleteMessageAsync(setupMessage).ConfigureAwait(false);
+            await ctx.Channel.DeleteMessageAsync(setupMessage);
 
             //Add it to the service which starts monitoring for poll reactions and adds the poll to the DB to be able to recover from Bot restarts
             Poll poll = new Poll(ctx.Guild.Id, ctx.Channel.Id, pollMessage.Id, ctx.Member.Id, pollQuestion, pollAnswers, endTime.ToUniversalTime());
-            await pollService.AddAndStartPollAsync(poll).ConfigureAwait(false);
+            await pollService.AddAndStartPollAsync(poll);
         }
     }
 }

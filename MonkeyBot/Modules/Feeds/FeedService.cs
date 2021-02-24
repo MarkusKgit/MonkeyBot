@@ -33,7 +33,7 @@ namespace MonkeyBot.Services
         }
 
         public void Start()
-            => schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync().ConfigureAwait(false), 10);
+            => schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync(), 10);
 
         public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)
         {
@@ -45,34 +45,34 @@ namespace MonkeyBot.Services
                 ChannelID = channelID
             };
             _ = dbContext.Feeds.Add(feed);
-            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
-            await GetFeedUpdateAsync(feed, true).ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync();
+            await GetFeedUpdateAsync(feed, true);
         }
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID)
         {
-            Models.Feed feed = await dbContext.Feeds.AsQueryable().SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID)).ConfigureAwait(false);
+            Models.Feed feed = await dbContext.Feeds.AsQueryable().SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID));
             if (feed != null)
             {
                 _ = dbContext.Feeds.Remove(feed);
-                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = await dbContext.SaveChangesAsync();
             }
         }
 
         public async Task RemoveAllFeedsAsync(ulong guildID, ulong? channelID)
         {
-            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID).ConfigureAwait(false);
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID);
             if (allFeeds == null)
             {
                 return;
             }
             dbContext.Feeds.RemoveRange(allFeeds);
-            _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            _ = await dbContext.SaveChangesAsync();
         }
 
         public async Task<List<GuildFeed>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
         {
-            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId).ConfigureAwait(false);
+            List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildId, channelId);
             return allFeeds?.Select(x => new GuildFeed(x.Name, x.URL, x.ChannelID)).ToList();
         }
 
@@ -87,16 +87,16 @@ namespace MonkeyBot.Services
         {
             foreach (DiscordGuild guild in discordClient?.Guilds.Values)
             {
-                await GetGuildFeedUpdatesAsync(guild).ConfigureAwait(false);
+                await GetGuildFeedUpdatesAsync(guild);
             }
         }
 
         private async Task GetGuildFeedUpdatesAsync(DiscordGuild guild)
         {
-            List<Models.Feed> feeds = await GetAllFeedsInternalAsync(guild.Id).ConfigureAwait(false);
+            List<Models.Feed> feeds = await GetAllFeedsInternalAsync(guild.Id);
             foreach (Models.Feed feed in feeds)
             {
-                await GetFeedUpdateAsync(feed).ConfigureAwait(false);
+                await GetFeedUpdateAsync(feed);
             }
         }
 
@@ -114,7 +114,7 @@ namespace MonkeyBot.Services
             Feed feed;
             try
             {
-                feed = await FeedReader.ReadAsync(guildFeed.URL).ConfigureAwait(false);
+                feed = await FeedReader.ReadAsync(guildFeed.URL);
             }
             catch (Exception ex)
             {
@@ -177,12 +177,12 @@ namespace MonkeyBot.Services
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
                     _ = builder.AddField(fieldName, fieldContent, true);
                 }
-                _ = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+                _ = await (channel?.SendMessageAsync("", false, builder.Build()));
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
                     _ = dbContext.Feeds.Update(guildFeed);
-                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = await dbContext.SaveChangesAsync();
                 }
             }
         }

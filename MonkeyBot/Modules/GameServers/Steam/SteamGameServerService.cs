@@ -41,8 +41,8 @@ namespace MonkeyBot.Services
                 using var udpClient = new UdpWrapper();
                 serverQuery = new ServerQuery(udpClient, null);
                 serverQuery.Connect(discordGameServer.ServerIP.ToString());
-                ServerInfo serverInfo = await serverQuery.GetServerInfoAsync().ConfigureAwait(false);
-                List<Player> players = (await serverQuery.GetPlayersAsync().ConfigureAwait(false)).Where(p => !p.Name.IsEmptyOrWhiteSpace()).ToList();
+                ServerInfo serverInfo = await serverQuery.GetServerInfoAsync();
+                List<Player> players = (await serverQuery.GetPlayersAsync()).Where(p => !p.Name.IsEmptyOrWhiteSpace()).ToList();
                 if (serverInfo == null || players == null)
                 {
                     return false;
@@ -81,7 +81,7 @@ namespace MonkeyBot.Services
                 {
                     discordGameServer.GameVersion = serverInfo.Version;
                     _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = await dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace MonkeyBot.Services
                         discordGameServer.GameVersion = serverInfo.Version;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         _ = dbContext.GameServers.Update(discordGameServer);
-                        _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                        _ = await dbContext.SaveChangesAsync();
                     }
                 }
 
@@ -104,7 +104,7 @@ namespace MonkeyBot.Services
                 _ = builder.AddField("Server version", $"{serverInfo.Version}{lastServerUpdate}");
                 _ = builder.WithFooter($"Last check: {DateTime.Now}");
 
-                string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players, serverInfo.MaxPlayers).ConfigureAwait(false);
+                string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players, serverInfo.MaxPlayers);
                 if (!chart.IsEmptyOrWhiteSpace())
                 {
                     _ = builder.AddField("Player Count History", chart);
@@ -112,24 +112,24 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.MessageID.HasValue)
                 {
-                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false);
+                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value);
                     if (existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(embed: builder.Build()).ConfigureAwait(false);
+                        await existingMessage.ModifyAsync(embed: builder.Build());
                     }
                     else
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
-                        await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID).ConfigureAwait(false);
-                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
+                        await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
+                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
                     }
                 }
                 else
                 {
-                    discordGameServer.MessageID = (await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false)).Id;
+                    discordGameServer.MessageID = (await (channel?.SendMessageAsync("", false, builder.Build()))).Id;
                     _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = await dbContext.SaveChangesAsync();
                 }
 
             }

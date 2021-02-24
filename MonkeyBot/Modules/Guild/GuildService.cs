@@ -16,12 +16,12 @@ namespace MonkeyBot.Services
 
         public async Task<GuildConfig> GetOrCreateConfigAsync(ulong guildId)
         {
-            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false);
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
             if (config == null)
             {
                 config = new GuildConfig { GuildID = guildId };
                 _ = dbContext.GuildConfigs.Add(config);
-                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = await dbContext.SaveChangesAsync();
             }
             return config;
         }        
@@ -34,11 +34,11 @@ namespace MonkeyBot.Services
 
         public async Task RemoveConfigAsync(ulong guildId)
         {
-            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId).ConfigureAwait(false);
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
             if (config == null)
             {
                 _ = dbContext.GuildConfigs.Remove(config);
-                _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _ = await dbContext.SaveChangesAsync();
             }
         }
     }

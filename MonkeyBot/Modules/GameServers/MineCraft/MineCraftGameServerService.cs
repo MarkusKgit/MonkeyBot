@@ -36,7 +36,7 @@ namespace MonkeyBot.Services
             try
             {
                 query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, logger);
-                MineQueryResult serverInfo = await query.GetServerInfoAsync().ConfigureAwait(false);
+                MineQueryResult serverInfo = await query.GetServerInfoAsync();
                 if (serverInfo == null)
                 {
                     return false;
@@ -63,7 +63,7 @@ namespace MonkeyBot.Services
                 {
                     discordGameServer.GameVersion = serverInfo.Version.Name;
                     _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = await dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -72,7 +72,7 @@ namespace MonkeyBot.Services
                         discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
                         _ = dbContext.GameServers.Update(discordGameServer);
-                        _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                        _ = await dbContext.SaveChangesAsync();
                     }
                 }
                 string lastServerUpdate = "";
@@ -86,7 +86,7 @@ namespace MonkeyBot.Services
                 // Generate chart every full 10 minutes                
                 if (DateTime.Now.Minute % 10 == 0)
                 {
-                    string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players.Online, serverInfo.Players.Max).ConfigureAwait(false);
+                    string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players.Online, serverInfo.Players.Max);
 
                     if (!chart.IsEmptyOrWhiteSpace())
                     {
@@ -96,25 +96,25 @@ namespace MonkeyBot.Services
 
                 if (discordGameServer.MessageID.HasValue)
                 {
-                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value).ConfigureAwait(false);
+                    DiscordMessage existingMessage = await channel.GetMessageAsync(discordGameServer.MessageID.Value);
                     if (existingMessage != null)
                     {
-                        await existingMessage.ModifyAsync(embed: builder.Build()).ConfigureAwait(false);
+                        await existingMessage.ModifyAsync(embed: builder.Build());
                     }
                     else
                     {
                         logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
-                        await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID).ConfigureAwait(false);
-                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver").ConfigureAwait(false);
+                        await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
+                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
                     }
                 }
                 else
                 {
-                    DiscordMessage message = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+                    DiscordMessage message = await (channel?.SendMessageAsync("", false, builder.Build()));
                     discordGameServer.MessageID = message.Id;
                     _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    _ = await dbContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)

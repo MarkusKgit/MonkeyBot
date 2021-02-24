@@ -32,14 +32,14 @@ namespace MonkeyBot.Services
                 _ = trivias.TryAdd((guildId, channelId), new OTDBTriviaInstance(guildId, channelId, discordClient, dbContext, clientFactory));
             }
             return trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance instance)
-                   && await instance.StartTriviaAsync(questionsToPlay).ConfigureAwait(false);
+                   && await instance.StartTriviaAsync(questionsToPlay);
         }
 
         public async Task<bool> StopTriviaAsync(ulong guildId, ulong channelId)
         {
             if (trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance triviaInstance))
             {
-                await triviaInstance.EndTriviaAsync().ConfigureAwait(false);
+                await triviaInstance.EndTriviaAsync();
                 _ = trivias.TryRemove((guildId, channelId), out OTDBTriviaInstance trivia);
                 trivia.Dispose();
                 return true;

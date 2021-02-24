@@ -27,7 +27,7 @@ namespace MonkeyBot.Common
             }
 
             using var streamWriter = new StreamWriter(filePath, append);
-            await streamWriter.WriteAsync(text).ConfigureAwait(false);
+            await streamWriter.WriteAsync(text);
         }
 
         /// <summary>
@@ -38,18 +38,18 @@ namespace MonkeyBot.Common
         public static async Task<string> ReadTextAsync(string filePath)
         {
             using var streamReader = new StreamReader(filePath);
-            return await streamReader.ReadToEndAsync().ConfigureAwait(false);
+            return await streamReader.ReadToEndAsync();
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
             using CancellationTokenRegistration _ = cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs);
-            if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
+            if (task != await Task.WhenAny(task, tcs.Task))
             {
                 throw new OperationCanceledException(cancellationToken);
             }
-            return await task.ConfigureAwait(false);
+            return await task;
         }
 
         //Converts all html encoded special characters

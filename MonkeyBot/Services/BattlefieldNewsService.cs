@@ -28,7 +28,7 @@ namespace MonkeyBot.Services
         }
 
         public void Start()
-            => schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync().ConfigureAwait(false), 10);
+            => schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync(), 10);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {
@@ -36,36 +36,36 @@ namespace MonkeyBot.Services
             {
                 return;
             }
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID).ConfigureAwait(false);
+            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID);
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;
-            await guildService.UpdateConfigAsync(cfg).ConfigureAwait(false);
-            await GetUpdateForGuildAsync(await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false), guild).ConfigureAwait(false);
+            await guildService.UpdateConfigAsync(cfg);
+            await GetUpdateForGuildAsync(await GetLatestBattlefieldVUpdateAsync(), guild);
         }
 
         public async Task DisableForGuildAsync(ulong guildID)
         {
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID).ConfigureAwait(false);
+            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID);
             if (cfg.BattlefieldUpdatesEnabled)
             {
                 cfg.BattlefieldUpdatesEnabled = false;
-                await guildService.UpdateConfigAsync(cfg).ConfigureAwait(false);
+                await guildService.UpdateConfigAsync(cfg);
             }
         }
 
         private async Task GetUpdatesAsync()
         {
-            BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync().ConfigureAwait(false);
+            BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync();
 
             foreach (DiscordGuild guild in discordClient?.Guilds.Values)
             {
-                await GetUpdateForGuildAsync(latestBattlefieldVUpdate, guild).ConfigureAwait(false);
+                await GetUpdateForGuildAsync(latestBattlefieldVUpdate, guild);
             }
         }
 
         private async Task GetUpdateForGuildAsync(BattlefieldVUpdate latestBattlefieldVUpdate, DiscordGuild guild)
         {
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guild.Id).ConfigureAwait(false);
+            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guild.Id);
             if (cfg == null || !cfg.BattlefieldUpdatesEnabled)
             {
                 return;
@@ -86,16 +86,16 @@ namespace MonkeyBot.Services
                 .WithTitle("New Battlefield V Update")
                 .WithDescription($"[{latestBattlefieldVUpdate.Title}]({latestBattlefieldVUpdate.UpdateUrl})")
                 .WithFooter(latestBattlefieldVUpdate.UpdateDate.ToString());
-            _ = await (channel?.SendMessageAsync("", false, builder.Build())).ConfigureAwait(false);
+            _ = await (channel?.SendMessageAsync("", false, builder.Build()));
 
             cfg.LastBattlefieldUpdate = latestBattlefieldVUpdate.UpdateDate;
-            await guildService.UpdateConfigAsync(cfg).ConfigureAwait(false);
+            await guildService.UpdateConfigAsync(cfg);
         }
 
         private static async Task<BattlefieldVUpdate> GetLatestBattlefieldVUpdateAsync()
         {
             var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news").ConfigureAwait(false);
+            HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news");
             HtmlNode latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
             string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml;
             string sUpdateDate = latestUpdate?.SelectNodes(".//div")?.LastOrDefault()?.InnerHtml;

@@ -31,28 +31,28 @@ namespace MonkeyBot.Modules
 
             if (message == null)
             {
-                _ = await ctx.ErrorAsync("Message not found.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Message not found.");
                 return;
             }
 
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Role not found.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Role not found.");
                 return;
             }
 
             if (emoji == null)
             {
-                _ = await ctx.RespondAsync("Emoji not found.").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("Emoji not found.");
                 return;
             }
-            if (await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false))
+            if (await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id))
             {
-                _ = await ctx.RespondAsync("The specified link already exists").ConfigureAwait(false);
+                _ = await ctx.RespondAsync("The specified link already exists");
                 return;
             }
-            await roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString()).ConfigureAwait(false);
-            _ = await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role").ConfigureAwait(false);
+            await roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString());
+            _ = await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role");
         }
 
         [Command("RemoveRoleLink")]
@@ -61,40 +61,40 @@ namespace MonkeyBot.Modules
         {
             if (message == null)
             {
-                _ = await ctx.ErrorAsync("Message not found.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Message not found.");
                 return;
             }
 
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Role not found.").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("Role not found.");
                 return;
             }
-            if (!(await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false)))
+            if (!(await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id)))
             {
-                _ = await ctx.ErrorAsync("The specified link does not exist").ConfigureAwait(false);
+                _ = await ctx.ErrorAsync("The specified link does not exist");
                 return;
             }
-            await roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id).ConfigureAwait(false);
-            _ = await ctx.OkAsync($"Role {role.Name} successfully unlinked.").ConfigureAwait(false);
+            await roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id);
+            _ = await ctx.OkAsync($"Role {role.Name} successfully unlinked.");
         }
 
         [Command("RemoveAllRoleLinks")]
         [Description("Removes all Role Button Links")]
         public async Task RemoveAllAsync(CommandContext ctx)
         {
-            await roleButtonService.RemoveAllRoleButtonLinksAsync(ctx.Guild.Id).ConfigureAwait(false);
-            _ = await ctx.OkAsync("All Role Button Links removed").ConfigureAwait(false);
+            await roleButtonService.RemoveAllRoleButtonLinksAsync(ctx.Guild.Id);
+            _ = await ctx.OkAsync("All Role Button Links removed");
         }
 
         [Command("ListRoleLinks")]
         [Description("Lists all Role Button Links")]
         public async Task ListAsync(CommandContext ctx)
         {
-            string links = await roleButtonService.ListAllAsync(ctx.Guild.Id).ConfigureAwait(false);
+            string links = await roleButtonService.ListAllAsync(ctx.Guild.Id);
             _ = !links.IsEmptyOrWhiteSpace()
-                ? await ctx.OkAsync(links, "Role links").ConfigureAwait(false)
-                : await ctx.ErrorAsync("No role button links set up yet").ConfigureAwait(false);
+                ? await ctx.OkAsync(links, "Role links")
+                : await ctx.ErrorAsync("No role button links set up yet");
         }
     }
 }
