@@ -10,9 +10,9 @@ namespace DSharpPlus.CommandsNext
     {
         private static DiscordEmoji trashCan = DiscordEmoji.FromUnicode("🗑");
 
-        public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, bool isTTS = false, DiscordEmbed embed = null)
+        public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, DiscordEmbed embed = null)
         {
-            DiscordMessage msg = await ctx.RespondAsync(content, isTTS, embed);
+            DiscordMessage msg = await ctx.RespondAsync(content, embed);
             await msg.CreateReactionAsync(trashCan);
             var interactivity = ctx.Client.GetInteractivity();
             var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30));

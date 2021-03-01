@@ -127,7 +127,7 @@ namespace MonkeyBot.Services
                 }
                 else
                 {
-                    discordGameServer.MessageID = (await (channel?.SendMessageAsync("", false, builder.Build()))).Id;
+                    discordGameServer.MessageID = (await (channel?.SendMessageAsync(builder.Build()))).Id;
                     _ = dbContext.GameServers.Update(discordGameServer);
                     _ = await dbContext.SaveChangesAsync();
                 }

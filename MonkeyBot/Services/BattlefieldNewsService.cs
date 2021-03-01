@@ -86,7 +86,7 @@ namespace MonkeyBot.Services
                 .WithTitle("New Battlefield V Update")
                 .WithDescription($"[{latestBattlefieldVUpdate.Title}]({latestBattlefieldVUpdate.UpdateUrl})")
                 .WithFooter(latestBattlefieldVUpdate.UpdateDate.ToString());
-            _ = await (channel?.SendMessageAsync("", false, builder.Build()));
+            _ = await (channel?.SendMessageAsync(builder.Build()));
 
             cfg.LastBattlefieldUpdate = latestBattlefieldVUpdate.UpdateDate;
             await guildService.UpdateConfigAsync(cfg);

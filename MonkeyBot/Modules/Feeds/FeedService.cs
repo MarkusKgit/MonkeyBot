@@ -177,7 +177,7 @@ namespace MonkeyBot.Services
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
                     _ = builder.AddField(fieldName, fieldContent, true);
                 }
-                _ = await (channel?.SendMessageAsync("", false, builder.Build()));
+                _ = await (channel?.SendMessageAsync(builder.Build()));
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
