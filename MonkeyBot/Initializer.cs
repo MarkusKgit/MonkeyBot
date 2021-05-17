@@ -74,7 +74,7 @@ namespace MonkeyBot
             };
             logConfig.AddTarget(fileTarget);
 
-            logConfig.AddRule(NLog.LogLevel.Warn, NLog.LogLevel.Fatal, coloredConsoleTarget);
+            logConfig.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, coloredConsoleTarget);
             logConfig.AddRuleForAllLevels(debugTarget);
             logConfig.AddRuleForAllLevels(fileTarget);
 
