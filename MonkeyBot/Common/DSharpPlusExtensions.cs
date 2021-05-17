@@ -15,16 +15,20 @@ namespace DSharpPlus.CommandsNext
             DiscordMessage msg = await ctx.RespondAsync(content, embed);
             await msg.CreateReactionAsync(trashCan);
             var interactivity = ctx.Client.GetInteractivity();
-            var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30));
-            if (interactivityResult.TimedOut)
+            _ = Task.Run(async () =>
             {
-                await msg.DeleteOwnReactionAsync(trashCan);                
-            }
-            else
-            {
-                await ctx.Message.DeleteAsync();
-                await msg.DeleteAsync();
-            }
+                var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30));
+                if (interactivityResult.TimedOut)
+                {
+                    await msg.DeleteOwnReactionAsync(trashCan);
+                }
+                else
+                {
+                    await ctx.Message.DeleteAsync();
+                    await msg.DeleteAsync();
+                }
+            });
+            
             return msg;
         }
 
