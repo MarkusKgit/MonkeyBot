@@ -7,20 +7,30 @@ using System.Threading.Tasks;
 namespace DSharpPlus.CommandsNext
 {
     public static class DSharpPlusExtensions
-    {
-        private static DiscordEmoji trashCan = DiscordEmoji.FromUnicode("🗑");
+    {        
+        private static DiscordComponentEmoji trashCan = new DiscordComponentEmoji(DiscordEmoji.FromUnicode("🗑"));
 
         public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, DiscordEmbed embed = null)
         {
-            DiscordMessage msg = await ctx.RespondAsync(content, embed);
-            await msg.CreateReactionAsync(trashCan);
+            var msgBuilder = new DiscordMessageBuilder();
+            msgBuilder
+                .WithContent(content)
+                .WithEmbed(embed)
+                .AddComponents(new DiscordButtonComponent(ButtonStyle.Primary, "delete_button", "Delete", emoji: trashCan));
+            DiscordMessage msg = await ctx.RespondAsync(msgBuilder);
+
             var interactivity = ctx.Client.GetInteractivity();
+            
             _ = Task.Run(async () =>
             {
-                var interactivityResult = await interactivity.WaitForReactionAsync(x => x.Emoji == trashCan, msg, ctx.User, TimeSpan.FromSeconds(30));
+                var interactivityResult = await interactivity.WaitForButtonAsync(msg, ctx.User, TimeSpan.FromSeconds(30));
                 if (interactivityResult.TimedOut)
-                {
-                    await msg.DeleteOwnReactionAsync(trashCan);
+                {   
+                    await msg.ModifyAsync(b => { 
+                        b.Clear();
+                        b.WithContent(content);
+                        b.WithEmbed(embed); 
+                    });
                 }
                 else
                 {
