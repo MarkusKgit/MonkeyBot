@@ -40,7 +40,7 @@ namespace MonkeyBot.Services
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;
             await guildService.UpdateConfigAsync(cfg);
-            await GetUpdateForGuildAsync(await GetLatestBattlefieldVUpdateAsync(), guild);
+            await GetUpdateForGuildAsync(await GetLatestBattlefieldUpdateAsync(), guild);
         }
 
         public async Task DisableForGuildAsync(ulong guildID)
@@ -55,7 +55,7 @@ namespace MonkeyBot.Services
 
         private async Task GetUpdatesAsync()
         {
-            BattlefieldVUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldVUpdateAsync();
+            BattlefieldUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldUpdateAsync();
 
             foreach (DiscordGuild guild in discordClient?.Guilds.Values)
             {
@@ -63,7 +63,7 @@ namespace MonkeyBot.Services
             }
         }
 
-        private async Task GetUpdateForGuildAsync(BattlefieldVUpdate latestBattlefieldVUpdate, DiscordGuild guild)
+        private async Task GetUpdateForGuildAsync(BattlefieldUpdate latestBattlefieldUpdate, DiscordGuild guild)
         {
             GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guild.Id);
             if (cfg == null || !cfg.BattlefieldUpdatesEnabled)
@@ -77,34 +77,39 @@ namespace MonkeyBot.Services
                 return;
             }
             DateTime lastUpdateUTC = cfg.LastBattlefieldUpdate ?? DateTime.MinValue;
-            if (lastUpdateUTC >= latestBattlefieldVUpdate.UpdateDate)
+            if (lastUpdateUTC >= latestBattlefieldUpdate.UpdateDate)
             {
                 return;
             }
             var builder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(21, 26, 35))
-                .WithTitle("New Battlefield V Update")
-                .WithDescription($"[{latestBattlefieldVUpdate.Title}]({latestBattlefieldVUpdate.UpdateUrl})")
-                .WithFooter(latestBattlefieldVUpdate.UpdateDate.ToString());
+                .WithTitle("New Battlefield Update")
+                .WithDescription($"[{latestBattlefieldUpdate.Title}]({latestBattlefieldUpdate.UpdateUrl})\n{latestBattlefieldUpdate.Description}")
+                .WithImageUrl(latestBattlefieldUpdate.ImgUrl)
+                .WithFooter(latestBattlefieldUpdate.UpdateDate.ToString());
             _ = await (channel?.SendMessageAsync(builder.Build()));
 
-            cfg.LastBattlefieldUpdate = latestBattlefieldVUpdate.UpdateDate;
+            cfg.LastBattlefieldUpdate = latestBattlefieldUpdate.UpdateDate;
             await guildService.UpdateConfigAsync(cfg);
         }
 
-        private static async Task<BattlefieldVUpdate> GetLatestBattlefieldVUpdateAsync()
+        private static async Task<BattlefieldUpdate> GetLatestBattlefieldUpdateAsync()
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news");
             HtmlNode latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
-            string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml;
+            string imgUrl = latestUpdate?.GetAttributeValue<string>("media", "");
+            string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml.Trim();
+            string description = latestUpdate?.SelectSingleNode(".//ea-tile-copy")?.InnerHtml?.Trim();
             string sUpdateDate = latestUpdate?.SelectNodes(".//div")?.LastOrDefault()?.InnerHtml;
-            string link = latestUpdate?.SelectNodes(".//ea-cta")?.FirstOrDefault()?.Attributes["link-url"]?.Value;
-            return !string.IsNullOrEmpty(title)
+            string link = latestUpdate?.SelectSingleNode(".//ea-cta")?.Attributes["link-url"]?.Value;
+            return  !string.IsNullOrEmpty(imgUrl)
+                    && !string.IsNullOrEmpty(title)
+                    && !string.IsNullOrEmpty(description)
                     && !string.IsNullOrEmpty(sUpdateDate)
                     && !string.IsNullOrEmpty(link)
                     && DateTime.TryParseExact(sUpdateDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate)
-                ? new BattlefieldVUpdate { Title = title, UpdateUrl = $"https://www.battlefield.com{link}", UpdateDate = parsedDate.ToUniversalTime() }
+                ? new BattlefieldUpdate (imgUrl, title, description, $"https://www.battlefield.com{link}", parsedDate.ToUniversalTime())
                 : null;
         }
     }
