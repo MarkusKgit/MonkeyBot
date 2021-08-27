@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -11,7 +11,7 @@ namespace MonkeyBot.Services
     // https://docs.thecatapi.com/
     public class CatService : ICatService
     {
-        private readonly IHttpClientFactory clientFactory;
+        private readonly IHttpClientFactory _clientFactory;
 
         private static readonly Uri baseApiUri = new Uri("https://api.thecatapi.com/v1/");
         private static Uri GetRandomPictureForBreedUri(string breedId) => new Uri(baseApiUri, $"images/search?size=small&breed_id={breedId}");
@@ -20,7 +20,7 @@ namespace MonkeyBot.Services
 
         public CatService(IHttpClientFactory clientFactory)
         {
-            this.clientFactory = clientFactory;
+            _clientFactory = clientFactory;
         }
 
         public async Task<Uri> GetRandomPictureUrlAsync(string breed = "")
@@ -34,53 +34,49 @@ namespace MonkeyBot.Services
                     return null;
                 }
             }
-            HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(GetRandomPictureForBreedUri(breedId));
-
-            if (!json.IsEmpty())
+            var httpClient = _clientFactory.CreateClient();
+            try
             {
-                List<CatResponse> cats = JsonSerializer.Deserialize<List<CatResponse>>(json);
+                var cats = await httpClient.GetFromJsonAsync<List<CatResponse>>(GetRandomPictureForBreedUri(breedId));
                 if (cats != null && cats.Count == 1)
                 {
                     return cats.First().Url;
                 }
             }
+            catch { }
             return null;
         }
 
         public async Task<List<string>> GetBreedsAsync()
         {
-            HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(breedsUri);
-
-            if (!json.IsEmpty())
+            var httpClient = _clientFactory.CreateClient();
+            try
             {
-                List<CatBreedsResponse> catBreeds = JsonSerializer.Deserialize<List<CatBreedsResponse>>(json);
-                if (catBreeds != null && catBreeds.Count > 0)
-                {
-                    return catBreeds.Select(x => x.Name).ToList();
-                }
+                var catBreeds = await httpClient.GetFromJsonAsync<List<CatBreedsResponse>>(breedsUri);
+                return catBreeds.Select(x => x.Name).ToList();
             }
-            return Enumerable.Empty<string>().ToList();
+            catch
+            {
+                return new List<string>();
+            }
         }
 
         private async Task<string> GetBreedIdAsync(string breed)
         {
-            if (!breed.IsEmpty())
+            var httpClient = _clientFactory.CreateClient();
+            try
             {
-                HttpClient httpClient = clientFactory.CreateClient();
-                string json = await httpClient.GetStringAsync(SearchBreedUri(breed));
-
-                if (!json.IsEmpty())
+                var catBreeds = await httpClient.GetFromJsonAsync<List<CatBreedsResponse>>(SearchBreedUri(breed));
+                if (catBreeds != null && catBreeds.Count == 1)
                 {
-                    List<CatBreedsResponse> catBreeds = JsonSerializer.Deserialize<List<CatBreedsResponse>>(json);
-                    if (catBreeds != null && catBreeds.Count == 1)
-                    {
-                        return catBreeds.First().Id;
-                    }
+                    return catBreeds.First().Id;
                 }
             }
+            catch { }
             return "";
         }
     }
+
+    public record CatResponse(Uri Url) { }
+    public record CatBreedsResponse(string Id, string Name) { }
 }

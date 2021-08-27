@@ -28,7 +28,7 @@ namespace MonkeyBot.Modules
             string fact = await (chuckService?.GetChuckFactAsync());
             _ = fact.IsEmpty()
                 ? await ctx.ErrorAsync("Could not get a chuck fact :(")
-                : await ctx.OkAsync(fact, "Random Chuck Norris fact");
+                : await ctx.OkAsync(fact, "Random Chuck Norris fact", false);
         }
 
         [Command("Chuck")]
@@ -46,8 +46,8 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("Could not get a chuck fact :(");
                 return;
             }
-            fact = fact.Replace(user.Username, user.Mention);
-            _ = await ctx.OkAsync(fact, $"Random {user.Username} Norris fact");
+            fact = fact.Replace(user.Username, $"Chuck \"*{user.Mention}*\"");
+            _ = await ctx.OkAsync(fact, $"Random Chuck \"*{user.Username}*\" Norris fact", false);
         }
     }
 }

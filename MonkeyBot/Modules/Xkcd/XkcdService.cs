@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace MonkeyBot.Services
 {
     public class XkcdService : IXkcdService
     {
-        private readonly IHttpClientFactory clientFactory;
+        private readonly IHttpClientFactory _clientFactory;
 
         // https://xkcd.com/~comicNumber~
         // display Url of comic is baseUrl + /comic Number
@@ -20,7 +21,7 @@ namespace MonkeyBot.Services
 
         public XkcdService(IHttpClientFactory clientFactory)
         {
-            this.clientFactory = clientFactory;
+            _clientFactory = clientFactory;
         }
 
         public async Task<XkcdResponse> GetComicAsync(int number)
@@ -48,11 +49,11 @@ namespace MonkeyBot.Services
 
         private async Task<XkcdResponse> GetComicAsync(Uri apiEndPoint)
         {
-            HttpClient httpClient = clientFactory.CreateClient();
+            HttpClient httpClient = _clientFactory.CreateClient();
             try
             {
-                string response = await httpClient.GetStringAsync(apiEndPoint);
-                return JsonSerializer.Deserialize<XkcdResponse>(response);
+                var xkcdResponse = await httpClient.GetFromJsonAsync<XkcdResponse>(apiEndPoint);
+                return xkcdResponse;
             }
             catch
             {

@@ -1,7 +1,7 @@
 ﻿using MonkeyBot.Common;
 using System;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -9,13 +9,13 @@ namespace MonkeyBot.Services
     //http://www.icndb.com/api/
     public class ChuckService : IChuckService
     {
-        private readonly IHttpClientFactory clientFactory;
+        private readonly IHttpClientFactory _clientFactory;
 
         private static readonly Uri randomJokeApiUrl = new Uri("http://api.icndb.com/jokes/random");
 
         public ChuckService(IHttpClientFactory clientFactory)
         {
-            this.clientFactory = clientFactory;
+            _clientFactory = clientFactory;
         }
 
         public Task<string> GetChuckFactAsync()
@@ -29,17 +29,20 @@ namespace MonkeyBot.Services
 
         private async Task<string> GetJokeAsync(Uri uri)
         {
-            HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(uri);
-            if (!json.IsEmpty())
+            HttpClient httpClient = _clientFactory.CreateClient();
+            try
             {
-                ChuckResponse chuckResponse = JsonSerializer.Deserialize<ChuckResponse>(json);
+                var chuckResponse = await httpClient.GetFromJsonAsync<ChuckResponse>(uri);
                 if (chuckResponse.Type == "success" && chuckResponse.Value != null)
                 {
                     return MonkeyHelpers.CleanHtmlString(chuckResponse.Value.Joke);
                 }
             }
+            catch { }
             return string.Empty;
         }
     }
+
+    public record ChuckResponse(string Type, ChuckJoke Value) { }
+    public record ChuckJoke(string Joke) { }
 }

@@ -49,6 +49,7 @@ namespace MonkeyBot.Services
             if (cfg.BattlefieldUpdatesEnabled)
             {
                 cfg.BattlefieldUpdatesEnabled = false;
+                cfg.LastBattlefieldUpdate = null;
                 await guildService.UpdateConfigAsync(cfg);
             }
         }

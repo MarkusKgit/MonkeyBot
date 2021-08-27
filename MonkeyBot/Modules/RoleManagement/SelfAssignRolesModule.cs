@@ -94,7 +94,7 @@ namespace MonkeyBot.Modules
                     ? builder.AddField(role.Name, string.Join(", ", roleUsers), false)
                     : builder.AddField(role.Name, "-", false);
             }
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondDeletableAsync(builder.Build());
         }
 
         [Command("ListRoleMembers")]
@@ -116,7 +116,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"These are the users assigned to the {role.Name} role:")
                 .WithDescription(string.Join(", ", roleUsers));
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondDeletableAsync(builder.Build());
         }
 
         private static async Task<DiscordRole> GetBotRoleAsync(CommandContext ctx)

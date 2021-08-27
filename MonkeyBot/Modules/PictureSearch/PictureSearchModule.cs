@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"Random image for \"{searchterm}\"")
                 .WithImageUrl(pictureURL);
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondAsync(builder.Build());
         }
     }
 }

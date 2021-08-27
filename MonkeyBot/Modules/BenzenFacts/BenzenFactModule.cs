@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                     .WithColor(DiscordColor.DarkBlue)
                     .WithTitle($"Benzen Fact #{randomOffset + 1}")
                     .WithDescription(fact);
-                _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+                _ = await ctx.RespondAsync(builder.Build());
             }
         }
 

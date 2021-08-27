@@ -34,7 +34,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"Rules of {ctx.Guild.Name}")
                 .WithDescription(string.Join(Environment.NewLine, rules));
 
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondDeletableAsync(builder.Build());
 
         }
     }

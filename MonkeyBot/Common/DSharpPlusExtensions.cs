@@ -42,22 +42,32 @@ namespace DSharpPlus.CommandsNext
             return msg;
         }
 
-        public static async Task<DiscordMessage> OkAsync(this CommandContext ctx, string message, string title = "")
+        public static Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content)
+            => RespondDeletableAsync(ctx, content, null);
+
+        public static Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, DiscordEmbed embed)
+            => RespondDeletableAsync(ctx, null, embed);
+
+        public static async Task<DiscordMessage> OkAsync(this CommandContext ctx, string message, string title = "", bool deletable = true)
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Green)
                 .WithTitle(title.IsEmptyOrWhiteSpace() ? "👍" : title)
                 .WithDescription(message);
-            return await ctx.RespondDeletableAsync(embed: builder.Build());
+            return deletable 
+                ? await ctx.RespondDeletableAsync(builder.Build())
+                : await ctx.RespondAsync(builder.Build());
         }
 
-        public static async Task<DiscordMessage> ErrorAsync(this CommandContext ctx, string message, string title = "")
+        public static async Task<DiscordMessage> ErrorAsync(this CommandContext ctx, string message, string title = "", bool deletable = true)
         {            
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Red)
                 .WithTitle(title.IsEmptyOrWhiteSpace() ? "🚫" : title)
                 .WithDescription(message);
-            return await ctx.RespondDeletableAsync(embed: builder.Build());
+            return deletable
+                ? await ctx.RespondDeletableAsync(builder.Build())
+                : await ctx.RespondAsync(builder.Build());
         }
     }
 }

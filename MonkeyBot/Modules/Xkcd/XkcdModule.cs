@@ -59,7 +59,7 @@ namespace MonkeyBot.Modules
             string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
             var builder = new DiscordEmbedBuilder()
                 .WithImageUrl(comic.ImgUrl)
-                .WithAuthor($"xkcd #{comic.Number}", comicUrl, "https://xkcd.com/s/0b7742.png")
+                .WithAuthor($"xkcd #{comic.Number}", comicUrl, "https://xkcd.com/s/0b7742.png")                
                 .WithTitle(comic.SafeTitle)
                 .WithDescription(comic.Alt);
             if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
@@ -67,7 +67,7 @@ namespace MonkeyBot.Modules
                 var date = new DateTime(year, month, day);
                 _ = builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondAsync(builder.Build());
         }
     }
 }

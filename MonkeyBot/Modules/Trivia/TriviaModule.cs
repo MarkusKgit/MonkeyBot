@@ -61,7 +61,7 @@ namespace MonkeyBot.Modules
                     .WithColor(new DiscordColor(46, 191, 84))
                     .WithTitle("Trivia high scores")
                     .WithDescription(highScores);
-                _ = await ctx.RespondDeletableAsync("", embed: embedBuilder.Build());
+                _ = await ctx.RespondAsync("", embed: embedBuilder.Build());
             }
             else
             {

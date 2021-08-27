@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -11,7 +11,7 @@ namespace MonkeyBot.Services
     // https://dog.ceo/dog-api/documentation/
     public class DogService : IDogService
     {
-        private readonly IHttpClientFactory clientFactory;
+        private readonly IHttpClientFactory _clientFactory;
 
         private static readonly Uri baseApiUri = new Uri("https://dog.ceo/api/");
         private static readonly Uri randomPictureUri = new Uri(baseApiUri, "breeds/image/random");
@@ -20,41 +20,42 @@ namespace MonkeyBot.Services
 
         public DogService(IHttpClientFactory clientFactory)
         {
-            this.clientFactory = clientFactory;
+            _clientFactory = clientFactory;
         }
-        
+
         public async Task<Uri> GetRandomPictureUrlAsync(string breed = "")
         {
             Uri apiUri = string.IsNullOrEmpty(breed) ? randomPictureUri : GetRandomPictureForBreedUri(breed);
 
-            HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(apiUri);
-
-            if (!json.IsEmpty())
+            var httpClient = _clientFactory.CreateClient();
+            try
             {
-                DogResponse dogResponse = JsonSerializer.Deserialize<DogResponse>(json);
+                var dogResponse = await httpClient.GetFromJsonAsync<DogResponse>(apiUri);
                 if (dogResponse.Status == "success" && dogResponse.Message != null)
                 {
                     return new Uri(dogResponse.Message);
                 }
             }
+            catch { }
             return null;
         }
 
         public async Task<List<string>> GetBreedsAsync()
         {
-            HttpClient httpClient = clientFactory.CreateClient();
-            string json = await httpClient.GetStringAsync(breedsUri);
-
-            if (!json.IsEmpty())
+            var httpClient = _clientFactory.CreateClient();
+            try
             {
-                DogBreedsResponse dogResponse = JsonSerializer.Deserialize<DogBreedsResponse>(json);
-                if (dogResponse.Status == "success" && dogResponse.Message != null)
+                var dogBreedsResponse = await httpClient.GetFromJsonAsync<DogBreedsResponse>(breedsUri);
+                if (dogBreedsResponse.Status == "success" && dogBreedsResponse.Message != null)
                 {
-                    return dogResponse.Message.Keys.Select(breed => breed.Pascalize()).ToList();
+                    return dogBreedsResponse.Message.Keys.Select(breed => breed.Pascalize()).ToList();
                 }
             }
-            return Enumerable.Empty<string>().ToList();
+            catch { }
+            return new List<string>();
         }
     }
+
+    public record DogResponse(string Status, string Message) { }
+    public record DogBreedsResponse(string Status, Dictionary<string, List<string>> Message) { }
 }

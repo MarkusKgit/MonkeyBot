@@ -54,7 +54,12 @@ namespace MonkeyBot.Modules
                 return;
             }
             string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
-            _ = await ctx.RespondAsync(url);
+            var builder = new DiscordEmbedBuilder()
+                .WithTitle("Let me google that for you")
+                .WithThumbnail("https://lmgtfy.com/assets/SERP/lmgtfy_logo.png")                
+                .WithDescription($"{ctx.Member.Nickname ?? ctx.Member.Username} wants to point you to a magic place filled with answers. [Just click this link]({url})")
+                .WithUrl(url);
+            _ = await ctx.RespondAsync(builder.Build());
         }
     }
 }

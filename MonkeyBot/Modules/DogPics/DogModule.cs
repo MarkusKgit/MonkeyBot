@@ -41,7 +41,7 @@ namespace MonkeyBot.Modules
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(dogColor)
                 .WithImageUrl(pictureURL);
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondAsync(embed: builder.Build());
         }
 
         [Command("Dogbreeds")]
@@ -60,7 +60,7 @@ namespace MonkeyBot.Modules
                 .WithColor(dogColor)
                 .WithTitle("Here's a list of available dog breeds:")
                 .WithDescription(string.Join(", ", breeds));
-            _ = await ctx.RespondDeletableAsync(embed: builder.Build());
+            _ = await ctx.RespondDeletableAsync(builder.Build());
         }
     }
 }
