@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
@@ -300,6 +301,18 @@ namespace MonkeyBot
             if (e.Exception is OperationCanceledException cex)
             {
                 _discordClient.Logger.LogWarning(cex, $"Command {e?.Command?.Name ?? ""} was cancelled");
+            }
+            else if (e.Exception is CommandNotFoundException commandNotFound)
+            {
+
+            }
+            else if (e.Exception is ChecksFailedException checksFailed)
+            {
+
+            }
+            else if (e.Exception is InvalidOverloadException invalidOverload)
+            {
+
             }
             else
             {
