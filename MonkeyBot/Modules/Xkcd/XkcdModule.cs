@@ -12,13 +12,13 @@ namespace MonkeyBot.Modules
     [Description("Xkcd comics")]
     public class XkcdModule : BaseCommandModule
     {
-        private readonly IXkcdService xkcdService;
-        private readonly ILogger logger;
+        private readonly IXkcdService _xkcdService;
+        private readonly ILogger _logger;
 
         public XkcdModule(IXkcdService xkcdService, ILogger<XkcdModule> logger)
         {
-            this.xkcdService = xkcdService;
-            this.logger = logger;
+            _xkcdService = xkcdService;
+            _logger = logger;
         }
 
         [Command("xkcd")]
@@ -32,13 +32,13 @@ namespace MonkeyBot.Modules
 
             if (arg.Equals("latest", StringComparison.OrdinalIgnoreCase))
             {
-                comic = await xkcdService.GetLatestComicAsync();
+                comic = await _xkcdService.GetLatestComicAsync();
             }
             else if (int.TryParse(arg, out int comicNumber))
             {
                 try
                 {
-                    comic = await xkcdService.GetComicAsync(comicNumber);
+                    comic = await _xkcdService.GetComicAsync(comicNumber);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -47,16 +47,16 @@ namespace MonkeyBot.Modules
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error while getting xkcd comic");
+                    _logger.LogError(ex, "Error while getting xkcd comic");
                     return;
                 }
             }
             else
             {
-                comic = await xkcdService.GetRandomComicAsync();
+                comic = await _xkcdService.GetRandomComicAsync();
             }
 
-            string comicUrl = xkcdService.GetComicUrl(comic.Number).ToString();
+            string comicUrl = _xkcdService.GetComicUrl(comic.Number).ToString();
             var builder = new DiscordEmbedBuilder()
                 .WithImageUrl(comic.ImgUrl)
                 .WithAuthor($"xkcd #{comic.Number}", comicUrl, "https://xkcd.com/s/0b7742.png")                

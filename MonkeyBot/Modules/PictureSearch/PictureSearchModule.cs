@@ -13,11 +13,11 @@ namespace MonkeyBot.Modules
     [Description("Picture search")]
     public class PictureSearchModule : BaseCommandModule
     {
-        private readonly IPictureSearchService pictureSearchService;
+        private readonly IPictureSearchService _pictureSearchService;
 
         public PictureSearchModule(IPictureSearchService pictureSearchService)
         {
-            this.pictureSearchService = pictureSearchService;
+            _pictureSearchService = pictureSearchService;
         }
 
         [Command("Picture")]
@@ -33,7 +33,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            Uri pictureURL = await (pictureSearchService?.GetRandomPictureUrlAsync(searchterm));
+            Uri pictureURL = await (_pictureSearchService?.GetRandomPictureUrlAsync(searchterm));
             if (pictureURL == null)
             {
                 _ = await ctx.ErrorAsync($"Could not get a picture for {searchterm} :(.");

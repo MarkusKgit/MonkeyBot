@@ -14,18 +14,18 @@ namespace MonkeyBot.Services
 {
     public class PollService : IPollService
     {
-        private readonly DiscordClient discordClient;
-        private readonly MonkeyDBContext dbContext;
+        private readonly DiscordClient _discordClient;
+        private readonly MonkeyDBContext _dbContext;
 
         public PollService(DiscordClient discordClient, MonkeyDBContext dbContext)
         {
-            this.discordClient = discordClient;
-            this.dbContext = dbContext;
+            _discordClient = discordClient;
+            _dbContext = dbContext;
         }
 
         public async Task AddAndStartPollAsync(Poll poll)
         {
-            DiscordGuild guild = await discordClient.GetGuildAsync(poll.GuildId);
+            DiscordGuild guild = await _discordClient.GetGuildAsync(poll.GuildId);
             DiscordChannel channel = guild?.GetChannel(poll.ChannelId);
             DiscordMessage pollMessage = await channel.GetMessageAsync(poll.MessageId);
             Dictionary<DiscordEmoji, string> emojiMapping = GetEmojiMapping(poll.PossibleAnswers);
@@ -36,15 +36,15 @@ namespace MonkeyBot.Services
             }
             await pollMessage.PinAsync();
 
-            _ = await dbContext.Polls.AddAsync(poll);
-            _ = await dbContext.SaveChangesAsync();
+            _ = await _dbContext.Polls.AddAsync(poll);
+            _ = await _dbContext.SaveChangesAsync();
 
             await StartPollAsync(poll);
         }
 
         private async Task StartPollAsync(Poll poll)
         {
-            DiscordGuild guild = await discordClient.GetGuildAsync(poll.GuildId);
+            DiscordGuild guild = await _discordClient.GetGuildAsync(poll.GuildId);
             DiscordChannel channel = guild?.GetChannel(poll.ChannelId);
             DiscordMember pollCreator = await guild.GetMemberAsync(poll.CreatorId);
             Dictionary<DiscordEmoji, string> emojiMapping = GetEmojiMapping(poll.PossibleAnswers);
@@ -75,19 +75,19 @@ namespace MonkeyBot.Services
                 );
             _ = await channel.SendMessageAsync(embed: pollResultEmbed.Build());
 
-            _ = dbContext.Polls.Remove(poll);
-            _ = await dbContext.SaveChangesAsync();
+            _ = _dbContext.Polls.Remove(poll);
+            _ = await _dbContext.SaveChangesAsync();
         }
 
         public async Task InitializeAsync()
         {
-            List<Poll> dbPolls = await dbContext.Polls.ToListAsync();
+            List<Poll> dbPolls = await _dbContext.Polls.ToListAsync();
             var pastPolls = dbPolls.Where(p => p.EndTimeUTC < DateTime.UtcNow);
             //TODO: Decide with what to do with past polls. Show result if the overdue time is not too large? For now just delete from DB
             if (pastPolls.Any())
             {
-                dbContext.Polls.RemoveRange(pastPolls);
-                await dbContext.SaveChangesAsync();
+                _dbContext.Polls.RemoveRange(pastPolls);
+                await _dbContext.SaveChangesAsync();
             }
 
             foreach (Poll poll in dbPolls.Where(p => p.EndTimeUTC > DateTime.UtcNow))

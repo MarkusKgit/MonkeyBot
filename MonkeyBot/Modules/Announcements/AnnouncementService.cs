@@ -16,17 +16,17 @@ namespace MonkeyBot.Services
     /// </summary>
     public class AnnouncementService : IAnnouncementService
     {
-        private readonly MonkeyDBContext dbContext;
-        private readonly DiscordClient discordClient;
-        private readonly ISchedulingService schedulingService;
-        private readonly ILogger<AnnouncementService> logger;
+        private readonly MonkeyDBContext _dbContext;
+        private readonly DiscordClient _discordClient;
+        private readonly ISchedulingService _schedulingService;
+        private readonly ILogger<AnnouncementService> _logger;
 
         public AnnouncementService(MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<AnnouncementService> logger)
         {
-            this.dbContext = dbContext;
-            this.discordClient = discordClient;
-            this.schedulingService = schedulingService;
-            this.logger = logger;
+            _dbContext = dbContext;
+            _discordClient = discordClient;
+            _schedulingService = schedulingService;
+            _logger = logger;
         }
 
         public async Task InitializeAsync()
@@ -52,14 +52,14 @@ namespace MonkeyBot.Services
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Recurring, GuildID = guildID, ChannelID = channelID, CronExpression = cronExpression, Name = name, Message = message };
             AddRecurringJob(announcement);
-            _ = dbContext.Announcements.Add(announcement);
-            return dbContext.SaveChangesAsync();
+            _ = _dbContext.Announcements.Add(announcement);
+            return _dbContext.SaveChangesAsync();
         }
 
         private void AddRecurringJob(Announcement announcement)
         {
             string id = GetUniqueId(announcement);
-            schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID));
+            _schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID));
         }
 
         /// <summary>
@@ -83,8 +83,8 @@ namespace MonkeyBot.Services
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Once, GuildID = guildID, ChannelID = channelID, ExecutionTime = excecutionTime, Name = name, Message = message };
             AddSingleJob(announcement);
-            _ = dbContext.Announcements.Add(announcement);
-            return dbContext.SaveChangesAsync();
+            _ = _dbContext.Announcements.Add(announcement);
+            return _dbContext.SaveChangesAsync();
         }
 
         private void AddSingleJob(Announcement announcement)
@@ -92,7 +92,7 @@ namespace MonkeyBot.Services
             // The announcment's name must be unique on a per guild basis
             string uniqueName = GetUniqueId(announcement);
             // Add a new RunOnce job with the provided ID to the Scheduling Service
-            schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, async () =>
+            _schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, async () =>
                 {
                     await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID);
                     await RemovePastJobsAsync();
@@ -112,15 +112,15 @@ namespace MonkeyBot.Services
             {
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             }
-            schedulingService.RemoveJob(GetUniqueId(announcement));
+            _schedulingService.RemoveJob(GetUniqueId(announcement));
             try
             {
-                _ = dbContext.Announcements.Remove(announcement);
-                _ = await dbContext.SaveChangesAsync();
+                _ = _dbContext.Announcements.Remove(announcement);
+                _ = await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error removing Announcement");
+                _logger.LogError(ex, "Error removing Announcement");
             }
 
         }
@@ -139,19 +139,19 @@ namespace MonkeyBot.Services
             {
                 throw new ArgumentException("The announcement with the specified ID does not exist");
             }
-            return schedulingService.GetNextRun(GetUniqueId(announcement));
+            return _schedulingService.GetNextRun(GetUniqueId(announcement));
         }
 
         /// <summary>Cleanup method to remove single announcements that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            List<Announcement> announcements = await dbContext.Announcements
+            List<Announcement> announcements = await _dbContext.Announcements
                 .AsQueryable()
                 .Where(x => x.Type == AnnouncementType.Once && x.ExecutionTime < DateTime.Now)
                 .ToListAsync()
                 ;
-            dbContext.RemoveRange(announcements);
-            _ = await dbContext.SaveChangesAsync();
+            _dbContext.RemoveRange(announcements);
+            _ = await _dbContext.SaveChangesAsync();
 
         }
 
@@ -173,16 +173,16 @@ namespace MonkeyBot.Services
         }
 
         private Task AnnounceAsync(string message, ulong guildID, ulong channelID)
-            => MonkeyHelpers.SendChannelMessageAsync(discordClient, guildID, channelID, message);
+            => MonkeyHelpers.SendChannelMessageAsync(_discordClient, guildID, channelID, message);
 
         private Task<List<Announcement>> GetAllAnnouncementsAsync()
-            => dbContext.Announcements.AsQueryable().ToListAsync();
+            => _dbContext.Announcements.AsQueryable().ToListAsync();
 
         public Task<List<Announcement>> GetAnnouncementsForGuildAsync(ulong guildID)
-            => dbContext.Announcements.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
+            => _dbContext.Announcements.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
 
         private Task<Announcement> GetSpecificAnnouncementAsync(ulong guildID, string announcementName)
-            => dbContext.Announcements.AsQueryable().SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
+            => _dbContext.Announcements.AsQueryable().SingleOrDefaultAsync(x => x.GuildID == guildID && x.Name == announcementName);
 
         // The announcment's name must be unique on a per guild basis
         private static string GetUniqueId(Announcement announcement) => $"{announcement.Name}-{announcement.GuildID}";

@@ -1,7 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using MonkeyBot.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,6 +66,6 @@ namespace MonkeyBot.Common
             }
 
             return AccessLevel.User; // If nothing else, return a default permission.
-        }        
+        }
     }
 }

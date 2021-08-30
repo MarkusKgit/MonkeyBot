@@ -22,18 +22,17 @@ namespace MonkeyBot.Modules
     [MinPermissions(AccessLevel.User)]
     public class PollModule : BaseCommandModule
     {
-        private readonly IPollService pollService;
+        private readonly IPollService _pollService;
 
-        private static InteractivityExtension interactivity;
-        private static Chronic.Parser timeParser;
+        private static InteractivityExtension _interactivity;
+        private static Chronic.Parser _timeParser;
 
-        private static readonly DiscordEmoji okEmoji = DiscordEmoji.FromUnicode("👍");
-        private const int timeOutSeconds = 60;
-        private readonly TimeSpan timeOut = TimeSpan.FromSeconds(timeOutSeconds);
+        private static readonly DiscordEmoji _okEmoji = DiscordEmoji.FromUnicode("👍");        
+        private static readonly TimeSpan _timeOut = TimeSpan.FromSeconds(60);
 
-        private readonly string introText =
+        private static readonly string introText =
             $"I will now guide you through the creation of the poll with a set of instructions.\n" +
-            $"You have {timeOutSeconds} seconds to answer each question \n" +
+            $"You have {_timeOut.TotalSeconds} seconds to answer each question \n" +
             $"Above you can see a preview of the poll that will get created \n\n";
 
         private const string firstInstruction = "**1. Type a poll question**";
@@ -45,8 +44,10 @@ namespace MonkeyBot.Modules
 
         public PollModule(IPollService pollService)
         {
-            this.pollService = pollService;
+            _pollService = pollService;
         }
+
+        //TODO: Convert to buttons instead of reactions
 
         [Command("Poll")]
         [Aliases("Vote")]
@@ -70,9 +71,9 @@ namespace MonkeyBot.Modules
 
             DiscordMessage setupMessage = await ctx.RespondAsync(embed: setupEmbed.Build());
 
-            interactivity ??= ctx.Client.GetInteractivity();
+            _interactivity ??= ctx.Client.GetInteractivity();
 
-            var questionReponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
+            var questionReponse = await _interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, _timeOut);
             if (questionReponse.TimedOut)
             {
                 _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
@@ -95,15 +96,15 @@ namespace MonkeyBot.Modules
             setupEmbed.WithDescription(introText + secondInstruction);
             await setupMessage.ModifyAsync(embed: setupEmbed.Build());
 
-            var timeResponse = await interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
+            var timeResponse = await _interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, _timeOut);
             if (timeResponse.TimedOut)
             {
                 _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
-            timeParser ??= new Chronic.Parser(new Chronic.Options() { Context = Chronic.Pointer.Type.Future, EndianPrecedence = Chronic.EndianPrecedence.Little, FirstDayOfWeek = DayOfWeek.Monday });
-            Chronic.Span parsedTime = timeParser.Parse(timeResponse.Result.Content);
+            _timeParser ??= new Chronic.Parser(new Chronic.Options() { Context = Chronic.Pointer.Type.Future, EndianPrecedence = Chronic.EndianPrecedence.Little, FirstDayOfWeek = DayOfWeek.Monday });
+            Chronic.Span parsedTime = _timeParser.Parse(timeResponse.Result.Content);
             if (parsedTime == null)
             {
                 _ = await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time");
@@ -125,13 +126,13 @@ namespace MonkeyBot.Modules
 
             setupEmbed.WithDescription(introText + thirdInstruction);
             await setupMessage.ModifyAsync(embed: setupEmbed.Build());
-            await setupMessage.CreateReactionAsync(okEmoji);
+            await setupMessage.CreateReactionAsync(_okEmoji);
 
             var pollAnswers = new List<string>();
             while (true)
             {
-                var addAnswerTask = interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, timeOut);
-                var okTask = interactivity.WaitForReactionAsync(r => r.User == ctx.Member && r.Emoji == okEmoji, timeOut);
+                var addAnswerTask = _interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, _timeOut);
+                var okTask = _interactivity.WaitForReactionAsync(r => r.User == ctx.Member && r.Emoji == _okEmoji, _timeOut);
                 var result = await Task.WhenAny(addAnswerTask, okTask);
 
                 if (result == addAnswerTask)
@@ -152,7 +153,7 @@ namespace MonkeyBot.Modules
                     }
                     pollAnswers.Add(pollOptionResponse.Result.Content);
                     await ctx.Channel.DeleteMessageAsync(pollOptionResponse.Result);
-                    pollEmbed.WithDescription(string.Join("\n", pollService.GetEmojiMapping(pollAnswers).Select(ans => $"{ans.Key} {ans.Value}")));
+                    pollEmbed.WithDescription(string.Join("\n", _pollService.GetEmojiMapping(pollAnswers).Select(ans => $"{ans.Key} {ans.Value}")));
                     pollMessage = await pollMessage.ModifyAsync(embed: pollEmbed.Build());
                 }
                 else
@@ -171,7 +172,7 @@ namespace MonkeyBot.Modules
 
             //Add it to the service which starts monitoring for poll reactions and adds the poll to the DB to be able to recover from Bot restarts
             Poll poll = new Poll(ctx.Guild.Id, ctx.Channel.Id, pollMessage.Id, ctx.Member.Id, pollQuestion, pollAnswers, endTime.ToUniversalTime());
-            await pollService.AddAndStartPollAsync(poll);
+            await _pollService.AddAndStartPollAsync(poll);
         }
     }
 }

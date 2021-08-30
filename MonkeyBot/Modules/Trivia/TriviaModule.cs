@@ -16,11 +16,11 @@ namespace MonkeyBot.Modules
     [RequireGuild]
     public class TriviaModule : BaseCommandModule
     {
-        private readonly ITriviaService triviaService;
+        private readonly ITriviaService _triviaService;
 
         public TriviaModule(ITriviaService triviaService)
         {
-            this.triviaService = triviaService;
+            _triviaService = triviaService;
         }
 
         [Command("Trivia")]
@@ -28,7 +28,7 @@ namespace MonkeyBot.Modules
         [Example("!trivia 5")]
         public async Task StartTriviaAsync(CommandContext ctx, [Description("The number of questions to play.")] int questionAmount = 10)
         {
-            bool success = await triviaService.StartTriviaAsync(ctx.Guild.Id, ctx.Channel.Id, questionAmount);
+            bool success = await _triviaService.StartTriviaAsync(ctx.Guild.Id, ctx.Channel.Id, questionAmount);
             if (!success)
             {
                 _ = await ctx.RespondAsync("Trivia could not be started :(");
@@ -39,7 +39,7 @@ namespace MonkeyBot.Modules
         [Description("Stops a running trivia")]
         public async Task StopTriviaAsync(CommandContext ctx)
         {
-            if (!await (triviaService?.StopTriviaAsync(ctx.Guild.Id, ctx.Channel.Id)))
+            if (!await (_triviaService?.StopTriviaAsync(ctx.Guild.Id, ctx.Channel.Id)))
             {
                 _ = await ctx.ErrorAsync($"No trivia is running! Use {ctx.Prefix}trivia to create a new one.");
             }
@@ -50,7 +50,7 @@ namespace MonkeyBot.Modules
         [Example("!triviascores 10")]
         public async Task GetScoresAsync(CommandContext ctx, [Description("The amount of scores to get.")] int amount = 5)
         {
-            IEnumerable<(ulong userId, int score)> globalScores = await triviaService.GetGlobalHighScoresAsync(ctx.Guild.Id, amount);
+            IEnumerable<(ulong userId, int score)> globalScores = await _triviaService.GetGlobalHighScoresAsync(ctx.Guild.Id, amount);
             if (globalScores != null && globalScores.Any())
             {
 

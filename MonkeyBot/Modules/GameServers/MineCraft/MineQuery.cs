@@ -13,10 +13,10 @@ namespace MonkeyBot.Services
 {
     internal sealed class MineQuery : IDisposable
     {
-        private readonly TcpClient client;
-        private List<byte> writeBuffer;
-        private int offset;
-        private readonly ILogger logger;
+        private readonly TcpClient _client;
+        private List<byte> _writeBuffer;
+        private int _offset;
+        private readonly ILogger _logger;
 
         public IPAddress Address { get; }
         public int Port { get; }
@@ -25,19 +25,19 @@ namespace MonkeyBot.Services
         {
             Address = address;
             Port = port;
-            this.logger = logger;
-            client = new TcpClient();
+            _logger = logger;
+            _client = new TcpClient();
         }
 
         public async Task<MineQueryResult> GetServerInfoAsync()
         {
-            await client.ConnectAsync(Address, Port);
-            if (!client.Connected)
+            await _client.ConnectAsync(Address, Port);
+            if (!_client.Connected)
             {
                 return null;
             }
-            writeBuffer = new List<byte>();
-            NetworkStream stream = client.GetStream();
+            _writeBuffer = new List<byte>();
+            NetworkStream stream = _client.GetStream();
 
             //Send a "Handshake" packet http://wiki.vg/Server_List_Ping#Ping_Process
 
@@ -68,7 +68,7 @@ namespace MonkeyBot.Services
                 int packet = ReadVarInt(b);
                 int jsonLength = ReadVarInt(b);
 
-                if (jsonLength > completeBuffer.Count - offset)
+                if (jsonLength > completeBuffer.Count - _offset)
                 {
                     //TODO: log receive error
                     return null;
@@ -80,28 +80,28 @@ namespace MonkeyBot.Services
             }
             catch (IOException ex)
             {
-                logger.LogError(ex, $"Couldn't get MineCraft server info for {Address}:{Port}");
+                _logger.LogError(ex, $"Couldn't get MineCraft server info for {Address}:{Port}");
                 return null;
             }
             finally
             {
-                client.Close();
+                _client.Close();
                 stream.Dispose();
             }
         }
 
         internal byte ReadByte(byte[] buffer)
         {
-            byte b = buffer[offset];
-            offset += 1;
+            byte b = buffer[_offset];
+            _offset += 1;
             return b;
         }
 
         internal byte[] Read(byte[] buffer, int length)
         {
             byte[] data = new byte[length];
-            Array.Copy(buffer, offset, data, 0, length);
-            offset += length;
+            Array.Copy(buffer, _offset, data, 0, length);
+            _offset += length;
             return data;
         }
 
@@ -131,41 +131,41 @@ namespace MonkeyBot.Services
         {
             while ((value & 128) != 0)
             {
-                writeBuffer.Add((byte)((value & 127) | 128));
+                _writeBuffer.Add((byte)((value & 127) | 128));
                 value = (int)(uint)value >> 7;
             }
-            writeBuffer.Add((byte)value);
+            _writeBuffer.Add((byte)value);
         }
 
         internal void WriteShort(short value)
-            => writeBuffer.AddRange(BitConverter.GetBytes(value));
+            => _writeBuffer.AddRange(BitConverter.GetBytes(value));
 
         internal void WriteString(string data)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(data);
             WriteVarInt(buffer.Length);
-            writeBuffer.AddRange(buffer);
+            _writeBuffer.AddRange(buffer);
         }
 
 
         internal void Flush(NetworkStream stream, int id = -1)
         {
-            byte[] buffer = writeBuffer.ToArray();
-            writeBuffer.Clear();
+            byte[] buffer = _writeBuffer.ToArray();
+            _writeBuffer.Clear();
 
             int add = 0;
             byte[] packetData = new[] { (byte)0x00 };
             if (id >= 0)
             {
                 WriteVarInt(id);
-                packetData = writeBuffer.ToArray();
+                packetData = _writeBuffer.ToArray();
                 add = packetData.Length;
-                writeBuffer.Clear();
+                _writeBuffer.Clear();
             }
 
             WriteVarInt(buffer.Length + add);
-            byte[] bufferLength = writeBuffer.ToArray();
-            writeBuffer.Clear();
+            byte[] bufferLength = _writeBuffer.ToArray();
+            _writeBuffer.Clear();
 
             stream.Write(bufferLength, 0, bufferLength.Length);
             stream.Write(packetData, 0, packetData.Length);
@@ -174,8 +174,8 @@ namespace MonkeyBot.Services
 
         public void Dispose()
         {
-            client.Close();
-            client.Dispose();
+            _client.Close();
+            _client.Dispose();
         }
     }
 }

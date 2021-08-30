@@ -15,28 +15,28 @@ namespace MonkeyBot.Services
 {
     public class RoleButtonService : IRoleButtonService
     {
-        private readonly DiscordClient discordClient;
-
-        private readonly MonkeyDBContext dbContext;
-
-        private readonly ILogger<RoleButtonService> logger;
+        private readonly DiscordClient _discordClient;
+        private readonly MonkeyDBContext _dbContext;
+        private readonly ILogger<RoleButtonService> _logger;
 
         public RoleButtonService(DiscordClient discordClient, MonkeyDBContext dbContext, ILogger<RoleButtonService> logger)
         {
-            this.discordClient = discordClient;
-            this.dbContext = dbContext;
-            this.logger = logger;
+            _discordClient = discordClient;
+            _dbContext = dbContext;
+            _logger = logger;
         }
+
+        //TODO: Convert this to dropdown buttons
 
         public void Initialize()
         {
-            discordClient.MessageReactionAdded += DiscordClient_MessageReactionAdded;
-            discordClient.MessageReactionRemoved += DiscordClient_MessageReactionRemoved;
+            _discordClient.MessageReactionAdded += DiscordClient_MessageReactionAdded;
+            _discordClient.MessageReactionRemoved += DiscordClient_MessageReactionRemoved;
         }
 
         public async Task AddRoleButtonLinkAsync(ulong guildId, ulong channelId, ulong messageId, ulong roleId, string emojiString)
         {
-            if (!discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
+            if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
                 throw new ArgumentException("Invalid guild");
             }
@@ -53,7 +53,7 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("Invalid message");
             }
 
-            DiscordEmoji emoji = guild.Emojis.Values.FirstOrDefault(x => emojiString.Contains(x.Name, StringComparison.Ordinal)) ?? DiscordEmoji.FromName(discordClient, emojiString);
+            DiscordEmoji emoji = guild.Emojis.Values.FirstOrDefault(x => emojiString.Contains(x.Name, StringComparison.Ordinal)) ?? DiscordEmoji.FromName(_discordClient, emojiString);
             if (emoji == null)
             {
                 throw new ArgumentException("invalid emoji");
@@ -64,15 +64,15 @@ namespace MonkeyBot.Services
                 await message.CreateReactionAsync(emoji);
             }
 
-            bool exists = await dbContext.RoleButtonLinks
+            bool exists = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .AnyAsync(x => x.GuildID == guildId && x.ChannelID == channelId && x.MessageID == messageId && x.RoleID == roleId && x.EmoteString == emojiString)
                 ;
             if (!exists)
             {
                 var link = new RoleButtonLink { GuildID = guildId, ChannelID = channelId, MessageID = messageId, RoleID = roleId, EmoteString = emojiString };
-                _ = dbContext.RoleButtonLinks.Add(link);
-                _ = await dbContext.SaveChangesAsync();
+                _ = _dbContext.RoleButtonLinks.Add(link);
+                _ = await _dbContext.SaveChangesAsync();
             }
             else
             {
@@ -82,7 +82,7 @@ namespace MonkeyBot.Services
 
         public async Task RemoveRoleButtonLinkAsync(ulong guildId, ulong channelId, ulong messageId, ulong roleId)
         {
-            RoleButtonLink link = await dbContext.RoleButtonLinks
+            RoleButtonLink link = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .SingleOrDefaultAsync(x => x.GuildID == guildId && x.ChannelID == channelId && x.MessageID == messageId && x.RoleID == roleId)
                 ;
@@ -92,11 +92,11 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("Can't find specified role button link in database");
             }
 
-            _ = dbContext.RoleButtonLinks.Remove(link);
-            _ = await dbContext.SaveChangesAsync();
+            _ = _dbContext.RoleButtonLinks.Remove(link);
+            _ = await _dbContext.SaveChangesAsync();
 
 
-            if (!discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
+            if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
                 throw new ArgumentException("Invalid guild");
             }
@@ -113,7 +113,7 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("Invalid message");
             }
 
-            DiscordEmoji emoji = guild.Emojis.Values.FirstOrDefault(x => link.EmoteString.Contains(x.Name, StringComparison.Ordinal)) ?? DiscordEmoji.FromName(discordClient, link.EmoteString);
+            DiscordEmoji emoji = guild.Emojis.Values.FirstOrDefault(x => link.EmoteString.Contains(x.Name, StringComparison.Ordinal)) ?? DiscordEmoji.FromName(_discordClient, link.EmoteString);
             if (emoji == null)
             {
                 throw new ArgumentException("invalid emoji");
@@ -124,18 +124,18 @@ namespace MonkeyBot.Services
 
         public async Task RemoveAllRoleButtonLinksAsync(ulong guildId)
         {
-            List<RoleButtonLink> links = await dbContext.RoleButtonLinks
+            List<RoleButtonLink> links = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .Where(x => x.GuildID == guildId)
                 .ToListAsync()
                 ;
-            dbContext.RoleButtonLinks.RemoveRange(links);
-            _ = await dbContext.SaveChangesAsync();
+            _dbContext.RoleButtonLinks.RemoveRange(links);
+            _ = await _dbContext.SaveChangesAsync();
         }
 
         public async Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID, ulong roleID, string emoteString = "")
         {
-            List<RoleButtonLink> links = await dbContext.RoleButtonLinks
+            List<RoleButtonLink> links = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .Where(x => x.GuildID == guildID && x.ChannelID == channelId && x.MessageID == messageID && x.RoleID == roleID)
                 .ToListAsync()
@@ -149,7 +149,7 @@ namespace MonkeyBot.Services
 
         public async Task<string> ListAllAsync(ulong guildID)
         {
-            List<RoleButtonLink> links = await dbContext.RoleButtonLinks
+            List<RoleButtonLink> links = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .Where(x => x.GuildID == guildID)
                 .ToListAsync()
@@ -162,7 +162,7 @@ namespace MonkeyBot.Services
             var sb = new StringBuilder();
             foreach (RoleButtonLink link in links)
             {
-                if (discordClient.Guilds.TryGetValue(link.GuildID, out DiscordGuild guild)
+                if (_discordClient.Guilds.TryGetValue(link.GuildID, out DiscordGuild guild)
                     && guild.GetChannel(link.ChannelID) is DiscordChannel channel
                     && guild.Roles.TryGetValue(link.RoleID, out DiscordRole role)
                     && (await channel.GetMessageAsync(link.MessageID)) is DiscordMessage message)
@@ -184,42 +184,42 @@ namespace MonkeyBot.Services
         {
             if (channel == null)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Channel was null");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Channel was null");
                 return;
             }
 
             if (reactionUser == null)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - No user was specified in the reaction object");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - No user was specified in the reaction object");
                 return;
             }
 
             if (message == null)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Could not get the underlying message");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Could not get the underlying message");
                 return;
             }
 
             if (message.Channel.Type != ChannelType.Text)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - message was not from a text channel");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - message was not from a text channel");
                 return;
             }
 
             DiscordGuild guild = message.Channel.Guild;
             if (guild == null)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Guild was null");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Guild was null");
                 return;
             }
 
             if (reactionUser.IsBot)
             {
-                logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
+                _logger.LogDebug($"Error in {nameof(AddOrRemoveRoleAsync)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
                 return;
             }
 
-            RoleButtonLink match = await dbContext.RoleButtonLinks
+            RoleButtonLink match = await _dbContext.RoleButtonLinks
                 .AsQueryable()
                 .SingleOrDefaultAsync(x => x.GuildID == guild.Id && x.ChannelID == message.Channel.Id && x.MessageID == message.Id && x.EmoteString == reactionEmoji.ToString())
                 ;
@@ -238,7 +238,7 @@ namespace MonkeyBot.Services
                     _ = await gUser.SendMessageAsync($"Role {role.Name} removed");
                 }
             }
-            else if (await dbContext.RoleButtonLinks.AsQueryable().AnyAsync(x => x.MessageID == message.Id))
+            else if (await _dbContext.RoleButtonLinks.AsQueryable().AnyAsync(x => x.MessageID == message.Id))
             {
                 // Remove all new reactions that were not added by Bot
                 await message.DeleteReactionAsync(reactionEmoji, reactionUser);

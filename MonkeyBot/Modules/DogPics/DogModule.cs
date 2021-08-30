@@ -17,11 +17,11 @@ namespace MonkeyBot.Modules
     {
         private static readonly DiscordColor dogColor = DiscordColor.Brown;
 
-        private readonly IDogService dogService;
+        private readonly IDogService _dogService;
 
         public DogModule(IDogService dogService)
         {
-            this.dogService = dogService;
+            _dogService = dogService;
         }
 
         [Command("Dog")]
@@ -31,8 +31,8 @@ namespace MonkeyBot.Modules
         {
             await ctx.TriggerTypingAsync();
             Uri pictureURL = breed.IsEmpty() ?
-                await (dogService?.GetRandomPictureUrlAsync()) :
-                await (dogService?.GetRandomPictureUrlAsync(breed.ToLowerInvariant()));
+                await (_dogService?.GetRandomPictureUrlAsync()) :
+                await (_dogService?.GetRandomPictureUrlAsync(breed.ToLowerInvariant()));
             if (pictureURL == null)
             {
                 _ = await ctx.ErrorAsync($"Could not get a dog pic :(. Try using {ctx.Prefix}dogbreeds to get a list of dog breeds I can show you");
@@ -50,7 +50,7 @@ namespace MonkeyBot.Modules
         public async Task GetDogBreedsAsync(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            List<string> breeds = await (dogService?.GetBreedsAsync());
+            List<string> breeds = await (_dogService?.GetBreedsAsync());
             if (breeds == null || !breeds.Any())
             {
                 _ = await ctx.ErrorAsync("Could not get the dog breeds :(");

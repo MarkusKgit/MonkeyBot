@@ -3,16 +3,13 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Models;
 using NLog.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 
 namespace MonkeyBot.Database
 {
     public class MonkeyDBContext : DbContext
     {
         public DbSet<BenzenFact> BenzenFacts { get; set; }
-
         public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
         public DbSet<Announcement> Announcements { get; set; }

@@ -9,14 +9,14 @@ namespace MonkeyBot.Services
 {
     public class SchedulingService : ISchedulingService
     {
-        private static Registry registry;
+        private static Registry _registry;
 
         public SchedulingService()
         {
-            if (registry == null)
+            if (_registry == null)
             {
-                registry = new Registry();
-                JobManager.Initialize(registry);
+                _registry = new Registry();
+                JobManager.Initialize(_registry);
             }
         }
 

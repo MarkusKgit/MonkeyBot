@@ -13,11 +13,11 @@ namespace MonkeyBot.Modules
     [Description("Chuck Norris jokes")]
     public class ChuckModule : BaseCommandModule
     {
-        private readonly IChuckService chuckService;
+        private readonly IChuckService _chuckService;
 
         public ChuckModule(IChuckService chuckService)
         {
-            this.chuckService = chuckService;
+            _chuckService = chuckService;
         }
 
         [Command("Chuck")]
@@ -25,7 +25,7 @@ namespace MonkeyBot.Modules
         public async Task GetChuckFactAsync(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            string fact = await (chuckService?.GetChuckFactAsync());
+            string fact = await (_chuckService?.GetChuckFactAsync());
             _ = fact.IsEmpty()
                 ? await ctx.ErrorAsync("Could not get a chuck fact :(")
                 : await ctx.OkAsync(fact, "Random Chuck Norris fact", false);
@@ -40,7 +40,7 @@ namespace MonkeyBot.Modules
             {
                 _ = await ctx.ErrorAsync("Invalid User");
             }
-            string fact = await (chuckService?.GetChuckFactAsync(user.Username));
+            string fact = await (_chuckService?.GetChuckFactAsync(user.Username));
             if (fact.IsEmpty())
             {
                 _ = await ctx.ErrorAsync("Could not get a chuck fact :(");

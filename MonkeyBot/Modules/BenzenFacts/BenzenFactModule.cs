@@ -13,11 +13,11 @@ namespace MonkeyBot.Modules
     public class BenzenFactModule : BaseCommandModule
     {
         private const string name = "benzen";
-        private readonly MonkeyDBContext dbContext;
+        private readonly MonkeyDBContext _dbContext;
 
         public BenzenFactModule(MonkeyDBContext dbContext)
         {
-            this.dbContext = dbContext;
+            _dbContext = dbContext;
         }
 
         [Command("Benzen")]
@@ -25,10 +25,10 @@ namespace MonkeyBot.Modules
         public async Task GetBenzenFactAsync(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            int totalFacts = dbContext.BenzenFacts.Count();
+            int totalFacts = _dbContext.BenzenFacts.Count();
             var r = new Random();
             int randomOffset = r.Next(0, totalFacts);
-            string fact = dbContext.BenzenFacts.AsQueryable().Skip(randomOffset).FirstOrDefault()?.Fact;
+            string fact = _dbContext.BenzenFacts.AsQueryable().Skip(randomOffset).FirstOrDefault()?.Fact;
             if (!fact.IsEmpty())
             {
                 DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
@@ -54,13 +54,13 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("The fact must include Benzen!");
                 return;
             }
-            if (dbContext.BenzenFacts.Any(f => f.Fact == fact))
+            if (_dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
                 _ = await ctx.ErrorAsync("I already know this fact!");
                 return;
             }
-            _ = dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            _ = await dbContext.SaveChangesAsync();
+            _ = _dbContext.BenzenFacts.Add(new BenzenFact(fact));
+            _ = await _dbContext.SaveChangesAsync();
             await ctx.OkAsync("Fact added");
         }
     }

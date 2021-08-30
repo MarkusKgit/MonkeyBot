@@ -15,13 +15,13 @@ namespace MonkeyBot.Modules
     [RequireGuild]
     public class GuildModule : BaseCommandModule
     {
-        private readonly IGuildService guildService;
-        private readonly IBattlefieldNewsService bfService;
+        private readonly IGuildService _guildService;
+        private readonly IBattlefieldNewsService _bfService;
 
         public GuildModule(IGuildService guildService, IBattlefieldNewsService bfService)
         {
-            this.guildService = guildService;
-            this.bfService = bfService;
+            _guildService = guildService;
+            _bfService = bfService;
         }
 
         [Command("SetDefaultChannel")]
@@ -29,9 +29,9 @@ namespace MonkeyBot.Modules
         [Example("!SetDefaultChannel general")]
         public async Task SetDefaultChannelAsync(CommandContext ctx, [Description("The channel which should become the default")][RemainingText] DiscordChannel channel)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.DefaultChannelId = channel.Id;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Default channel set");
         }
 
@@ -47,9 +47,9 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.WelcomeMessageText = welcomeMsg;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Welcome Message set");
         }
 
@@ -58,9 +58,9 @@ namespace MonkeyBot.Modules
         [Example("!SetWelcomeChannel general")]
         public async Task SetWelcomeChannelAsync(CommandContext ctx, [Description("The channel where the welcome message should be posted")] DiscordChannel channel)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.WelcomeMessageChannelId = channel.Id;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Welcome channel set");
         }
 
@@ -76,9 +76,9 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.GoodbyeMessageText = goodbyeMsg;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Goodbye Message set");
         }
 
@@ -87,9 +87,9 @@ namespace MonkeyBot.Modules
         [Example("!SetGoodbyeChannel general")]
         public async Task SetGoodbyeChannelAsync(CommandContext ctx, [Description("The channel where the goodbye message should be posted")] DiscordChannel channel)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.GoodbyeMessageChannelId = channel.Id;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Goodbye Channel set");
         }
 
@@ -104,10 +104,10 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.Rules ??= new List<string>();
             config.Rules.Add(rule);
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("Rule added");
         }
 
@@ -115,12 +115,12 @@ namespace MonkeyBot.Modules
         [Description("Removes all rules from a server.")]
         public async Task RemoveRulesAsync(CommandContext ctx)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             if (config.Rules != null)
             {
                 config.Rules.Clear();
             }
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync("All rules removed");
         }
 
@@ -129,7 +129,7 @@ namespace MonkeyBot.Modules
         [Example("!EnableBattlefieldUpdates #general")]
         public async Task EnableBattlefieldUpdatesAsync(CommandContext ctx, [Description("The channel where the Battlefield updates should be posted")] DiscordChannel channel)
         {
-            await bfService.EnableForGuildAsync(ctx.Guild.Id, channel.Id);
+            await _bfService.EnableForGuildAsync(ctx.Guild.Id, channel.Id);
             _ = await ctx.OkAsync("Battlefield Updates enabled!");
         }
 
@@ -137,7 +137,7 @@ namespace MonkeyBot.Modules
         [Description("Disables automated posting of Battlefield update news")]
         public async Task DisableBattlefieldUpdatesAsync(CommandContext ctx)
         {
-            await bfService.DisableForGuildAsync(ctx.Guild.Id);
+            await _bfService.DisableForGuildAsync(ctx.Guild.Id);
             _ = await ctx.OkAsync("Battlefield Updates disabled!");
         }
 
@@ -163,7 +163,7 @@ namespace MonkeyBot.Modules
         [MinPermissions(AccessLevel.User)]
         public async Task AnnounceMyStreamsAsync(CommandContext ctx)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             if (!config.StreamAnnouncementsEnabled)
             {
                 await ctx.ErrorAsync($"Stream broadcasting is disabled in this guild. An admin has to enable it first with {ctx.Prefix}EnableStreamingNotifications");
@@ -171,15 +171,15 @@ namespace MonkeyBot.Modules
             }
             config.ConfirmedStreamerIds ??= new List<ulong>();
             config.ConfirmedStreamerIds.Add(ctx.User.Id);
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
             _ = await ctx.OkAsync($"Your streams will now be announced!");
         }
 
         private async Task ToggleStreamingAnnouncementsAsync(ulong guildId, bool enable)
         {
-            GuildConfig config = await guildService.GetOrCreateConfigAsync(guildId);
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(guildId);
             config.StreamAnnouncementsEnabled = enable;
-            await guildService.UpdateConfigAsync(config);
+            await _guildService.UpdateConfigAsync(config);
         }
     }
 }

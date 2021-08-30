@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -14,10 +13,10 @@ namespace MonkeyBot.Services
         // display Url of comic is baseUrl + /comic Number
         // Latest comic json data is baseUrl + /info.0.json
         // Specific comic json data is baseUrl + /comic Number/info.0.json
-        private static readonly Uri baseUrl = new Uri("https://xkcd.com/");
-        private static readonly Uri latestComicApiUrl = new Uri(baseUrl, "/info.0.json");
-        private static Uri GetComicApiUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}/info.0.json");
-        public Uri GetComicUrl(int comicNumber) => new Uri(baseUrl, $"/{comicNumber}");
+        private static readonly Uri _baseUrl = new("https://xkcd.com/");
+        private static readonly Uri _latestComicApiUrl = new(_baseUrl, "/info.0.json");
+        private static Uri GetComicApiUrl(int comicNumber) => new(_baseUrl, $"/{comicNumber}/info.0.json");
+        public Uri GetComicUrl(int comicNumber) => new(_baseUrl, $"/{comicNumber}");
 
         public XkcdService(IHttpClientFactory clientFactory)
         {
@@ -34,7 +33,7 @@ namespace MonkeyBot.Services
             return await GetComicAsync(GetComicApiUrl(number));
         }
 
-        public async Task<XkcdResponse> GetLatestComicAsync() => await GetComicAsync(latestComicApiUrl);
+        public async Task<XkcdResponse> GetLatestComicAsync() => await GetComicAsync(_latestComicApiUrl);
 
         public async Task<XkcdResponse> GetRandomComicAsync()
         {

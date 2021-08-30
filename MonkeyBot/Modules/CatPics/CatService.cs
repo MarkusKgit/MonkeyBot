@@ -13,10 +13,10 @@ namespace MonkeyBot.Services
     {
         private readonly IHttpClientFactory _clientFactory;
 
-        private static readonly Uri baseApiUri = new Uri("https://api.thecatapi.com/v1/");
+        private static readonly Uri baseApiUri = new("https://api.thecatapi.com/v1/");
         private static Uri GetRandomPictureForBreedUri(string breedId) => new Uri(baseApiUri, $"images/search?size=small&breed_id={breedId}");
-        private static readonly Uri breedsUri = new Uri(baseApiUri, "breeds");
-        private static Uri SearchBreedUri(string breed) => new Uri(baseApiUri, $"breeds/search?q={HttpUtility.UrlEncode(breed)}");
+        private static readonly Uri breedsUri = new(baseApiUri, "breeds");
+        private static Uri SearchBreedUri(string breed) => new(baseApiUri, $"breeds/search?q={HttpUtility.UrlEncode(breed)}");
 
         public CatService(IHttpClientFactory clientFactory)
         {

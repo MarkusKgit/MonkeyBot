@@ -17,11 +17,11 @@ namespace MonkeyBot.Modules
     [RequireBotPermissions(Permissions.AddReactions | Permissions.ManageRoles | Permissions.ManageMessages)]
     public class RoleButtonsModule : BaseCommandModule
     {
-        private readonly IRoleButtonService roleButtonService;
+        private readonly IRoleButtonService _roleButtonService;
 
         public RoleButtonsModule(IRoleButtonService roleButtonService)
         {
-            this.roleButtonService = roleButtonService;
+            _roleButtonService = roleButtonService;
         }
 
         [Command("AddRoleLink")]
@@ -46,12 +46,12 @@ namespace MonkeyBot.Modules
                 _ = await ctx.RespondAsync("Emoji not found.");
                 return;
             }
-            if (await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id))
+            if (await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id))
             {
                 _ = await ctx.RespondAsync("The specified link already exists");
                 return;
             }
-            await roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString());
+            await _roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString());
             _ = await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role");
         }
 
@@ -70,12 +70,12 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("Role not found.");
                 return;
             }
-            if (!(await roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id)))
+            if (!(await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id)))
             {
                 _ = await ctx.ErrorAsync("The specified link does not exist");
                 return;
             }
-            await roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id);
+            await _roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id);
             _ = await ctx.OkAsync($"Role {role.Name} successfully unlinked.");
         }
 
@@ -83,7 +83,7 @@ namespace MonkeyBot.Modules
         [Description("Removes all Role Button Links")]
         public async Task RemoveAllAsync(CommandContext ctx)
         {
-            await roleButtonService.RemoveAllRoleButtonLinksAsync(ctx.Guild.Id);
+            await _roleButtonService.RemoveAllRoleButtonLinksAsync(ctx.Guild.Id);
             _ = await ctx.OkAsync("All Role Button Links removed");
         }
 
@@ -91,7 +91,7 @@ namespace MonkeyBot.Modules
         [Description("Lists all Role Button Links")]
         public async Task ListAsync(CommandContext ctx)
         {
-            string links = await roleButtonService.ListAllAsync(ctx.Guild.Id);
+            string links = await _roleButtonService.ListAllAsync(ctx.Guild.Id);
             _ = !links.IsEmptyOrWhiteSpace()
                 ? await ctx.OkAsync(links, "Role links")
                 : await ctx.ErrorAsync("No role button links set up yet");

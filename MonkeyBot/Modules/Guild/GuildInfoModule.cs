@@ -11,11 +11,11 @@ namespace MonkeyBot.Modules
     public class GuildInfoModule : BaseCommandModule
     {
         //private readonly MonkeyDBContext dbContext;
-        private readonly IGuildService guildService;
+        private readonly IGuildService _guildService;
 
         public GuildInfoModule(IGuildService guildService)
         {
-            this.guildService = guildService;
+            _guildService = guildService;
         }
 
         [Command("Rules")]
@@ -23,7 +23,7 @@ namespace MonkeyBot.Modules
         [RequireGuild]
         public async Task ListRulesAsync(CommandContext ctx)
         {
-            List<string> rules = (await guildService.GetOrCreateConfigAsync(ctx.Guild.Id)).Rules;
+            List<string> rules = (await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id)).Rules;
             if (rules == null || rules.Count < 1)
             {
                 _ = await ctx.RespondAsync("No rules set!");

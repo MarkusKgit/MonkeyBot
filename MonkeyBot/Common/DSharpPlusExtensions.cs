@@ -8,7 +8,7 @@ namespace DSharpPlus.CommandsNext
 {
     public static class DSharpPlusExtensions
     {        
-        private static DiscordComponentEmoji trashCan = new DiscordComponentEmoji(DiscordEmoji.FromUnicode("🗑"));
+        private static readonly DiscordComponentEmoji trashCan = new(DiscordEmoji.FromUnicode("🗑"));
 
         public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, DiscordEmbed embed = null)
         {

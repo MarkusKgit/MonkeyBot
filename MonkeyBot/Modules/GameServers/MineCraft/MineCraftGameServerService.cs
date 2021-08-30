@@ -11,9 +11,9 @@ namespace MonkeyBot.Services
 {
     public class MineCraftGameServerService : BaseGameServerService
     {        
-        private readonly MonkeyDBContext dbContext;
-        private readonly DiscordClient discordClient;
-        private readonly ILogger<MineCraftGameServerService> logger;
+        private readonly MonkeyDBContext _dbContext;
+        private readonly DiscordClient _discordClient;
+        private readonly ILogger<MineCraftGameServerService> _logger;
 
         public MineCraftGameServerService(
             MonkeyDBContext dbContext,            
@@ -21,9 +21,9 @@ namespace MonkeyBot.Services
             ILogger<MineCraftGameServerService> logger)
             : base(GameServerType.Minecraft, dbContext, discordClient, logger)
         {            
-            this.dbContext = dbContext;
-            this.discordClient = discordClient;
-            this.logger = logger;
+            _dbContext = dbContext;
+            _discordClient = discordClient;
+            _logger = logger;
         }
 
         protected override async Task<bool> PostServerInfoAsync(GameServer discordGameServer)
@@ -35,13 +35,13 @@ namespace MonkeyBot.Services
             MineQuery query = null;
             try
             {
-                query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, logger);
+                query = new MineQuery(discordGameServer.ServerIP.Address, discordGameServer.ServerIP.Port, _logger);
                 MineQueryResult serverInfo = await query.GetServerInfoAsync();
                 if (serverInfo == null)
                 {
                     return false;
                 }
-                if (!discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
+                if (!_discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
                 {
                     return false;
                 }
@@ -62,8 +62,8 @@ namespace MonkeyBot.Services
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version.Name;
-                    _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync();
+                    _ = _dbContext.GameServers.Update(discordGameServer);
+                    _ = await _dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -71,8 +71,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _ = dbContext.GameServers.Update(discordGameServer);
-                        _ = await dbContext.SaveChangesAsync();
+                        _ = _dbContext.GameServers.Update(discordGameServer);
+                        _ = await _dbContext.SaveChangesAsync();
                     }
                 }
                 string lastServerUpdate = "";
@@ -103,7 +103,7 @@ namespace MonkeyBot.Services
                     }
                     else
                     {
-                        logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
+                        _logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
                         _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
@@ -113,13 +113,13 @@ namespace MonkeyBot.Services
                 {
                     DiscordMessage message = await (channel?.SendMessageAsync(builder.Build()));
                     discordGameServer.MessageID = message.Id;
-                    _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync();
+                    _ = _dbContext.GameServers.Update(discordGameServer);
+                    _ = await _dbContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.ServerIP}");
+                _logger.LogWarning(ex, $"Error getting updates for server {discordGameServer.ServerIP}");
                 throw;
             }
             finally

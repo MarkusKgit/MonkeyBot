@@ -14,43 +14,43 @@ namespace MonkeyBot.Services
     {
         private const int updateIntervallSeconds = 30 * 60;
 
-        private readonly DiscordClient discordClient;
-        private readonly IGuildService guildService;
-        private readonly ISchedulingService schedulingService;
-        private readonly ILogger<BattlefieldNewsService> logger;
+        private readonly DiscordClient _discordClient;
+        private readonly IGuildService _guildService;
+        private readonly ISchedulingService _schedulingService;
+        private readonly ILogger<BattlefieldNewsService> _logger;
 
         public BattlefieldNewsService(DiscordClient discordClient, IGuildService guildService, ISchedulingService schedulingService, ILogger<BattlefieldNewsService> logger)
         {
-            this.discordClient = discordClient;
-            this.guildService = guildService;
-            this.schedulingService = schedulingService;
-            this.logger = logger;
+            _discordClient = discordClient;
+            _guildService = guildService;
+            _schedulingService = schedulingService;
+            _logger = logger;
         }
 
         public void Start()
-            => schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync(), 10);
+            => _schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync(), 10);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {
-            if (!discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
+            if (!_discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
             {
                 return;
             }
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID);
+            GuildConfig cfg = await _guildService.GetOrCreateConfigAsync(guildID);
             cfg.BattlefieldUpdatesEnabled = true;
             cfg.BattlefieldUpdatesChannel = channelID;
-            await guildService.UpdateConfigAsync(cfg);
+            await _guildService.UpdateConfigAsync(cfg);
             await GetUpdateForGuildAsync(await GetLatestBattlefieldUpdateAsync(), guild);
         }
 
         public async Task DisableForGuildAsync(ulong guildID)
         {
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guildID);
+            GuildConfig cfg = await _guildService.GetOrCreateConfigAsync(guildID);
             if (cfg.BattlefieldUpdatesEnabled)
             {
                 cfg.BattlefieldUpdatesEnabled = false;
                 cfg.LastBattlefieldUpdate = null;
-                await guildService.UpdateConfigAsync(cfg);
+                await _guildService.UpdateConfigAsync(cfg);
             }
         }
 
@@ -58,7 +58,7 @@ namespace MonkeyBot.Services
         {
             BattlefieldUpdate latestBattlefieldVUpdate = await GetLatestBattlefieldUpdateAsync();
 
-            foreach (DiscordGuild guild in discordClient?.Guilds.Values)
+            foreach (DiscordGuild guild in _discordClient?.Guilds.Values)
             {
                 await GetUpdateForGuildAsync(latestBattlefieldVUpdate, guild);
             }
@@ -66,7 +66,7 @@ namespace MonkeyBot.Services
 
         private async Task GetUpdateForGuildAsync(BattlefieldUpdate latestBattlefieldUpdate, DiscordGuild guild)
         {
-            GuildConfig cfg = await guildService.GetOrCreateConfigAsync(guild.Id);
+            GuildConfig cfg = await _guildService.GetOrCreateConfigAsync(guild.Id);
             if (cfg == null || !cfg.BattlefieldUpdatesEnabled)
             {
                 return;
@@ -74,7 +74,7 @@ namespace MonkeyBot.Services
             DiscordChannel channel = guild.GetChannel(cfg.BattlefieldUpdatesChannel);
             if (channel == null)
             {
-                logger.LogError($"Battlefield Updates enabled for {guild.Name} but channel {cfg.BattlefieldUpdatesChannel} is invalid");
+                _logger.LogError($"Battlefield Updates enabled for {guild.Name} but channel {cfg.BattlefieldUpdatesChannel} is invalid");
                 return;
             }
             DateTime lastUpdateUTC = cfg.LastBattlefieldUpdate ?? DateTime.MinValue;
@@ -91,7 +91,7 @@ namespace MonkeyBot.Services
             _ = await (channel?.SendMessageAsync(builder.Build()));
 
             cfg.LastBattlefieldUpdate = latestBattlefieldUpdate.UpdateDate;
-            await guildService.UpdateConfigAsync(cfg);
+            await _guildService.UpdateConfigAsync(cfg);
         }
 
         private static async Task<BattlefieldUpdate> GetLatestBattlefieldUpdateAsync()

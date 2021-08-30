@@ -9,6 +9,8 @@ using System.Text;
 
 namespace MonkeyBot.Documentation
 {
+    //TODO: Reimplement
+    
     /// <summary>
     /// Helper class to automatically build documentation based on the implemented Modules
     /// </summary>

@@ -10,18 +10,18 @@ namespace MonkeyBot.Services
 {
     public class TriviaService : ITriviaService
     {
-        private readonly DiscordClient discordClient;
-        private readonly MonkeyDBContext dbContext;
-        private readonly IHttpClientFactory clientFactory;
+        private readonly DiscordClient _discordClient;
+        private readonly MonkeyDBContext _dbContext;
+        private readonly IHttpClientFactory _clientFactory;
 
         // holds all trivia instances on a per guild and channel basis
         private readonly ConcurrentDictionary<(ulong guildId, ulong channelId), OTDBTriviaInstance> trivias;
 
         public TriviaService(DiscordClient discordClient, MonkeyDBContext dbContext, IHttpClientFactory clientFactory)
         {
-            this.discordClient = discordClient;
-            this.dbContext = dbContext;
-            this.clientFactory = clientFactory;
+            _discordClient = discordClient;
+            _dbContext = dbContext;
+            _clientFactory = clientFactory;
             trivias = new ConcurrentDictionary<(ulong guildId, ulong channelId), OTDBTriviaInstance>();
         }
 
@@ -29,7 +29,7 @@ namespace MonkeyBot.Services
         {
             if (!trivias.ContainsKey((guildId, channelId)))
             {
-                _ = trivias.TryAdd((guildId, channelId), new OTDBTriviaInstance(guildId, channelId, discordClient, dbContext, clientFactory));
+                _ = trivias.TryAdd((guildId, channelId), new OTDBTriviaInstance(guildId, channelId, _discordClient, _dbContext, _clientFactory));
             }
             return trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance instance)
                    && await instance.StartTriviaAsync(questionsToPlay);

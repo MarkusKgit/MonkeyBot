@@ -15,16 +15,16 @@ namespace MonkeyBot.Services
 {
     public class SteamGameServerService : BaseGameServerService
     {
-        private readonly MonkeyDBContext dbContext;
-        private readonly DiscordClient discordClient;
-        private readonly ILogger<SteamGameServerService> logger;
+        private readonly MonkeyDBContext _dbContext;
+        private readonly DiscordClient _discordClient;
+        private readonly ILogger<SteamGameServerService> _logger;
 
         public SteamGameServerService(MonkeyDBContext dbContext, DiscordClient discordClient, ILogger<SteamGameServerService> logger)
             : base(GameServerType.Steam, dbContext, discordClient, logger)
         {
-            this.dbContext = dbContext;
-            this.discordClient = discordClient;
-            this.logger = logger;
+            _dbContext = dbContext;
+            _discordClient = discordClient;
+            _logger = logger;
         }
 
         protected override async Task<bool> PostServerInfoAsync(GameServer discordGameServer)
@@ -47,7 +47,7 @@ namespace MonkeyBot.Services
                 {
                     return false;
                 }
-                if (!discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
+                if (!_discordClient.Guilds.TryGetValue(discordGameServer.GuildID, out DiscordGuild guild))
                 {
                     return false;
                 }
@@ -80,8 +80,8 @@ namespace MonkeyBot.Services
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version;
-                    _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync();
+                    _ = _dbContext.GameServers.Update(discordGameServer);
+                    _ = await _dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -89,8 +89,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _ = dbContext.GameServers.Update(discordGameServer);
-                        _ = await dbContext.SaveChangesAsync();
+                        _ = _dbContext.GameServers.Update(discordGameServer);
+                        _ = await _dbContext.SaveChangesAsync();
                     }
                 }
 
@@ -119,7 +119,7 @@ namespace MonkeyBot.Services
                     }
                     else
                     {
-                        logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
+                        _logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
                         _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
@@ -128,18 +128,18 @@ namespace MonkeyBot.Services
                 else
                 {
                     discordGameServer.MessageID = (await (channel?.SendMessageAsync(builder.Build()))).Id;
-                    _ = dbContext.GameServers.Update(discordGameServer);
-                    _ = await dbContext.SaveChangesAsync();
+                    _ = _dbContext.GameServers.Update(discordGameServer);
+                    _ = await _dbContext.SaveChangesAsync();
                 }
 
             }
             catch (TimeoutException tex)
             {
-                logger.LogInformation(tex, $"Timed out trying to get steam server info for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
+                _logger.LogInformation(tex, $"Timed out trying to get steam server info for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, $"Error getting updates for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
+                _logger.LogWarning(ex, $"Error getting updates for {discordGameServer.GameServerType} server {discordGameServer.ServerIP}");
                 throw;
             }
             finally

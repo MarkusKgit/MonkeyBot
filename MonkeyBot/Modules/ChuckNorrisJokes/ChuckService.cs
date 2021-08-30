@@ -11,7 +11,7 @@ namespace MonkeyBot.Services
     {
         private readonly IHttpClientFactory _clientFactory;
 
-        private static readonly Uri randomJokeApiUrl = new Uri("http://api.icndb.com/jokes/random");
+        private static readonly Uri randomJokeApiUrl = new("http://api.icndb.com/jokes/random");
 
         public ChuckService(IHttpClientFactory clientFactory)
         {

@@ -19,11 +19,11 @@ namespace MonkeyBot.Modules
     [RequireBotPermissions(Permissions.EmbedLinks)]
     public class FeedModule : BaseCommandModule
     {
-        private readonly IFeedService feedService;
+        private readonly IFeedService _feedService;
 
         public FeedModule(IFeedService feedService)
         {
-            this.feedService = feedService;
+            _feedService = feedService;
         }
 
         [Command("AddFeed")]
@@ -58,13 +58,13 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
                 return;
             }
-            List<GuildFeed> currentFeeds = await feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel.Id);
+            List<GuildFeed> currentFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel.Id);
             if (currentFeeds.Any(x => x.Url == feedUrl || x.Name == name))
             {
                 _ = await ctx.ErrorAsync("The specified feed is already in the list!");
                 return;
             }
-            await feedService.AddFeedAsync(name, feedUrl, ctx.Guild.Id, channel.Id);
+            await _feedService.AddFeedAsync(name, feedUrl, ctx.Guild.Id, channel.Id);
             _ = await ctx.OkAsync("Feed added");
         }
 
@@ -78,14 +78,14 @@ namespace MonkeyBot.Modules
                 _ = await ctx.ErrorAsync("Please enter the feed's name or url");
                 return;
             }
-            List<GuildFeed> currentFeeds = await feedService.GetFeedsForGuildAsync(ctx.Guild.Id);
+            List<GuildFeed> currentFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id);
             if (!currentFeeds.Any(x => x.Url == nameOrUrl || x.Name == nameOrUrl))
             {
                 _ = await ctx.ErrorAsync("The specified feed is not in the list!");
                 return;
             }
 
-            await feedService.RemoveFeedAsync(nameOrUrl, ctx.Guild.Id);
+            await _feedService.RemoveFeedAsync(nameOrUrl, ctx.Guild.Id);
             _ = await ctx.OkAsync("Feed removed");
         }
 
@@ -93,7 +93,7 @@ namespace MonkeyBot.Modules
         [Description("List all current feed urls")]
         public async Task ListFeedUrlsAsync(CommandContext ctx, [Description("Optional: The channel where the Feed urls should be listed for. Defaults to all channels")] DiscordChannel channel = null)
         {
-            List<GuildFeed> guildFeeds = await feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel?.Id);
+            List<GuildFeed> guildFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel?.Id);
             if (guildFeeds == null || guildFeeds.Count < 1)
             {
                 _ = await ctx.ErrorAsync("No feeds have been added yet.");
@@ -122,7 +122,7 @@ namespace MonkeyBot.Modules
         [Description("Removes all feed urls")]
         public async Task RemoveFeedUrlsAsync(CommandContext ctx, [Description("Optional: The channel where the Feed urls should be removed. Defaults to all channels")] DiscordChannel channel = null)
         {
-            await feedService.RemoveAllFeedsAsync(ctx.Guild.Id, channel?.Id);
+            await _feedService.RemoveAllFeedsAsync(ctx.Guild.Id, channel?.Id);
             _ = await ctx.OkAsync(channel == null ? "All Feeds removed" : $"All Feeds in {channel.Mention} removed");
         }
     }

@@ -13,10 +13,10 @@ namespace MonkeyBot.Services
     {
         private readonly IHttpClientFactory _clientFactory;
 
-        private static readonly Uri baseApiUri = new Uri("https://dog.ceo/api/");
-        private static readonly Uri randomPictureUri = new Uri(baseApiUri, "breeds/image/random");
-        private static Uri GetRandomPictureForBreedUri(string breed) => new Uri(baseApiUri, $"breed/{breed}/images/random");
-        private static readonly Uri breedsUri = new Uri(baseApiUri, "breeds/list/all");
+        private static readonly Uri baseApiUri = new("https://dog.ceo/api/");
+        private static readonly Uri randomPictureUri = new(baseApiUri, "breeds/image/random");
+        private static Uri GetRandomPictureForBreedUri(string breed) => new(baseApiUri, $"breed/{breed}/images/random");
+        private static readonly Uri breedsUri = new(baseApiUri, "breeds/list/all");
 
         public DogService(IHttpClientFactory clientFactory)
         {
