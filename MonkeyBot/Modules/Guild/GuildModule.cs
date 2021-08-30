@@ -24,6 +24,23 @@ namespace MonkeyBot.Modules
             _bfService = bfService;
         }
 
+        [Command("SetPrefix")]
+        [Aliases("SetCommandPrefix")]
+        [Description("Sets the command prefix the bot will react to from there on")]
+        [Example("!SetPrefix >")]
+        public async Task SetCommandPrefixAsync(CommandContext ctx, [Description("The new command prefix")] string prefix)
+        {
+            GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                await ctx.ErrorAsync("Invalid prefix! Please provide a valid string, for example \">\"");
+                return;
+            }
+            config.CommandPrefix = prefix;
+            await _guildService.UpdateConfigAsync(config);
+            _ = await ctx.OkAsync($"Command Prefix set to: {prefix}");
+        }
+
         [Command("SetDefaultChannel")]
         [Description("Sets the default channel for the guild where info will be posted")]
         [Example("!SetDefaultChannel general")]

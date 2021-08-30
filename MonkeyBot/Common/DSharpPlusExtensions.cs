@@ -8,7 +8,7 @@ namespace DSharpPlus.CommandsNext
 {
     public static class DSharpPlusExtensions
     {        
-        private static readonly DiscordComponentEmoji trashCan = new(DiscordEmoji.FromUnicode("🗑"));
+        private static readonly DiscordComponentEmoji trashCan = new(DiscordEmoji.FromUnicode("❌"));
 
         public static async Task<DiscordMessage> RespondDeletableAsync(this CommandContext ctx, string content = null, DiscordEmbed embed = null)
         {
@@ -16,7 +16,7 @@ namespace DSharpPlus.CommandsNext
             msgBuilder
                 .WithContent(content)
                 .WithEmbed(embed)
-                .AddComponents(new DiscordButtonComponent(ButtonStyle.Primary, "delete_button", "Delete", emoji: trashCan));
+                .AddComponents(new DiscordButtonComponent(ButtonStyle.Primary, $"delete_button_{Guid.NewGuid()}", "Delete", emoji: trashCan));
             DiscordMessage msg = await ctx.RespondAsync(msgBuilder);
 
             var interactivity = ctx.Client.GetInteractivity();

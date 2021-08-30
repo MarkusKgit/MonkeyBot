@@ -17,6 +17,7 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -204,16 +205,25 @@ namespace MonkeyBot
         private static void SetupEventHandlers()
         {
             _discordClient.Ready += DiscordClient_Ready;
+            _discordClient.GuildDownloadCompleted += DiscordClient_GuildDownloadCompleted;
             _discordClient.GuildMemberAdded += DiscordClient_GuildMemberAdded;
             _discordClient.GuildMemberRemoved += DiscordClient_GuildMemberRemoved;
             _discordClient.GuildMemberUpdated += DiscordClient_GuildMemberUpdated;
             _discordClient.GuildCreated += DiscordClient_GuildCreated;
             _discordClient.GuildDeleted += DiscordClient_GuildDeleted;
+            _discordClient.ComponentInteractionCreated += DiscordClient_ComponentInteractionCreated;
         }
 
         private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
         {
             _discordClient.Logger.LogInformation("Client Connected");
+            return Task.CompletedTask;
+        }
+
+        private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
+        {
+            var guildInfo = e.Guilds.Select(g => $"{g.Value.Name}: {g.Value.MemberCount} members");
+            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{string.Join("\n", guildInfo)}");            
             return Task.CompletedTask;
         }
 
@@ -284,6 +294,15 @@ namespace MonkeyBot
         {
             _discordClient.Logger.LogInformation($"Left guild {e.Guild.Name}");
             await _guildService.RemoveConfigAsync(e.Guild.Id);
+        }
+
+        private static Task DiscordClient_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            if (e.Id.StartsWith("delete_button_"))
+            {
+                e.Handled = true;
+            }
+            return Task.CompletedTask;
         }
 
         private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
