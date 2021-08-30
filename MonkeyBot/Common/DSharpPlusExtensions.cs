@@ -23,7 +23,7 @@ namespace DSharpPlus.CommandsNext
             
             _ = Task.Run(async () =>
             {
-                var interactivityResult = await interactivity.WaitForButtonAsync(msg, ctx.User, TimeSpan.FromSeconds(30));
+                var interactivityResult = await interactivity.WaitForButtonAsync(msg, ctx.User, TimeSpan.FromSeconds(10));
                 if (interactivityResult.TimedOut)
                 {   
                     await msg.ModifyAsync(b => { 

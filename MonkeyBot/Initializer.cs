@@ -211,7 +211,6 @@ namespace MonkeyBot
             _discordClient.GuildMemberUpdated += DiscordClient_GuildMemberUpdated;
             _discordClient.GuildCreated += DiscordClient_GuildCreated;
             _discordClient.GuildDeleted += DiscordClient_GuildDeleted;
-            _discordClient.ComponentInteractionCreated += DiscordClient_ComponentInteractionCreated;
         }
 
         private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
@@ -294,15 +293,6 @@ namespace MonkeyBot
         {
             _discordClient.Logger.LogInformation($"Left guild {e.Guild.Name}");
             await _guildService.RemoveConfigAsync(e.Guild.Id);
-        }
-
-        private static Task DiscordClient_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
-        {
-            if (e.Id.StartsWith("delete_button_"))
-            {
-                e.Handled = true;
-            }
-            return Task.CompletedTask;
         }
 
         private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
