@@ -11,8 +11,9 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Services
 {
     public class BattlefieldNewsService : IBattlefieldNewsService
-    {
-        private const int updateIntervallSeconds = 30 * 60;
+    {   
+        private static readonly TimeSpan _updateIntervall = TimeSpan.FromHours(1);
+        private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
 
         private readonly DiscordClient _discordClient;
         private readonly IGuildService _guildService;
@@ -28,7 +29,7 @@ namespace MonkeyBot.Services
         }
 
         public void Start()
-            => _schedulingService.ScheduleJobRecurring("battlefieldNews", updateIntervallSeconds, async () => await GetUpdatesAsync(), 10);
+            => _schedulingService.ScheduleJobRecurring("battlefieldNews", _updateIntervall, GetUpdatesAsync(), _startDelay);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {

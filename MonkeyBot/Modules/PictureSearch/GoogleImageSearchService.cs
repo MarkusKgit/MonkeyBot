@@ -27,7 +27,9 @@ namespace MonkeyBot.Services
                 .ToList();
 
             if (urls == null && urls.Count < 1)
+            {
                 return null;
+            }
 
             for (int i = 0; i < urls.Count; i++)
             {

@@ -18,6 +18,8 @@ namespace MonkeyBot.Services
     public class FeedService : IFeedService
     {
         private const int updateIntervallMinutes = 30;
+        private static readonly TimeSpan _updateIntervall = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
 
         private readonly MonkeyDBContext _dbContext;
         private readonly DiscordClient _discordClient;
@@ -33,7 +35,7 @@ namespace MonkeyBot.Services
         }
 
         public void Start()
-            => _schedulingService.ScheduleJobRecurring("feeds", updateIntervallMinutes * 60, async () => await GetAllFeedUpdatesAsync(), 10);
+            => _schedulingService.ScheduleJobRecurring("feeds", _updateIntervall, GetAllFeedUpdatesAsync(), _startDelay);
 
         public async Task AddFeedAsync(string name, string url, ulong guildID, ulong channelID)
         {

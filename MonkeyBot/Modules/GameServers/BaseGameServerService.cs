@@ -1,6 +1,5 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
-using FluentScheduler;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
@@ -18,23 +17,26 @@ namespace MonkeyBot.Services
 {
     public abstract class BaseGameServerService : IGameServerService
     {
+        private static readonly TimeSpan _updateIntervall = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
+
         private readonly GameServerType _gameServerType;
         private readonly MonkeyDBContext _dbContext;
         private readonly DiscordClient _discordClient;
+        private readonly ISchedulingService _schedulingService;
         private readonly ILogger<IGameServerService> _logger;
 
-        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordClient discordClient, ILogger<IGameServerService> logger)
+        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<IGameServerService> logger)
         {
             _gameServerType = gameServerType;
             _dbContext = dbContext;
             _discordClient = discordClient;
+            _schedulingService = schedulingService;
             _logger = logger;
         }
 
-        //TODO: Add generic scheduling service
-
         public void Initialize()
-            => JobManager.AddJob(async () => await PostAllServerInfoAsync(), (x) => x.ToRunNow().AndEvery(1).Minutes());
+            => _schedulingService.ScheduleJobRecurring("GameServerInfos", _updateIntervall, PostAllServerInfoAsync(), _startDelay);
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
@@ -155,10 +157,12 @@ namespace MonkeyBot.Services
                 .ToList();
 
             //Bottom up
-            var lines = new List<string>();
-            lines.Add("      minutes ago");
-            lines.Add("   0┊0┊0┊0┊0┊0┊0┊0┊0┊0");
-            lines.Add("   9┊8┊7┊6┊5┊4┊3┊2┊1┊0");
+            var lines = new List<string>
+            {
+                "      minutes ago",
+                "   0┊0┊0┊0┊0┊0┊0┊0┊0┊0",
+                "   9┊8┊7┊6┊5┊4┊3┊2┊1┊0"
+            };
 
             int maxI = maxPlayers / interval;
 

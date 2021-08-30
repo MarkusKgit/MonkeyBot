@@ -12,14 +12,15 @@ namespace MonkeyBot.Services
     public class MineCraftGameServerService : BaseGameServerService
     {        
         private readonly MonkeyDBContext _dbContext;
-        private readonly DiscordClient _discordClient;
+        private readonly DiscordClient _discordClient;        
         private readonly ILogger<MineCraftGameServerService> _logger;
 
         public MineCraftGameServerService(
             MonkeyDBContext dbContext,            
             DiscordClient discordClient,
+            ISchedulingService schedulingService,
             ILogger<MineCraftGameServerService> logger)
-            : base(GameServerType.Minecraft, dbContext, discordClient, logger)
+            : base(GameServerType.Minecraft, dbContext, discordClient, schedulingService, logger)
         {            
             _dbContext = dbContext;
             _discordClient = discordClient;

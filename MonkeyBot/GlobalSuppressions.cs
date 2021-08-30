@@ -27,3 +27,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Performance", "CA1822:Mark members as static")]
 [assembly: SuppressMessage("Style", "IDE0058:Expression value is never used")]
 [assembly: SuppressMessage("Style", "IDE0008:Use explicit type")]
+[assembly: SuppressMessage("Style", "IDE0007:Use implicit type")]

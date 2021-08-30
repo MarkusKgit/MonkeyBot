@@ -97,7 +97,7 @@ namespace MonkeyBot.Services
                 _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "There is already a quiz running");
                 return false;
             }
-            this._questionsToPlay = questionsToPlay;
+            _questionsToPlay = questionsToPlay;
             _questions = new List<OTDBQuestion>(await LoadQuestionsAsync(questionsToPlay));
             if (_questions == null || _questions.Count == 0)
             {
@@ -434,7 +434,7 @@ namespace MonkeyBot.Services
         }
 
         private static OTDBQuestion CleanQuestion(OTDBQuestion x)
-            => new OTDBQuestion
+            => new()
             {
                 Category = MonkeyHelpers.CleanHtmlString(x.Category),
                 Question = MonkeyHelpers.CleanHtmlString(x.Question),
@@ -443,9 +443,6 @@ namespace MonkeyBot.Services
                 Type = x.Type,
                 Difficulty = x.Difficulty
             };
-        public void Dispose()
-        {
-            _cancellation.Dispose();
-        }
+        public void Dispose() => _cancellation.Dispose();
     }
 }

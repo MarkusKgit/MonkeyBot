@@ -98,6 +98,7 @@ namespace MonkeyBot.Services
 
         public Task RemovePollAsync(Poll poll)
         {
+            //TODO: Implement
             throw new NotImplementedException();
         }
 

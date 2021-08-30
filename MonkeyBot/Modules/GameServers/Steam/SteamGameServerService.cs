@@ -19,8 +19,12 @@ namespace MonkeyBot.Services
         private readonly DiscordClient _discordClient;
         private readonly ILogger<SteamGameServerService> _logger;
 
-        public SteamGameServerService(MonkeyDBContext dbContext, DiscordClient discordClient, ILogger<SteamGameServerService> logger)
-            : base(GameServerType.Steam, dbContext, discordClient, logger)
+        public SteamGameServerService(
+            MonkeyDBContext dbContext,
+            DiscordClient discordClient,
+            ISchedulingService schedulingService,
+            ILogger<SteamGameServerService> logger)
+            : base(GameServerType.Steam, dbContext, discordClient, schedulingService, logger)
         {
             _dbContext = dbContext;
             _discordClient = discordClient;
