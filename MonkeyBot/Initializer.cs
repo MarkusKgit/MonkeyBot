@@ -1,11 +1,13 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -18,6 +20,7 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -171,7 +174,7 @@ namespace MonkeyBot
             {
                 PaginationBehaviour = PaginationBehaviour.Ignore,
                 Timeout = TimeSpan.FromMinutes(5),
-                PollBehaviour = PollBehaviour.KeepEmojis,
+                PollBehaviour = PollBehaviour.KeepEmojis
             };
             var interactivity = _discordClient.UseInteractivity(interactivityConfig);
             return interactivity;
@@ -184,6 +187,7 @@ namespace MonkeyBot
                 EnableMentionPrefix = true,
                 PrefixResolver = HandlePrefixAsync,
                 EnableDms = true,
+                IgnoreExtraArguments = true,                
                 Services = _services
             };
             var commandsNext = _discordClient.UseCommandsNext(commandsNextConfig);
@@ -298,27 +302,50 @@ namespace MonkeyBot
 
         private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
         {
+            string prefix = "!";
+            if (e.Context.Guild != null)
+            {
+                var guildConfig = await _guildService.GetOrCreateConfigAsync(e.Context.Guild.Id);
+                prefix = guildConfig.CommandPrefix;
+            }
             if (e.Exception is OperationCanceledException cex)
             {
                 _discordClient.Logger.LogWarning(cex, $"Command {e?.Command?.Name ?? ""} was cancelled");
             }
             else if (e.Exception is CommandNotFoundException commandNotFound)
             {
-
+                await e.Context.ErrorAsync($"The specified command *{commandNotFound.CommandName}* was not found. Try {prefix}help to get a list of commands");
             }
             else if (e.Exception is ChecksFailedException checksFailed)
             {
-
+                var failedChecks = string.Join("\n", checksFailed.FailedChecks.Select(check => TranslateFailedCheck(check, e.Context)));
+                await e.Context.ErrorAsync($"The specified command failed because the following checks failed:\n{failedChecks}");
             }
-            else if (e.Exception is InvalidOverloadException invalidOverload)
+            else if (e.Exception is ArgumentException arg)
             {
-
+                await e.Context.ErrorAsync($"You provided the wrong arguments for the command. Try {prefix}help {e.Command.Name}");
             }
             else
-            {
-                //TODO: Handle the actual errors more fine grained
-                await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed. {e.Exception.Message}");
+            {   
+                await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed:\n{e.Exception.GetType()}\n{e.Exception.Message}");
             }
+        }
+
+        private static string TranslateFailedCheck(CheckBaseAttribute check, CommandContext ctx)
+        {
+            return check switch
+            {
+                RequireOwnerAttribute => "You must be the bot's owner to use this command",
+                RequireGuildAttribute => "The command can only be used in a Guild channel (not in a DM)",
+                RequireDirectMessageAttribute => "The command can only be used in a Direct Message",
+                RequireBotPermissionsAttribute botperm => $"The Bot doesn't have the required permissions. It needs: {botperm.Permissions}",
+                RequireUserPermissionsAttribute userPerm => $"You don't have the required permissions. You need: {userPerm.Permissions}",
+                RequirePermissionsAttribute perms => $"You or the bot don't the required permissions: {perms.Permissions}",
+                RequireRolesAttribute roles => $"You need the following role(s) to use this command: {string.Join(", ",roles.RoleNames)}",
+                RequireNsfwAttribute => $"This command can only be used in a nsfw channel!",
+                CooldownAttribute cooldown => $"This command has a cooldown. Please wait {cooldown.GetRemainingCooldown(ctx).Humanize(culture: new("en-GB"))} before you can use it again.",
+                _ => $"{check.TypeId} failed"
+            };            
         }
     }
 }
