@@ -191,6 +191,7 @@ namespace MonkeyBot
                 Services = _services
             };
             var commandsNext = _discordClient.UseCommandsNext(commandsNextConfig);
+            commandsNext.SetHelpFormatter<MonkeyHelpFormatter>();
             commandsNext.RegisterCommands(Assembly.GetExecutingAssembly());
             commandsNext.CommandErrored += Commands_CommandErrored;
 

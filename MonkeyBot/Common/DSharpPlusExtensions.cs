@@ -1,6 +1,9 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
+using MonkeyBot.Common;
 using System;
 using System.Threading.Tasks;
 
@@ -69,5 +72,23 @@ namespace DSharpPlus.CommandsNext
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());
         }
+
+        public static string Translate(this CheckBaseAttribute check)
+        {
+            return check switch
+            {
+                RequireOwnerAttribute => "Requires Bot Owner",
+                RequireGuildAttribute => "Can only be used in a guild",
+                RequireDirectMessageAttribute => "Can only be used in a direct message",
+                RequireBotPermissionsAttribute botperm => $"Requires Bot permission: {botperm.Permissions}",
+                RequireUserPermissionsAttribute userPerm => $"Requires User permission: {userPerm.Permissions}",
+                RequirePermissionsAttribute perms => $"Requires User and Bot Permission: {perms.Permissions}",
+                RequireRolesAttribute roles => $"Requires role(s): {string.Join(", ", roles.RoleNames)}",
+                RequireNsfwAttribute => $"Can only be run in a nsfw channel",
+                CooldownAttribute cooldown => $"Has a cooldown of {cooldown.Reset.Humanize()}",
+                MinPermissionsAttribute minPermissions => $"You need to be {minPermissions.AccessLevel}",
+                _ => $"{check.TypeId} failed"
+            };
+        }    
     }
 }
