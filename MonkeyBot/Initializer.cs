@@ -219,10 +219,10 @@ namespace MonkeyBot
             _discordClient.GuildDeleted += DiscordClient_GuildDeleted;
         }
 
-        private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
+        private static async Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
         {
-            _discordClient.Logger.LogInformation("Client Connected");
-            return Task.CompletedTask;
+            _discordClient.Logger.LogInformation("Client Connected");            
+            await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));            
         }
 
         private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
