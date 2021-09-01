@@ -23,9 +23,9 @@ namespace MonkeyBot.Modules
 
         [Command("xkcd")]
         [Description("Gets a random xkcd comic if the argument is left empty. Gets the latest xkcd comment by supplying \"latest\" as the arg or a specific comic by supplying the number")]
-        [Example("!xkcd")]
-        [Example("!xkcd 101")]
-        [Example("!xkcd latest")]
+        [Example("xkcd")]
+        [Example("xkcd 101")]
+        [Example("xkcd latest")]
         public async Task GetXkcdAsync(CommandContext ctx, [Description("Random comic if left empty, specific comic by number or latest by supplying \"latest\"")] string arg = "")
         {
             XkcdResponse comic = null;

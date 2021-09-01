@@ -30,7 +30,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddRecurring")]
         [Description("Adds the specified recurring announcement to the specified channel")]
-        [Example("!announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\" \"general\"")]
+        [Example("announcements addrecurring \"weeklyMsg1\" \"0 19 * * 5\" \"It is Friday 19:00\" \"general\"")]
         public async Task AddRecurringAsync(CommandContext ctx, [Description("The id of the announcement.")] string announcementId, [Description("The cron expression to use.")] string cronExpression, [Description("The message to announce.")] string announcement, [Description("Optional: The channel where the announcement should be posted")] DiscordChannel channel = null)
         {            
             if (announcementId.IsEmpty())
@@ -77,7 +77,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddSingle")]
         [Description("Adds the specified single announcement at the given time to the specified channel")]
-        [Example("!announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\" \"general\"")]
+        [Example("announcements addsingle \"reminder1\" \"19:00\" \"It is 19:00\" \"general\"")]
         public async Task AddSingleAsync(CommandContext ctx, [Description("The id of the announcement.")] string announcementId, [Description("The time when the message should be announced.")] string time, [Description("The message to announce.")] string announcement, [Description("Optional: The channel where the announcement should be posted")] DiscordChannel channel = null)
         {            
             // Do parameter checks
@@ -145,7 +145,7 @@ namespace MonkeyBot.Modules
 
         [Command("Remove")]
         [Description("Removes the announcement with the specified ID")]
-        [Example("!announcements remove announcement1")]
+        [Example("announcements remove announcement1")]
         public async Task RemoveAsync(CommandContext ctx, [Description("The id of the announcement.")] [RemainingText] string id)
         {
             string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user
@@ -167,7 +167,7 @@ namespace MonkeyBot.Modules
 
         [Command("NextRun")]
         [Description("Gets the next execution time of the announcement with the specified ID.")]
-        [Example("!announcements nextrun announcement1")]
+        [Example("announcements nextrun announcement1")]
         public async Task NextRunAsync(CommandContext ctx, [RemainingText, Description("The id of the announcement.")] string id)
         {
             string cleanID = id.Trim('\"'); // Because the id is flagged with remainder we need to strip leading and trailing " if entered by the user

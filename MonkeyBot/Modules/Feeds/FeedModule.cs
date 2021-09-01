@@ -28,7 +28,8 @@ namespace MonkeyBot.Modules
 
         [Command("AddFeed")]
         [Description("Adds an atom or RSS feed to the list of listened feeds.")]
-        [Example("!Feeds add https://blogs.msdn.microsoft.com/dotnet/feed/")]
+        [Example("AddFeed DotNet https://blogs.msdn.microsoft.com/dotnet/feed/")]
+        [Example("AddFeed DotNet https://blogs.msdn.microsoft.com/dotnet/feed/ #news")]
         public async Task AddFeedUrlAsync(CommandContext ctx, [Description("The name/title of the feed")] string name, [Description("The url to the feed (Atom/RSS)")] string url, [Description("Optional: The channel where the Feed updates should be posted. Defaults to current channel")] DiscordChannel channel = null)
         {
             if (name.IsEmpty())
@@ -70,7 +71,8 @@ namespace MonkeyBot.Modules
 
         [Command("RemoveFeed")]
         [Description("Removes the specified feed from the list of feeds.")]
-        [Example("!Feeds remove https://blogs.msdn.microsoft.com/dotnet/feed/")]
+        [Example("RemoveFeed DotNet")]
+        [Example("RemoveFeed https://blogs.msdn.microsoft.com/dotnet/feed/")]
         public async Task RemoveFeedUrlAsync(CommandContext ctx, [Description("The name or the url of the feed")] string nameOrUrl)
         {
             if (nameOrUrl.IsEmpty())
@@ -91,6 +93,7 @@ namespace MonkeyBot.Modules
 
         [Command("ListFeeds")]
         [Description("List all current feed urls")]
+        [Example("ListFeeds #news")]
         public async Task ListFeedUrlsAsync(CommandContext ctx, [Description("Optional: The channel where the Feed urls should be listed for. Defaults to all channels")] DiscordChannel channel = null)
         {
             List<GuildFeed> guildFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel?.Id);
@@ -120,6 +123,7 @@ namespace MonkeyBot.Modules
 
         [Command("RemoveAllFeeds")]
         [Description("Removes all feed urls")]
+        [Example("RemoveAllFeeds #news")]
         public async Task RemoveFeedUrlsAsync(CommandContext ctx, [Description("Optional: The channel where the Feed urls should be removed. Defaults to all channels")] DiscordChannel channel = null)
         {
             await _feedService.RemoveAllFeedsAsync(ctx.Guild.Id, channel?.Id);

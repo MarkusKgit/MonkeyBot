@@ -78,8 +78,8 @@ namespace DSharpPlus.CommandsNext
             return check switch
             {
                 RequireOwnerAttribute => "Requires Bot Owner",
-                RequireGuildAttribute => "Can only be used in a guild",
-                RequireDirectMessageAttribute => "Can only be used in a direct message",
+                RequireGuildAttribute => "Can only be used in a guild (not in DMs)",
+                RequireDirectMessageAttribute => "Can only be used in DMs",
                 RequireBotPermissionsAttribute botperm => $"Requires Bot permission: {botperm.Permissions}",
                 RequireUserPermissionsAttribute userPerm => $"Requires User permission: {userPerm.Permissions}",
                 RequirePermissionsAttribute perms => $"Requires User and Bot Permission: {perms.Permissions}",

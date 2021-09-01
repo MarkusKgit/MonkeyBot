@@ -15,6 +15,7 @@ namespace MonkeyBot.Modules
         [Command("FindMessageID")]
         [Description("Gets the message id of a message in the current channel with the provided message text")]
         [RequireGuild]
+        [Example("FindMessageID The quick brown fox jumps over the lazy dog")]
         public async Task FindMessageIDAsync(CommandContext ctx, [Description("The content of the message to search for")][RemainingText] string messageContent)
         {
             if (messageContent.IsEmptyOrWhiteSpace())
@@ -45,7 +46,7 @@ namespace MonkeyBot.Modules
 
         [Command("lmgtfy")]
         [Description("Generate a 'let me google that for you' link")]
-        [Example("!lmgtfy Monkey Gamers")]
+        [Example("lmgtfy Monkey Gamers")]
         public async Task LmgtfyAsync(CommandContext ctx, [RemainingText, Description("Search Text")] string searchText)
         {
             if (searchText.IsEmptyOrWhiteSpace())

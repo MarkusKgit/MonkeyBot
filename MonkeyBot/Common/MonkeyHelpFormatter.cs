@@ -63,7 +63,7 @@ namespace MonkeyBot.Common
 
                     foreach (var arg in ovl.Arguments)
                     {
-                        sb.Append('`').Append(arg.Name).Append(" (").Append(this.CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "No description provided.").Append('\n');
+                        sb.Append('`').Append("├ ").Append(arg.Name).Append(" (").Append(CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "No description provided.").Append('\n');
                     }
 
                     sb.Append('\n');
@@ -74,11 +74,10 @@ namespace MonkeyBot.Common
 
             _embedBuilder.AddField("Requires permissions", string.Join(", ", command.ExecutionChecks.Select(c => c.Translate())));
 
-            if ( command.CustomAttributes.OfType<ExampleAttribute>().Any())
+            if (command.CustomAttributes.OfType<ExampleAttribute>().Any())
             {
                 var examples = command.CustomAttributes.OfType<ExampleAttribute>().Select(e => e.ExampleText).ToList();
-                _embedBuilder.AddField("Usage example(s)", string.Join("\n", examples), false);
-                //TODO: Replace default prefix with specific
+                _embedBuilder.AddField("Usage example(s)", string.Join("\n", examples.Select(e => $"{prefix}{e}")), false);
             }
 
             return this;

@@ -18,10 +18,10 @@ namespace MonkeyBot.Modules
     [RequireGuild]
     public class SelfAssignRolesModule : BaseCommandModule
     {
-        [Command("AddRole")]
-        [Aliases(new[] { "GrantRole" })]
+        [Command("GiveRole")]
+        [Aliases(new[] { "GrantRole", "AddRole" })]
         [Description("Adds the specified role to your own roles.")]
-        [Example("!addrole bf")]
+        [Example("giverole @bf")]
         public async Task AddRoleAsync(CommandContext ctx, [Description("The role to add")] DiscordRole role)
         {
             if (role == null)
@@ -50,7 +50,7 @@ namespace MonkeyBot.Modules
         [Command("RemoveRole")]
         [Aliases(new[] { "RevokeRole" })]
         [Description("Removes the specified role from your roles.")]
-        [Example("!RemoveRole bf")]
+        [Example("RemoveRole @bf")]
         public async Task RemoveRoleAsync(CommandContext ctx, [Description("The role to remove.")] DiscordRole role)
         {
             if (!ctx.Member.Roles.Contains(role))
@@ -101,7 +101,7 @@ namespace MonkeyBot.Modules
 
         [Command("ListRoleMembers")]
         [Description("Lists all the members of the specified role")]
-        [Example("!listrolemembers bf")]
+        [Example("ListRoleMembers @bf")]
         public async Task ListMembersAsync(CommandContext ctx, [Description("The role to display members for")] DiscordRole role)
         {
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
