@@ -16,7 +16,6 @@ namespace MonkeyBot.Modules
     [Description("Feeds")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireGuild]
-    [RequireBotPermissions(Permissions.EmbedLinks)]
     public class FeedModule : BaseCommandModule
     {
         private readonly IFeedService _feedService;
@@ -24,6 +23,25 @@ namespace MonkeyBot.Modules
         public FeedModule(IFeedService feedService)
         {
             _feedService = feedService;
+        }
+
+        [Command("Feeds")]
+        [Description("View all options to manage feeds")]
+        public async Task FeedsAsync(CommandContext ctx)
+        {
+            var addButton = new DiscordButtonWithCallback(ctx.Client, ButtonStyle.Primary, "AddFeed".WithGuid(), "Add Feed", null, () => new DiscordInteractionResponseBuilder().WithContent("You want to add a feed"));
+            var removeButton = new DiscordButtonWithCallback(ctx.Client, ButtonStyle.Primary, "RemoveFeed".WithGuid(), "Remove Feed", null, () => new DiscordFollowupMessageBuilder().WithContent("You want to remove a feed"));
+            var listButton = new DiscordButtonWithCallback(ctx.Client, ButtonStyle.Primary, "ListFeeds".WithGuid(), "List Feeds", null, HandleListFeeds);
+            var msgBuilder = new DiscordMessageBuilder()
+                .WithContent("What do you want to do?")
+                .AddComponents(addButton, removeButton, listButton);
+            var msg = await ctx.RespondAsync(msgBuilder);
+        }
+
+        private DiscordFollowupMessageBuilder HandleListFeeds()
+        {
+            return new DiscordFollowupMessageBuilder()
+                       .WithContent("Oh you want the feeds listed?");
         }
 
         [Command("AddFeed")]
