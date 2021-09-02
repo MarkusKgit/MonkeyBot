@@ -10,6 +10,7 @@ using System.Web;
 
 namespace MonkeyBot.Modules
 {
+    [Description("Misc stuff")]
     public class MiscModule : BaseCommandModule
     {
         [Command("FindMessageID")]

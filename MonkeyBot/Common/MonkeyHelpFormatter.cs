@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
@@ -85,10 +86,23 @@ namespace MonkeyBot.Common
 
         public override BaseHelpFormatter WithSubcommands(IEnumerable<Command> subcommands)
         {
-            _embedBuilder.AddField(
-                _specificCommand != null ? "Subcommands" : "Commands", 
-                string.Join(", ", subcommands.Select(x => Formatter.InlineCode(x.Name))), false);
+            if (_specificCommand != null)
+            {
+                // -> Subcommands
+                _embedBuilder.AddField("Subcommands", string.Join(", ", subcommands.Select(x => Formatter.InlineCode(x.Name))), false);
+            }
+            else
+            {
+                var descriptions = subcommands.Select(GetCommandDescription).ToList();
+                var groupedByModule = subcommands.GroupBy(cmd => GetCommandDescription(cmd));
+                _embedBuilder.AddField("Commands", string.Join("\n", groupedByModule.Select(grp => $"{grp.Key}:\n{string.Join(", ", grp.Select(x => Formatter.InlineCode(x.Name)))}")));
+            }
             return this;
+        }
+
+        private static string GetCommandDescription(Command cmd)
+        {
+            return cmd.Module.ModuleType.CustomAttributes.FirstOrDefault(x => x.AttributeType == typeof(DescriptionAttribute))?.ConstructorArguments?.First().Value.ToString() ?? cmd.Module.ModuleType.Name;
         }
 
         public override CommandHelpMessage Build()

@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
 {
+    [Description("Guild Info")]
     public class GuildInfoModule : BaseCommandModule
     {
         //private readonly MonkeyDBContext dbContext;
         private readonly IGuildService _guildService;
-
+        
         public GuildInfoModule(IGuildService guildService)
         {
             _guildService = guildService;
