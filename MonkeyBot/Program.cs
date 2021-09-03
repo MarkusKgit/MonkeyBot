@@ -1,7 +1,9 @@
 ﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using Fclp;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MonkeyBot
@@ -23,13 +25,19 @@ namespace MonkeyBot
                 .Callback(text => Console.WriteLine(text));
             ICommandLineParserResult parseResult = parser.Parse(args);
             ApplicationArguments parsedArgs = !parseResult.HasErrors ? parser.Object : null;
-            //TODO: Actually use command line arguments
-
+            
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
             var services = await Initializer.InitializeServicesAndStartClientAsync();
             _discordClient = services.GetRequiredService<DiscordClient>();
+
+            if (parsedArgs.BuildDocumentation)
+            {
+                var docs = Documentation.DocumentationBuilder.BuildDocumentation(_discordClient.GetCommandsNext(), Documentation.DocumentationOutputType.HTML);
+                await File.WriteAllTextAsync(@"C:\temp\commands.html", docs);
+                await Console.Out.WriteLineAsync("Documentation built");
+            }
 
             await Task.Delay(-1); // Prevent the console window from closing.
         }

@@ -1,4 +1,6 @@
 ﻿
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 using Humanizer;
 using MonkeyBot.Common;
 using MonkeyBot.Models;
@@ -8,139 +10,84 @@ using System.Linq;
 using System.Text;
 
 namespace MonkeyBot.Documentation
-{
-    //TODO: Reimplement
-    
+{   
     /// <summary>
     /// Helper class to automatically build documentation based on the implemented Modules
     /// </summary>
     public static class DocumentationBuilder
     {
-        ///// <summary>
-        ///// Automatically build documentation of the implemented modules
-        ///// Returns a formatted string according to the outputType
-        ///// Currently HTML and markdown are supported
-        ///// </summary>
-        //public static string BuildDocumentation(CommandService commandService, DocumentationOutputType outputType = DocumentationOutputType.HTML)
-        //{
-        //    return outputType switch
-        //    {
-        //        DocumentationOutputType.HTML => BuildHtmlDocumentation(commandService),
-        //        DocumentationOutputType.MarkDown => BuildMarkdownDocumentation(commandService),
-        //        _ => string.Empty,
-        //    };
-        //}
+        /// <summary>
+        /// Automatically build documentation of the implemented modules
+        /// Returns a formatted string according to the outputType
+        /// Currently HTML and markdown are supported
+        /// </summary>
+        public static string BuildDocumentation(CommandsNextExtension commandsNext, DocumentationOutputType outputType = DocumentationOutputType.HTML)
+        {
+            return outputType switch
+            {
+                DocumentationOutputType.HTML => BuildHtmlDocumentation(commandsNext),
+                DocumentationOutputType.MarkDown => BuildMarkdownDocumentation(commandsNext),
+                _ => string.Empty,
+            };
+        }
 
-        //private static string BuildHtmlDocumentation(CommandService commandService)
-        //    => BuildDocumentation(commandService, new HTMLFormatter());
+        private static string BuildHtmlDocumentation(CommandsNextExtension commandsNext)
+            => BuildDocumentation(commandsNext, new HTMLFormatter());
 
-        //private static string BuildMarkdownDocumentation(CommandService commandService)
-        //    => BuildDocumentation(commandService, new MarkDownFormatter());
+        private static string BuildMarkdownDocumentation(CommandsNextExtension commandsNext)
+            => BuildDocumentation(commandsNext, new MarkDownFormatter());
 
-        //private static string BuildDocumentation(CommandService commandService, IDocumentFormatter f)
-        //{
-        //    string prefix = GuildConfig.DefaultPrefix;
-        //    var builder = new StringBuilder();
+        private static string BuildDocumentation(CommandsNextExtension commandsNext, IDocumentFormatter f)
+        {
+            string prefix = GuildConfig.DefaultPrefix;
+            var builder = new StringBuilder();
 
-        //    foreach (ModuleInfo module in commandService.Modules)
-        //    {
-        //        _ = builder.AppendLine(f.H3(module.Name));
-        //        List<string> modulePreconditions = module.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
-        //        if (modulePreconditions != null && modulePreconditions.Count > 0)
-        //        {
-        //            _ = builder.AppendLine(f.NewLine($"{f.Strong("Preconditions:")} {string.Join(", ", modulePreconditions)}"));
-        //        }
-        //        _ = builder.AppendLine(f.NewLine(""));
-        //        foreach (CommandInfo cmd in module.Commands)
-        //        {
-        //            string parameters = string.Empty;
-        //            if (cmd.Parameters != null && cmd.Parameters.Count > 0)
-        //            {
-        //                parameters = $"{string.Join(" ", cmd.Parameters.Select(x => $"_{x.Name}"))}";
-        //            }
-        //            _ = builder.AppendLine(f.NewLine(f.InlineCode($"{prefix}{cmd.Aliases[0]} {parameters}")));
-        //            ExampleAttribute example = cmd.Attributes.OfType<ExampleAttribute>().FirstOrDefault();
-        //            if (example != null && !example.ExampleText.IsEmpty())
-        //            {
-        //                _ = builder.AppendLine(f.NewLine($"{f.Em("Example:")} {f.InlineCode(example.ExampleText)}"));
-        //            }
-        //            List<string> commandPreconditions = cmd.Preconditions?.Select(x => TranslatePrecondition(x, f)).ToList();
-        //            if (commandPreconditions != null && commandPreconditions.Count > 0)
-        //            {
-        //                _ = builder.AppendLine(f.NewLine($"{f.Em("Preconditions:")} {string.Join(", ", commandPreconditions)}"));
-        //            }
-        //            if (!cmd.Remarks.IsEmpty())
-        //            {
-        //                _ = builder.AppendLine(f.NewLine($"{f.Em("Remarks:")} {cmd.Remarks}"));
-        //            }
-        //            _ = builder.AppendLine(f.NewLine(""));
-        //        }
-        //        _ = builder.AppendLine(f.NewLine(f.HorizontalRule()));
-        //    }
-        //    return builder.ToString();
-        //}
+            var commands = commandsNext.RegisteredCommands;
+            var flat = commands.SelectMany(c => c.Value is CommandGroup group ? group.Children : new Command[] { c.Value }).Distinct();
+            var grouped = flat.GroupBy(c => c.Module.ModuleType);
 
-        //private static string TranslatePrecondition(PreconditionAttribute precondition, IDocumentFormatter f)
-        //{
-        //    if (precondition is MinPermissionsAttribute minPermissionsAttribute)
-        //    {
-        //        return $"Minimum permission: {f.Em($"{minPermissionsAttribute.AccessLevel.Humanize(LetterCasing.Title)}")}";
-        //    }
-        //    else if (precondition is RequireContextAttribute contextAttribute)
-        //    {
-        //        return $"Can only be used in a {f.Em(TranslateContext(contextAttribute.Contexts))}";
-        //    }
-        //    else if (precondition is RequireBotPermissionAttribute || precondition is RequireUserPermissionAttribute)
-        //    {
-        //        string permission = "";
-        //        string prefix = "";
-        //        GuildPermission? guildPermission;
-        //        ChannelPermission? channelPermission;
-        //        if (precondition is RequireBotPermissionAttribute)
-        //        {
-        //            guildPermission = (precondition as RequireBotPermissionAttribute).GuildPermission;
-        //            channelPermission = (precondition as RequireBotPermissionAttribute).ChannelPermission;
-        //            prefix = "Bot";
-        //        }
-        //        else
-        //        {
-        //            guildPermission = (precondition as RequireUserPermissionAttribute).GuildPermission;
-        //            channelPermission = (precondition as RequireUserPermissionAttribute).ChannelPermission;
-        //            prefix = "User";
-        //        }
-        //        if (guildPermission != null && guildPermission.HasValue)
-        //        {
-        //            List<GuildPermission> guildPermissions = guildPermission.Value.ToString()
-        //                .Split(',')
-        //                .Select(flag => (GuildPermission)Enum.Parse(typeof(GuildPermission), flag))
-        //                .ToList();
-        //            permission += $"{prefix} requires guild permission{(guildPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", guildPermissions.Select(gp => gp.Humanize(LetterCasing.Title))))} ";
-        //        }
-        //        if (channelPermission != null && channelPermission.HasValue)
-        //        {
-        //            List<ChannelPermission> channelPermissions = channelPermission.Value.ToString()
-        //                .Split(',')
-        //                .Select(flag => (ChannelPermission)Enum.Parse(typeof(ChannelPermission), flag))
-        //                .ToList();
-        //            permission += $"{prefix} requires channel permission{(channelPermissions.Count > 1 ? "s" : "")}: {f.Em(string.Join(", ", channelPermissions.Select(cp => cp.Humanize(LetterCasing.Title))))} ";
-        //        }
-        //        return permission.Trim();
-        //    }
-        //    else
-        //    {
-        //        return precondition.ToString();
-        //    }
-        //}
+            foreach (var group in grouped)
+            {
+                var module = group.Key;
+                string description = module.CustomAttributes.Where(x => x.AttributeType == typeof(DescriptionAttribute)).Select(x => x.ConstructorArguments[0].Value.ToString()).FirstOrDefault();
+                string moduleName = module.Name;
+                builder.AppendLine(f.H2(description ?? moduleName));
 
-        //private static string TranslateContext(ContextType context)
-        //{
-        //    return context switch
-        //    {
-        //        ContextType.Guild => "channel",
-        //        ContextType.DM => "private message",
-        //        ContextType.Group => "private group",
-        //        _ => "",
-        //    };
-        //}
+                foreach (var cmd in group)
+                {
+                    string name = $"{(cmd.Parent != null ? cmd.Parent.Name + " " : "")}{cmd.Name}";
+                    builder.AppendLine(f.H3(name));                    
+                    builder.AppendLine(cmd.Description + f.NewLine(""));
+
+                    if (cmd.Aliases.Any())
+                    {
+                        builder.AppendLine(f.H3("Aliases"));
+                        builder.AppendLine(string.Join(" ,", cmd.Aliases) + f.NewLine(""));                        
+                    }
+                    
+                    builder.AppendLine(f.H4("Usage"));
+                    foreach (var ovl in cmd.Overloads.OrderByDescending(x => x.Priority))
+                    {
+                        builder.AppendLine(f.InlineCode($"{prefix}{cmd.QualifiedName} {string.Join(" ", ovl.Arguments.Select(arg => arg.IsOptional ? f.Em(arg.Name) : f.Strong(arg.Name)))}{f.NewLine("")}"));
+                        builder.AppendLine(string.Join(Environment.NewLine, ovl.Arguments.Select(arg => "├ " + f.InlineCode($"{arg.Name} ({commandsNext.GetUserFriendlyTypeName(arg.Type)}): {arg.Description ?? ""}{f.NewLine("")}"))));
+                    }
+
+                    if (cmd.ExecutionChecks.Any())
+                    {
+                        builder.AppendLine(f.H3("Required permissions"));
+                        builder.AppendLine(string.Join(", ", cmd.ExecutionChecks.Select(c => c.Translate())));
+                    }
+
+                    if (cmd.CustomAttributes.OfType<ExampleAttribute>().Any())
+                    {
+                        var examples = cmd.CustomAttributes.OfType<ExampleAttribute>().Select(e => e.ExampleText).ToList();
+                        builder.AppendLine(f.H3("Example usage"));
+                        builder.AppendLine(string.Join("\n", examples.Select(e => $"{prefix}{e}")));
+                    }
+                }
+                builder.AppendLine(f.NewLine(f.HorizontalRule()));
+            }  
+            return builder.ToString();
+        }
     }
 }
