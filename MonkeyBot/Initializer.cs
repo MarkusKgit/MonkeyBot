@@ -227,7 +227,7 @@ namespace MonkeyBot
 
         private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
         {
-            var guildInfo = e.Guilds.Select(g => $"{g.Value.Name}: {g.Value.MemberCount} members");
+            var guildInfo = e.Guilds.Select(g => $"{g.Value.Name}({g.Value.Id}): {g.Value.MemberCount} members");
             _discordClient.Logger.LogInformation($"Guild Download Complete:\n{string.Join("\n", guildInfo)}");            
             return Task.CompletedTask;
         }
