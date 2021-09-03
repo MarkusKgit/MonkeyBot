@@ -1,7 +1,7 @@
-﻿using Discord;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,15 +26,8 @@ namespace MonkeyBot.Common
                 }
             }
 
-            byte[] encodedText = Encoding.UTF8.GetBytes(text);
-
-            using var sourceStream = new FileStream(filePath,
-                                                     append ? FileMode.Append : FileMode.Create,
-                                                     FileAccess.Write,
-                                                     FileShare.None,
-                                                     bufferSize: 4096,
-                                                     useAsync: true);
-            await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);
+            using var streamWriter = new StreamWriter(filePath, append);
+            await streamWriter.WriteAsync(text);
         }
 
         /// <summary>
@@ -44,47 +37,19 @@ namespace MonkeyBot.Common
         /// <returns>Contents of the text file</returns>
         public static async Task<string> ReadTextAsync(string filePath)
         {
-            using var sourceStream = new FileStream(filePath,
-                                                    FileMode.Open,
-                                                    FileAccess.Read,
-                                                    FileShare.Read,
-                                                    bufferSize: 4096,
-                                                    useAsync: true);
-            var sb = new StringBuilder();
-
-            byte[] buffer = new byte[0x1000];
-            int numRead;
-            while ((numRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
-            {
-                string text = Encoding.UTF8.GetString(buffer, 0, numRead);
-                _ = sb.Append(text);
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Sends the text to the specified guild's channel using a connected Discord client
-        /// </summary>
-        /// <param name="client">Connected Discord Client connection</param>
-        /// <param name="guildID">Id of the Discord guild</param>
-        /// <param name="channelID">Id of the Discord channel</param>
-        /// <param name="text">Text to post</param>
-        public static async Task<IUserMessage> SendChannelMessageAsync(IDiscordClient client, ulong guildID, ulong channelID, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-        {
-            IGuild guild = await (client?.GetGuildAsync(guildID)).ConfigureAwait(false);
-            ITextChannel channel = await (guild?.GetTextChannelAsync(channelID)).ConfigureAwait(false);
-            return await (channel?.SendMessageAsync(text, isTTS, embed, options)).ConfigureAwait(false);
+            using var streamReader = new StreamReader(filePath);
+            return await streamReader.ReadToEndAsync();
         }
 
         public static async Task<T> WithCancellationAsync<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
             using CancellationTokenRegistration _ = cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs);
-            if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
+            if (task != await Task.WhenAny(task, tcs.Task))
             {
                 throw new OperationCanceledException(cancellationToken);
             }
-            return await task.ConfigureAwait(false);
+            return await task;
         }
 
         //Converts all html encoded special characters
@@ -100,6 +65,18 @@ namespace MonkeyBot.Common
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
             return regionalIndicatorLetters[index];
+        }
+
+        internal static Task<DiscordMessage> SendChannelMessageAsync(DiscordClient discordClient, ulong guildID, ulong channelID, string message = null, DiscordEmbed embed = null)
+        {
+            if (discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
+            {
+                if (guild.Channels.TryGetValue(channelID, out DiscordChannel channel))
+                {
+                    return channel.SendMessageAsync(content: message, embed: embed);
+                }
+            }
+            return Task.FromResult<DiscordMessage>(null);
         }
     }
 }

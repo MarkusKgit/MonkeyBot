@@ -8,5 +8,8 @@
 
         public static string TruncateTo(this string s, int maxLength, string append = "…")
             => s.Length < maxLength ? s : s.Substring(0, maxLength) + append;
+
+        public static string WithGuid(this string s)
+            => $"{s}_{Guid.NewGuid()}";
     }
 }

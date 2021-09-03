@@ -1,63 +1,68 @@
-﻿using Discord.WebSocket;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using Fclp;
 using Microsoft.Extensions.DependencyInjection;
-using MonkeyBot;
-using MonkeyBot.Common;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
-public static class Program
+namespace MonkeyBot
 {
-    private static IServiceProvider services;
-
-    public static async Task Main(string[] args)
+    public static class Program
     {
-        var parser = new FluentCommandLineParser<ApplicationArguments>();
-        _ = parser
-            .Setup(arg => arg.BuildDocumentation)
-            .As('d', "docu")
-            .SetDefault(false)
-            .WithDescription("Build the documentation files in the app folder");
-        _ = parser
-            .SetupHelp("?", "help")
-            .Callback(text => Console.WriteLine(text));
-        ICommandLineParserResult parseResult = parser.Parse(args);
-        ApplicationArguments parsedArgs = !parseResult.HasErrors ? parser.Object : null;
+        private static DiscordClient _discordClient;
 
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-
-        await DiscordClientConfiguration.EnsureExistsAsync().ConfigureAwait(false); // Ensure the configuration file has been created.
-
-        services = await Initializer.InitializeAsync(parsedArgs).ConfigureAwait(false);
-
-        await Task.Delay(-1).ConfigureAwait(false); // Prevent the console window from closing.
-    }
-
-    private static async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        if (e.ExceptionObject is Exception ex)
+        public static async Task Main(string[] args)
         {
-            await Console.Out.WriteLineAsync($"Unhandled exception: {ex.Message}").ConfigureAwait(false);
-        }
+            var parser = new FluentCommandLineParser<ApplicationArguments>();
+            _ = parser
+                .Setup(arg => arg.BuildDocumentation)
+                .As('d', "docu")
+                .SetDefault(false)
+                .WithDescription("Build the documentation files in the app folder");
+            _ = parser
+                .SetupHelp("?", "help")
+                .Callback(text => Console.WriteLine(text));
+            ICommandLineParserResult parseResult = parser.Parse(args);
+            ApplicationArguments parsedArgs = !parseResult.HasErrors ? parser.Object : null;
+            
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
-        if (e.IsTerminating)
-        {
-            await Console.Out.WriteLineAsync("Terminating!").ConfigureAwait(false);
-        }
-    }
+            var services = await Initializer.InitializeServicesAndStartClientAsync();
+            _discordClient = services.GetRequiredService<DiscordClient>();
 
-    private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
-    {
-        if (services != null)
-        {
-            DiscordSocketClient discordClient = services.GetService<DiscordSocketClient>();
-            if (discordClient != null)
+            if (parsedArgs.BuildDocumentation)
             {
-                discordClient.LogoutAsync().Wait();
-                discordClient.StopAsync().Wait();
+                var docs = Documentation.DocumentationBuilder.BuildDocumentation(_discordClient.GetCommandsNext(), Documentation.DocumentationOutputType.HTML);
+                await File.WriteAllTextAsync(@"C:\temp\commands.html", docs);
+                await Console.Out.WriteLineAsync("Documentation built");
+            }
+
+            await Task.Delay(-1); // Prevent the console window from closing.
+        }
+
+        private static async void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception ex)
+            {
+                await Console.Out.WriteLineAsync($"Unhandled exception: {ex.Message}");
+            }
+
+            if (e.IsTerminating)
+            {
+                await Console.Out.WriteLineAsync("Terminating!");
             }
         }
-        await Console.Out.WriteLineAsync("Exiting!").ConfigureAwait(false);
+
+        private static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            if (_discordClient != null)
+            {
+                await _discordClient.DisconnectAsync();
+                _discordClient.Dispose();
+            }
+            await Console.Out.WriteLineAsync("Exiting!");
+        }
     }
 }

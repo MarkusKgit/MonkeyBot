@@ -9,14 +9,14 @@ namespace MonkeyBot.Database
     {
         public static async Task InitializeAsync(MonkeyDBContext context)
         {
-            if ((await context.Database.GetPendingMigrationsAsync().ConfigureAwait(false)).Any())
+            if ((await context.Database.GetPendingMigrationsAsync()).Any())
             {
-                await context.Database.MigrateAsync().ConfigureAwait(false);
+                await context.Database.MigrateAsync();
             }
 
             if (!context.BenzenFacts.Any())
             {
-                var benzenFacs = new BenzenFact[]
+                var benzenFacts = new BenzenFact[]
                 {
                     new BenzenFact("Who can take you out with a toothpick at 400yds? Benzen!" ),
                     new BenzenFact("Who was the inventor of the internet? Benzen!" ),
@@ -60,8 +60,8 @@ namespace MonkeyBot.Database
                     new BenzenFact("The Hollywood film \"Gladiator\" is based on the true story of which heroic historical figure? Benzen!" ),
                     new BenzenFact("Pop culture: \"The 300\" was heavily modified from its original script \"The 1\" as it was deemed too unbelievable. Who was \"The 1\" referred to in the original title? Benzen!" )
                 };
-                context.BenzenFacts.AddRange(benzenFacs);
-                _ = await context.SaveChangesAsync().ConfigureAwait(false);
+                context.BenzenFacts.AddRange(benzenFacts);
+                _ = await context.SaveChangesAsync();
             }
         }
     }
