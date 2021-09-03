@@ -19,7 +19,10 @@ namespace MonkeyBot.Modules
     {
         [Command("Say")]
         [Description("Say something in a specific guild's channel")]
-        public async Task SayAsync(CommandContext ctx, ulong guildId, ulong channelId, [RemainingText] string message)
+        public async Task SayAsync(CommandContext ctx,
+                                   [Description("Id of the guild where to post")] ulong guildId,
+                                   [Description("Id of the text channel where to post")] ulong channelId,
+                                   [RemainingText, Description("Message to post")] string message)
         {
             DiscordGuild guild = await ctx.Client.GetGuildAsync(guildId);
             if (guild == null)
@@ -60,7 +63,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddOwner")]
         [Description("Adds the specified user to the list of bot owners")]
-        public async Task AddOwnerAsync(CommandContext ctx, [Description("The user to add")] DiscordUser user)
+        public async Task AddOwnerAsync(CommandContext ctx, [Description("The user to add as an owner")] DiscordUser user)
         {
             if (user == null)
             {
@@ -83,7 +86,7 @@ namespace MonkeyBot.Modules
         [Command("RemoveOwner")]
         [Description("Removes the specified user from the list of bot owners")]
         [MinPermissions(AccessLevel.BotOwner)]
-        public async Task RemoveOwnerAsync(CommandContext ctx, [Description("The user to remove")] DiscordUser user)
+        public async Task RemoveOwnerAsync(CommandContext ctx, [Description("The user to remove from the owners")] DiscordUser user)
         {
             if (user == null)
             {

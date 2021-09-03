@@ -22,7 +22,7 @@ namespace MonkeyBot.Modules
         [Aliases(new[] { "GrantRole", "AddRole" })]
         [Description("Adds the specified role to your own roles.")]
         [Example("giverole @bf")]
-        public async Task AddRoleAsync(CommandContext ctx, [Description("The role to add")] DiscordRole role)
+        public async Task AddRoleAsync(CommandContext ctx, [Description("The role you want to have")] DiscordRole role)
         {
             if (role == null)
             {
@@ -51,7 +51,7 @@ namespace MonkeyBot.Modules
         [Aliases(new[] { "RevokeRole" })]
         [Description("Removes the specified role from your roles.")]
         [Example("RemoveRole @bf")]
-        public async Task RemoveRoleAsync(CommandContext ctx, [Description("The role to remove.")] DiscordRole role)
+        public async Task RemoveRoleAsync(CommandContext ctx, [Description("The role you want to get rid of")] DiscordRole role)
         {
             if (!ctx.Member.Roles.Contains(role))
             {

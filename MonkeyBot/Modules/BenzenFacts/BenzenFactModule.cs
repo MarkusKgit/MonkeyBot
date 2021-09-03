@@ -41,7 +41,7 @@ namespace MonkeyBot.Modules
 
         [Command("AddBenzenFact")]
         [Description("Add a fact about Benzen")]
-        public async Task AddBenzenFactAsync(CommandContext ctx, [RemainingText] string fact)
+        public async Task AddBenzenFactAsync(CommandContext ctx, [RemainingText, Description("The fact you want to add")] string fact)
         {
             fact = fact.Trim('\"').Trim();
             if (fact.IsEmpty())

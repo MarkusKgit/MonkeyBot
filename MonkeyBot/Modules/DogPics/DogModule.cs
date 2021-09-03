@@ -27,7 +27,7 @@ namespace MonkeyBot.Modules
         [Command("Dog")]
         [Aliases("Dogger", "Doggo")]
         [Description("Gets a random Dog picture. Optionally a breed can be provided.")]
-        public async Task GetDogPicAsync(CommandContext ctx, [RemainingText][Description("Optional: The breed of the dogger")] string breed = "")
+        public async Task GetDogPicAsync(CommandContext ctx, [RemainingText, Description("Optional: The breed of the dogger")] string breed = "")
         {
             await ctx.TriggerTypingAsync();
             Uri pictureURL = breed.IsEmpty() ?

@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
         [Description("Deletes the specified amount of messages")]
         [MinPermissions(AccessLevel.ServerMod)]
         [Example("Prune 10")]
-        public async Task PruneAsync(CommandContext ctx, int count = 10)
+        public async Task PruneAsync(CommandContext ctx, [Description("The amount of messages to delete")] int count = 10)
         {
             if (count < 1)
             {
@@ -43,7 +43,7 @@ namespace MonkeyBot.Modules
         [Description("Deletes the specified amount of messages for the specified user")]
         [MinPermissions(AccessLevel.ServerMod)]
         [Example("Prune @JohnDoe 10")]
-        public async Task PruneAsync(CommandContext ctx, DiscordUser user, int count = 10)
+        public async Task PruneAsync(CommandContext ctx, [Description("The user whose messages should be deleted")] DiscordUser user, [Description("The amount of the user's messages to delete")] int count = 10)
         {
             if (user == null)
             {

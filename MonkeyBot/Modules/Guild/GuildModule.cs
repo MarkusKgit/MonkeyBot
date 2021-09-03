@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
         [Command("SetDefaultChannel")]
         [Description("Sets the default channel for the guild where info will be posted")]
         [Example("SetDefaultChannel #general")]
-        public async Task SetDefaultChannelAsync(CommandContext ctx, [Description("The channel which should become the default")][RemainingText] DiscordChannel channel)
+        public async Task SetDefaultChannelAsync(CommandContext ctx, [RemainingText, Description("The channel which should become the default")] DiscordChannel channel)
         {
             GuildConfig config = await _guildService.GetOrCreateConfigAsync(ctx.Guild.Id);
             config.DefaultChannelId = channel.Id;
