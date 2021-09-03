@@ -5,11 +5,9 @@ using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
 using MonkeyBot.Services;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyBot.Common
 {
@@ -17,7 +15,7 @@ namespace MonkeyBot.Common
     {
         private readonly DiscordEmbedBuilder _embedBuilder;
         private Command _specificCommand;
-        private string prefix = "!";
+        private readonly string prefix = "!";
 
         public MonkeyHelpFormatter(CommandContext ctx, IGuildService guildService) : base(ctx)
         {
@@ -35,7 +33,7 @@ namespace MonkeyBot.Common
         {
             _specificCommand = command;
 
-            _embedBuilder.WithDescription($"{Formatter.InlineCode(command.Name)}: {command.Description ?? "No description provided."}");
+            _embedBuilder.WithDescription($"{Formatter.InlineCode(prefix + command.Name)}: {command.Description ?? "No description provided."}");
 
             if (command is CommandGroup cgroup && cgroup.IsExecutableWithoutSubcommands)
             {
@@ -53,18 +51,25 @@ namespace MonkeyBot.Common
 
                 foreach (var ovl in command.Overloads.OrderByDescending(x => x.Priority))
                 {
-                    sb.Append('`').Append(command.QualifiedName);
+                    sb.Append('`').Append(prefix + command.QualifiedName);
 
-                    foreach (var arg in ovl.Arguments)
+                    if (ovl.Arguments.Any())
                     {
-                        sb.Append(arg.IsOptional || arg.IsCatchAll ? " [" : " <").Append(arg.Name).Append(arg.IsCatchAll ? "..." : "").Append(arg.IsOptional || arg.IsCatchAll ? ']' : '>');
+                        foreach (var arg in ovl.Arguments)
+                        {
+                            sb.Append(arg.IsOptional || arg.IsCatchAll ? " [" : " <").Append(arg.Name).Append(arg.IsCatchAll ? "..." : "").Append(arg.IsOptional || arg.IsCatchAll ? ']' : '>');
+                        }
+
+                        sb.Append("`\n");
+
+                        foreach (var arg in ovl.Arguments)
+                        {
+                            sb.Append('`').Append("├ ").Append(arg.Name).Append(" (").Append(CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "No description provided.").Append('\n');
+                        }
                     }
-
-                    sb.Append("`\n");
-
-                    foreach (var arg in ovl.Arguments)
+                    else 
                     {
-                        sb.Append('`').Append("├ ").Append(arg.Name).Append(" (").Append(CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "No description provided.").Append('\n');
+                        sb.Append(" <none>`");
                     }
 
                     sb.Append('\n');
@@ -73,7 +78,10 @@ namespace MonkeyBot.Common
                 _embedBuilder.AddField("Arguments", sb.ToString().Trim(), false);
             }
 
-            _embedBuilder.AddField("Requires permissions", string.Join(", ", command.ExecutionChecks.Select(c => c.Translate())));
+            if (command.ExecutionChecks.Any())
+            {
+                _embedBuilder.AddField("Requires permissions", string.Join(", ", command.ExecutionChecks.Select(c => c.Translate())));
+            }
 
             if (command.CustomAttributes.OfType<ExampleAttribute>().Any())
             {
@@ -89,27 +97,29 @@ namespace MonkeyBot.Common
             if (_specificCommand != null)
             {
                 // -> Subcommands
-                _embedBuilder.AddField("Subcommands", string.Join(", ", subcommands.Select(x => Formatter.InlineCode(x.Name))), false);
+                _embedBuilder.AddField("Subcommands", string.Join(", ", subcommands.Select(x => Formatter.InlineCode(prefix + x.Name))), false);
             }
             else
             {
                 var descriptions = subcommands.Select(GetCommandDescription).ToList();
                 var groupedByModule = subcommands.GroupBy(cmd => GetCommandDescription(cmd));
-                _embedBuilder.AddField("Commands", string.Join("\n", groupedByModule.Select(grp => $"{grp.Key}:\n{string.Join(", ", grp.Select(x => Formatter.InlineCode(x.Name)))}")));
+                foreach (var grp in groupedByModule)
+                {
+                    _embedBuilder.AddField(grp.Key, string.Join(", ", grp.Select(x => Formatter.InlineCode(prefix + x.Name))));
+                }
+                //_embedBuilder.AddField("Commands", string.Join("\n", groupedByModule.Select(grp => $"{grp.Key}:\n{string.Join(", ", grp.Select(x => Formatter.InlineCode(prefix + x.Name)))}")));
             }
             return this;
         }
 
-        private static string GetCommandDescription(Command cmd)
-        {
-            return cmd.Module.ModuleType.CustomAttributes.FirstOrDefault(x => x.AttributeType == typeof(DescriptionAttribute))?.ConstructorArguments?.First().Value.ToString() ?? cmd.Module.ModuleType.Name;
-        }
+        private static string GetCommandDescription(Command cmd) 
+            => cmd.Module.ModuleType.CustomAttributes.FirstOrDefault(x => x.AttributeType == typeof(DescriptionAttribute))?.ConstructorArguments?.First().Value.ToString() ?? cmd.Module.ModuleType.Name;
 
         public override CommandHelpMessage Build()
         {
             if (_specificCommand == null)
             {
-                _embedBuilder.WithDescription($"Here is a list of all commands and groups. Type {prefix}{Formatter.Italic("commandname")} for more information about a specific command.");
+                _embedBuilder.WithDescription($"Here is a list of all commands and groups. Type {prefix}help {Formatter.Italic("commandname")} for more information about a specific command.");
             }
 
             return new CommandHelpMessage(embed: _embedBuilder.Build());
