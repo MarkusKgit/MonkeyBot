@@ -99,7 +99,7 @@ namespace MonkeyBot.Modules
                 return;
             }
             List<GuildFeed> currentFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id);
-            if (!currentFeeds.Any(x => x.Url == nameOrUrl || x.Name == nameOrUrl))
+            if (!currentFeeds.Any(x => x.Url.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() || x.Name.ToLowerInvariant() == nameOrUrl.ToLowerInvariant()))
             {
                 _ = await ctx.ErrorAsync("The specified feed is not in the list!");
                 return;
@@ -117,7 +117,14 @@ namespace MonkeyBot.Modules
             List<GuildFeed> guildFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel?.Id);
             if (guildFeeds == null || guildFeeds.Count < 1)
             {
-                _ = await ctx.ErrorAsync("No feeds have been added yet.");
+                if (channel == null)
+                {
+                    await ctx.ErrorAsync("No feeds have been added yet.");
+                }
+                else
+                {
+                    await ctx.ErrorAsync($"No feeds have been added to {channel.Mention} yet.");
+                }
             }
             else
             {
@@ -134,7 +141,7 @@ namespace MonkeyBot.Modules
                 else
                 {
                     string allUrls = string.Join(Environment.NewLine, guildFeeds.Select(x => x.Url));
-                    _ = await ctx.RespondAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, guildFeeds.Select(x => x.Url))}");
+                    _ = await ctx.RespondAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, guildFeeds.Select(f => $"{f.Name} ({f.Url})"))}");
                 }
             }
         }
