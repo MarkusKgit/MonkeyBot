@@ -9,7 +9,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/MarkusKgit/MonkeyBot/">
-    <img src="https://cdn.discordapp.com/avatars/333959570437177354/102d13432c8b3640262efc35baca0a4a.png?size=128" alt="Logo" width="128" height="128">
+    <img src="Logos/MonkeyBot.png" alt="Logo" width="128" height="128">
   </a>
   <h3 align="center">MonkeyBot</h3>
   <p align="center">
@@ -49,17 +49,20 @@
 
 MonkeyBot is a general purpose Discord Bot that was created for the needs of the [Monkey Gamers](https://www.monkey-gamers.com) community. Its main functions are:
 * Welcoming new users
-* Get updates from various feeds (ATOM/RSS) including our own Forums and Website
+* Get updates from various feeds (ATOM/RSS)
 * (Self) role assignments
 * Scheduled announcements
 * Game server tracking
-* Silly stuff like Trivia, Chuck Norris jokes, Benzen Facts, xkcd...
+* Stream announcements
+* Handling of applicants (planned)
+* Silly stuff like Picture search, Trivia, Chuck Norris jokes, Benzen Facts, xkcd...
 
 
 ### Built With
 
-* [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)
-* [Discord.Net](https://github.com/RogueException/Discord.Net)
+* [.NET 5](https://docs.microsoft.com/en-us/dotnet/fundamentals/)
+* [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus)
+* [nChronic](https://github.com/PingmanTools/nChronic)
 * [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
 * [Fluent Command Line Parser](https://github.com/PingmanTools/fluent-command-line-parser/tree/netstandard)
 * [FluentScheduler](https://github.com/fluentscheduler/FluentScheduler)
@@ -77,9 +80,8 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Prerequisites
 
-* Latest .NET core SDK for your platform (3.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
+* Latest .NET SDK for your platform (5.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
 * A registered Discord application with a bot access token. If you don't have one, you can create one with your existing Discord account [here](https://discordapp.com/developers/applications/). There you have to add a Bot and need to copy both **Bot Token** and **Client ID**. To then add the bot to your Discord server go to `https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID]`, replacing *[ID]* with the **Client ID** of your bot (not the token)
-* Optional: A cloudinary API key (only required for the Minecraft server status image). You can register one [here](https://cloudinary.com/users/register/free)
 * Optional: An IDE of your choice (Visual Studio 2019 recommended)
 
 ### Installation
