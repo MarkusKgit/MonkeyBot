@@ -34,8 +34,11 @@ namespace MonkeyBot
 
             if (parsedArgs.BuildDocumentation)
             {
-                var docs = Documentation.DocumentationBuilder.BuildDocumentation(_discordClient.GetCommandsNext(), Documentation.DocumentationOutputType.HTML);
-                await File.WriteAllTextAsync(@"C:\temp\commands.html", docs);
+                var cNext = _discordClient.GetCommandsNext();
+                var docsHTML = Documentation.DocumentationBuilder.BuildDocumentation(cNext, Documentation.DocumentationOutputType.HTML);
+                await File.WriteAllTextAsync(@"C:\temp\commands.html", docsHTML);
+                var docsMD = Documentation.DocumentationBuilder.BuildDocumentation(cNext, Documentation.DocumentationOutputType.MarkDown);
+                await File.WriteAllTextAsync(@"C:\temp\commands.md", docsMD);
                 await Console.Out.WriteLineAsync("Documentation built");
             }
 

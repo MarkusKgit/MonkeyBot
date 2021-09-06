@@ -68,8 +68,8 @@ namespace MonkeyBot.Documentation
                     builder.AppendLine(f.H4("Usage"));
                     foreach (var ovl in cmd.Overloads.OrderByDescending(x => x.Priority))
                     {
-                        builder.AppendLine(f.InlineCode($"{prefix}{cmd.QualifiedName} {string.Join(" ", ovl.Arguments.Select(arg => arg.IsOptional ? f.Em(arg.Name) : f.Strong(arg.Name)))}{f.NewLine("")}"));
-                        builder.AppendLine(string.Join(Environment.NewLine, ovl.Arguments.Select(arg => "├ " + f.InlineCode($"{arg.Name} ({commandsNext.GetUserFriendlyTypeName(arg.Type)}): {arg.Description ?? ""}{f.NewLine("")}"))));
+                        builder.AppendLine(f.InlineCode($"{prefix}{cmd.QualifiedName} {string.Join(" ", ovl.Arguments.Select(arg => arg.IsOptional ? $"({arg.Name})" : arg.Name))}") + f.NewLine(""));
+                        builder.AppendLine(string.Join(Environment.NewLine, ovl.Arguments.Select(arg => "├ " + f.InlineCode($"{arg.Name} ({commandsNext.GetUserFriendlyTypeName(arg.Type)}): {arg.Description ?? ""}") + f.NewLine(""))));
                     }
 
                     if (cmd.ExecutionChecks.Any())
@@ -82,10 +82,12 @@ namespace MonkeyBot.Documentation
                     {
                         var examples = cmd.CustomAttributes.OfType<ExampleAttribute>().Select(e => e.ExampleText).ToList();
                         builder.AppendLine(f.H3("Example usage"));
-                        builder.AppendLine(string.Join("\n", examples.Select(e => $"{prefix}{e}")));
+                        builder.AppendLine(string.Join("\n", examples.Select(e => f.InlineCode($"{prefix}{e}"))));
                     }
                 }
+                builder.AppendLine();
                 builder.AppendLine(f.NewLine(f.HorizontalRule()));
+                builder.AppendLine();
             }  
             return builder.ToString();
         }
