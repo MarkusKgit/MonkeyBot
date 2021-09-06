@@ -29,7 +29,7 @@ namespace MonkeyBot.Services
         {
             if (!trivias.ContainsKey((guildId, channelId)))
             {
-                _ = trivias.TryAdd((guildId, channelId), new OTDBTriviaInstance(guildId, channelId, _discordClient, _dbContext, _clientFactory));
+                trivias.TryAdd((guildId, channelId), new OTDBTriviaInstance(guildId, channelId, _discordClient, _dbContext, _clientFactory));
             }
             return trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance instance)
                    && await instance.StartTriviaAsync(questionsToPlay);
@@ -40,7 +40,7 @@ namespace MonkeyBot.Services
             if (trivias.TryGetValue((guildId, channelId), out OTDBTriviaInstance triviaInstance))
             {
                 await triviaInstance.EndTriviaAsync();
-                _ = trivias.TryRemove((guildId, channelId), out OTDBTriviaInstance trivia);
+                trivias.TryRemove((guildId, channelId), out OTDBTriviaInstance trivia);
                 trivia.Dispose();
                 return true;
             }

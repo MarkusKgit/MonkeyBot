@@ -21,7 +21,7 @@ namespace MonkeyBot.Modules
         {
             if (messageContent.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.ErrorAsync("You need to specify the text of the message to search for");
+                await ctx.ErrorAsync("You need to specify the text of the message to search for");
                 return;
             }
             const int searchDepth = 100;
@@ -29,17 +29,17 @@ namespace MonkeyBot.Modules
             IEnumerable<DiscordMessage> matches = messages.Where(x => x.Content.StartsWith(messageContent.Trim(), StringComparison.OrdinalIgnoreCase));
             if (matches == null || !matches.Any())
             {
-                _ = await ctx.ErrorAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.");
+                await ctx.ErrorAsync($"Message not found. Hint: Only the last {searchDepth} messages in this channel are scanned.");
                 return;
             }
             else if (matches.Count() > 1)
             {
-                _ = await ctx.ErrorAsync($"{matches.Count()} Messages found. Please be more specific");
+                await ctx.ErrorAsync($"{matches.Count()} Messages found. Please be more specific");
                 return;
             }
             else
             {
-                _ = await ctx.OkAsync($"The message Id is: {matches.First().Id}");
+                await ctx.OkAsync($"The message Id is: {matches.First().Id}");
             }
         }
 
@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules
         {
             if (searchText.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.RespondAsync("You have to provide a search text");
+                await ctx.RespondAsync("You have to provide a search text");
                 return;
             }
             string url = lmgtfyBaseUrl + HttpUtility.UrlEncode(searchText);
@@ -61,7 +61,7 @@ namespace MonkeyBot.Modules
                 .WithThumbnail("https://lmgtfy.com/assets/SERP/lmgtfy_logo.png")                
                 .WithDescription($"{ctx.Member.Nickname ?? ctx.Member.Username} wants to point you to a magic place filled with answers. [Just click this link]({url})")
                 .WithUrl(url);
-            _ = await ctx.RespondAsync(builder.Build());
+            await ctx.RespondAsync(builder.Build());
         }
     }
 }

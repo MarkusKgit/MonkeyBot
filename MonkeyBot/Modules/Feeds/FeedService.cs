@@ -46,8 +46,8 @@ namespace MonkeyBot.Services
                 GuildID = guildID,
                 ChannelID = channelID
             };
-            _ = _dbContext.Feeds.Add(feed);
-            _ = await _dbContext.SaveChangesAsync();
+            _dbContext.Feeds.Add(feed);
+            await _dbContext.SaveChangesAsync();
             await GetFeedUpdateAsync(feed, true);
         }
 
@@ -56,8 +56,8 @@ namespace MonkeyBot.Services
             Models.Feed feed = await _dbContext.Feeds.AsQueryable().SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID));
             if (feed != null)
             {
-                _ = _dbContext.Feeds.Remove(feed);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.Feeds.Remove(feed);
+                await _dbContext.SaveChangesAsync();
             }
         }
 
@@ -69,7 +69,7 @@ namespace MonkeyBot.Services
                 return;
             }
             _dbContext.Feeds.RemoveRange(allFeeds);
-            _ = await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<List<GuildFeed>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
@@ -141,12 +141,12 @@ namespace MonkeyBot.Services
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
                 var builder = new DiscordEmbedBuilder();
-                _ = builder.WithColor(new DiscordColor(21, 26, 35));
+                builder.WithColor(new DiscordColor(21, 26, 35));
                 if (!feed.ImageUrl.IsEmpty())
                 {
-                    _ = builder.WithImageUrl(new Uri(feed.ImageUrl));
+                    builder.WithImageUrl(new Uri(feed.ImageUrl));
                 }
-                _ = builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
+                builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (FeedItem feedItem in updatedFeeds)
                 {
@@ -178,14 +178,14 @@ namespace MonkeyBot.Services
                     }
                     content = content.IsEmptyOrWhiteSpace() ? "[...]" : content.TruncateTo(250, "");
                     string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
-                    _ = builder.AddField(fieldName, fieldContent, true);
+                    builder.AddField(fieldName, fieldContent, true);
                 }
-                _ = await (channel?.SendMessageAsync(builder.Build()));
+                await (channel?.SendMessageAsync(builder.Build()));
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
-                    _ = _dbContext.Feeds.Update(guildFeed);
-                    _ = await _dbContext.SaveChangesAsync();
+                    _dbContext.Feeds.Update(guildFeed);
+                    await _dbContext.SaveChangesAsync();
                 }
             }
         }
@@ -220,7 +220,7 @@ namespace MonkeyBot.Services
                 {
                     if (!node.InnerText.IsEmptyOrWhiteSpace())
                     {
-                        _ = sb.Append(node.InnerText.Trim() + "|");
+                        sb.Append(node.InnerText.Trim() + "|");
                     }
                 }
             }
@@ -232,7 +232,7 @@ namespace MonkeyBot.Services
                         node.Attributes.Contains("src") &&
                         !node.Attributes["src"].Value.IsEmptyOrWhiteSpace())
                     {
-                        _ = sb.Append(node.Attributes["src"].Value);
+                        sb.Append(node.Attributes["src"].Value);
                     }
                 }
             }

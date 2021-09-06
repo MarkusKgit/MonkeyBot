@@ -1,7 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore.Internal;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System.Collections.Generic;
@@ -31,7 +30,7 @@ namespace MonkeyBot.Modules
             bool success = await _triviaService.StartTriviaAsync(ctx.Guild.Id, ctx.Channel.Id, questionAmount);
             if (!success)
             {
-                _ = await ctx.RespondAsync("Trivia could not be started :(");
+                await ctx.RespondAsync("Trivia could not be started :(");
             }
         }
 
@@ -41,7 +40,7 @@ namespace MonkeyBot.Modules
         {
             if (!await (_triviaService?.StopTriviaAsync(ctx.Guild.Id, ctx.Channel.Id)))
             {
-                _ = await ctx.ErrorAsync($"No trivia is running! Use {ctx.Prefix}trivia to create a new one.");
+                await ctx.ErrorAsync($"No trivia is running! Use {ctx.Prefix}trivia to create a new one.");
             }
         }
 
@@ -61,11 +60,11 @@ namespace MonkeyBot.Modules
                     .WithColor(new DiscordColor(46, 191, 84))
                     .WithTitle("Trivia high scores")
                     .WithDescription(highScores);
-                _ = await ctx.RespondAsync("", embed: embedBuilder.Build());
+                await ctx.RespondAsync("", embed: embedBuilder.Build());
             }
             else
             {
-                _ = await ctx.ErrorAsync("No stored scores found!");
+                await ctx.ErrorAsync("No stored scores found!");
             }
         }
     }

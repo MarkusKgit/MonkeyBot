@@ -44,8 +44,8 @@ namespace MonkeyBot.Services
             bool success = await PostServerInfoAsync(server);
             if (success && !_dbContext.GameServers.Contains(server))
             {
-                _ = _dbContext.Add(server);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.Add(server);
+                await _dbContext.SaveChangesAsync();
             }
             return success;
         }
@@ -59,7 +59,7 @@ namespace MonkeyBot.Services
             {
                 try
                 {
-                    _ = await PostServerInfoAsync(server);
+                    await PostServerInfoAsync(server);
                 }
                 catch (Exception ex)
                 {
@@ -98,8 +98,8 @@ namespace MonkeyBot.Services
                     _logger.LogError(e, $"Error trying to remove message for game server {endPoint.Address}");
                 }
             }
-            _ = _dbContext.GameServers.Remove(serverToRemove);
-            _ = await _dbContext.SaveChangesAsync();
+            _dbContext.GameServers.Remove(serverToRemove);
+            await _dbContext.SaveChangesAsync();
         }
 
         protected static async Task<string> GenerateHistoryChartAsync(GameServer discordGameServer, int currentPlayers, int maxPlayers)
@@ -112,7 +112,7 @@ namespace MonkeyBot.Services
 
             if (!Directory.Exists(folder))
             {
-                _ = Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(folder);
             }
 
             string baseFilePath = Path.Combine(folder, id);

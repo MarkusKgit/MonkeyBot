@@ -89,7 +89,7 @@ namespace MonkeyBot.Services
                 .WithDescription($"[{latestBattlefieldUpdate.Title}]({latestBattlefieldUpdate.UpdateUrl})\n{latestBattlefieldUpdate.Description}")
                 .WithImageUrl(latestBattlefieldUpdate.ImgUrl)
                 .WithFooter(latestBattlefieldUpdate.UpdateDate.ToString());
-            _ = await (channel?.SendMessageAsync(builder.Build()));
+            await (channel?.SendMessageAsync(builder.Build()));
 
             cfg.LastBattlefieldUpdate = latestBattlefieldUpdate.UpdateDate;
             await _guildService.UpdateConfigAsync(cfg);

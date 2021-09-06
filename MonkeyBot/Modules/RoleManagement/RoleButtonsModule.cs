@@ -31,28 +31,28 @@ namespace MonkeyBot.Modules
 
             if (message == null)
             {
-                _ = await ctx.ErrorAsync("Message not found.");
+                await ctx.ErrorAsync("Message not found.");
                 return;
             }
 
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Role not found.");
+                await ctx.ErrorAsync("Role not found.");
                 return;
             }
 
             if (emoji == null)
             {
-                _ = await ctx.RespondAsync("Emoji not found.");
+                await ctx.RespondAsync("Emoji not found.");
                 return;
             }
             if (await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id))
             {
-                _ = await ctx.RespondAsync("The specified link already exists");
+                await ctx.RespondAsync("The specified link already exists");
                 return;
             }
             await _roleButtonService.AddRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id, emoji.ToString());
-            _ = await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role");
+            await ctx.OkAsync($"Role {role.Name} successfully linked. Press the {emoji} Reaction on the linked message to get the role");
         }
 
         [Command("RemoveRoleLink")]
@@ -61,22 +61,22 @@ namespace MonkeyBot.Modules
         {
             if (message == null)
             {
-                _ = await ctx.ErrorAsync("Message not found.");
+                await ctx.ErrorAsync("Message not found.");
                 return;
             }
 
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Role not found.");
+                await ctx.ErrorAsync("Role not found.");
                 return;
             }
             if (!(await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id)))
             {
-                _ = await ctx.ErrorAsync("The specified link does not exist");
+                await ctx.ErrorAsync("The specified link does not exist");
                 return;
             }
             await _roleButtonService.RemoveRoleButtonLinkAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, role.Id);
-            _ = await ctx.OkAsync($"Role {role.Name} successfully unlinked.");
+            await ctx.OkAsync($"Role {role.Name} successfully unlinked.");
         }
 
         [Command("RemoveAllRoleLinks")]
@@ -84,7 +84,7 @@ namespace MonkeyBot.Modules
         public async Task RemoveAllAsync(CommandContext ctx)
         {
             await _roleButtonService.RemoveAllRoleButtonLinksAsync(ctx.Guild.Id);
-            _ = await ctx.OkAsync("All Role Button Links removed");
+            await ctx.OkAsync("All Role Button Links removed");
         }
 
         [Command("ListRoleLinks")]

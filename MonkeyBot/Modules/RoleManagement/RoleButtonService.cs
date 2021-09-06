@@ -71,8 +71,8 @@ namespace MonkeyBot.Services
             if (!exists)
             {
                 var link = new RoleButtonLink { GuildID = guildId, ChannelID = channelId, MessageID = messageId, RoleID = roleId, EmoteString = emojiString };
-                _ = _dbContext.RoleButtonLinks.Add(link);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.RoleButtonLinks.Add(link);
+                await _dbContext.SaveChangesAsync();
             }
             else
             {
@@ -92,8 +92,8 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("Can't find specified role button link in database");
             }
 
-            _ = _dbContext.RoleButtonLinks.Remove(link);
-            _ = await _dbContext.SaveChangesAsync();
+            _dbContext.RoleButtonLinks.Remove(link);
+            await _dbContext.SaveChangesAsync();
 
 
             if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
@@ -130,7 +130,7 @@ namespace MonkeyBot.Services
                 .ToListAsync()
                 ;
             _dbContext.RoleButtonLinks.RemoveRange(links);
-            _ = await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID, ulong roleID, string emoteString = "")
@@ -167,7 +167,7 @@ namespace MonkeyBot.Services
                     && guild.Roles.TryGetValue(link.RoleID, out DiscordRole role)
                     && (await channel.GetMessageAsync(link.MessageID)) is DiscordMessage message)
                 {
-                    _ = sb.AppendLine($"Message Id: [{link.MessageID}]({message.JumpLink}), Role: {role.Name}, Reaction: {link.EmoteString}");
+                    sb.AppendLine($"Message Id: [{link.MessageID}]({message.JumpLink}), Role: {role.Name}, Reaction: {link.EmoteString}");
                 }
             }
             return sb.ToString();
@@ -230,12 +230,12 @@ namespace MonkeyBot.Services
                 if (action == AddOrRemove.Add)
                 {
                     await gUser.GrantRoleAsync(role);
-                    _ = await gUser.SendMessageAsync($"Role {role.Name} added");
+                    await gUser.SendMessageAsync($"Role {role.Name} added");
                 }
                 else
                 {
                     await gUser.RevokeRoleAsync(role);
-                    _ = await gUser.SendMessageAsync($"Role {role.Name} removed");
+                    await gUser.SendMessageAsync($"Role {role.Name} removed");
                 }
             }
             else if (await _dbContext.RoleButtonLinks.AsQueryable().AnyAsync(x => x.MessageID == message.Id))

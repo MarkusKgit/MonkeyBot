@@ -52,7 +52,7 @@ namespace MonkeyBot.Services
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Recurring, GuildID = guildID, ChannelID = channelID, CronExpression = cronExpression, Name = name, Message = message };
             AddRecurringJob(announcement);
-            _ = _dbContext.Announcements.Add(announcement);
+            _dbContext.Announcements.Add(announcement);
             return _dbContext.SaveChangesAsync();
         }
 
@@ -83,7 +83,7 @@ namespace MonkeyBot.Services
             // Create the announcement, add it to the list and persist it
             var announcement = new Announcement { Type = AnnouncementType.Once, GuildID = guildID, ChannelID = channelID, ExecutionTime = excecutionTime, Name = name, Message = message };
             AddSingleJob(announcement);
-            _ = _dbContext.Announcements.Add(announcement);
+            _dbContext.Announcements.Add(announcement);
             return _dbContext.SaveChangesAsync();
         }
 
@@ -114,8 +114,8 @@ namespace MonkeyBot.Services
             _schedulingService.RemoveJob(GetUniqueId(announcement));
             try
             {
-                _ = _dbContext.Announcements.Remove(announcement);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.Announcements.Remove(announcement);
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -150,7 +150,7 @@ namespace MonkeyBot.Services
                 .ToListAsync()
                 ;
             _dbContext.RemoveRange(announcements);
-            _ = await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
         }
 

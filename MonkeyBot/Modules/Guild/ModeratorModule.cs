@@ -25,7 +25,7 @@ namespace MonkeyBot.Modules
         {
             if (count < 1)
             {
-                _ = await ctx.ErrorAsync("Count has to be at least 1");
+                await ctx.ErrorAsync("Count has to be at least 1");
                 return;
             }
             if (count > 100)
@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules
             }
             if (count < 1)
             {
-                _ = await ctx.ErrorAsync("Count has to be at least 1");
+                await ctx.ErrorAsync("Count has to be at least 1");
                 return;
             }
             if (count > 100)

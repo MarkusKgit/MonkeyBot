@@ -20,15 +20,15 @@ namespace MonkeyBot.Services
             if (config == null)
             {
                 config = new GuildConfig { GuildID = guildId };
-                _ = _dbContext.GuildConfigs.Add(config);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.GuildConfigs.Add(config);
+                await _dbContext.SaveChangesAsync();
             }
             return config;
         }        
 
         public Task UpdateConfigAsync(GuildConfig config)
         {
-            _ = _dbContext.GuildConfigs.Update(config);
+            _dbContext.GuildConfigs.Update(config);
             return _dbContext.SaveChangesAsync();
         }
 
@@ -37,8 +37,8 @@ namespace MonkeyBot.Services
             GuildConfig config = await _dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
             if (config == null)
             {
-                _ = _dbContext.GuildConfigs.Remove(config);
-                _ = await _dbContext.SaveChangesAsync();
+                _dbContext.GuildConfigs.Remove(config);
+                await _dbContext.SaveChangesAsync();
             }
         }
     }

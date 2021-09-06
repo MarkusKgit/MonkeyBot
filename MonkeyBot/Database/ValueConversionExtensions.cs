@@ -19,7 +19,7 @@ namespace MonkeyBot.Database
                 v => v == null ? 0 : JsonSerializer.Serialize(v, null).GetHashCode(),
                 v => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(v, null), null));
 
-            _ = propertyBuilder.HasConversion(converter);
+            propertyBuilder.HasConversion(converter);
             propertyBuilder.Metadata.SetValueConverter(converter);
             propertyBuilder.Metadata.SetValueComparer(comparer);
 

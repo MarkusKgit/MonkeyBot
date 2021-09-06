@@ -36,7 +36,7 @@ namespace MonkeyBot.Services.Implementations.GameServers.SteamServerQuery
         public Task<UdpReceiveResult> ReceiveAsync()
         {
             IAsyncResult asyncResult = _udpClient.BeginReceive(null, null);
-            _ = asyncResult.AsyncWaitHandle.WaitOne(_receiveTimeout);
+            asyncResult.AsyncWaitHandle.WaitOne(_receiveTimeout);
             if (asyncResult.IsCompleted)
             {
                 IPEndPoint remoteEP = null;
@@ -52,7 +52,7 @@ namespace MonkeyBot.Services.Implementations.GameServers.SteamServerQuery
         public Task<int> SendAsync(byte[] datagram, int bytes)
         {
             IAsyncResult asyncResult = _udpClient.BeginSend(datagram, bytes, null, null);
-            _ = asyncResult.AsyncWaitHandle.WaitOne(_sendTimeout);
+            asyncResult.AsyncWaitHandle.WaitOne(_sendTimeout);
             if (asyncResult.IsCompleted)
             {
                 int num = _udpClient.EndSend(asyncResult);

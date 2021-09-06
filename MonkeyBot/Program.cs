@@ -15,12 +15,12 @@ namespace MonkeyBot
         public static async Task Main(string[] args)
         {
             var parser = new FluentCommandLineParser<ApplicationArguments>();
-            _ = parser
+            parser
                 .Setup(arg => arg.BuildDocumentation)
                 .As('d', "docu")
                 .SetDefault(false)
                 .WithDescription("Build the documentation files in the app folder");
-            _ = parser
+            parser
                 .SetupHelp("?", "help")
                 .Callback(text => Console.WriteLine(text));
             ICommandLineParserResult parseResult = parser.Parse(args);

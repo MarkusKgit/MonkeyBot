@@ -61,7 +61,7 @@ namespace MonkeyBot.Database
                     new BenzenFact("Pop culture: \"The 300\" was heavily modified from its original script \"The 1\" as it was deemed too unbelievable. Who was \"The 1\" referred to in the original title? Benzen!" )
                 };
                 context.BenzenFacts.AddRange(benzenFacts);
-                _ = await context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
         }
     }

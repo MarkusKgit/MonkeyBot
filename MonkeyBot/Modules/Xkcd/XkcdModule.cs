@@ -42,7 +42,7 @@ namespace MonkeyBot.Modules
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    _ = await ctx.ErrorAsync("The specified comic does not exist!");
+                    await ctx.ErrorAsync("The specified comic does not exist!");
                     return;
                 }
                 catch (Exception ex)
@@ -65,9 +65,9 @@ namespace MonkeyBot.Modules
             if (int.TryParse(comic.Year, out int year) && int.TryParse(comic.Month, out int month) && int.TryParse(comic.Day, out int day))
             {
                 var date = new DateTime(year, month, day);
-                _ = builder.WithFooter(date.ToString("yyyy-MM-dd"));
+                builder.WithFooter(date.ToString("yyyy-MM-dd"));
             }
-            _ = await ctx.RespondAsync(builder.Build());
+            await ctx.RespondAsync(builder.Build());
         }
     }
 }

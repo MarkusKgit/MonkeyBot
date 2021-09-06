@@ -37,7 +37,7 @@ namespace MonkeyBot.Common
                 string path = Path.GetDirectoryName(configFilePath);
                 if (!Directory.Exists(path))
                 {
-                    _ = Directory.CreateDirectory(path);
+                    Directory.CreateDirectory(path);
                 }
 
                 var config = new DiscordClientConfiguration();
@@ -76,7 +76,7 @@ namespace MonkeyBot.Common
         {
             if (owners.Contains(ownerId))
             {
-                _ = owners.Remove(ownerId);
+                owners.Remove(ownerId);
             }
         }
 

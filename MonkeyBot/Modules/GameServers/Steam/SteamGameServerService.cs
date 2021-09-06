@@ -74,18 +74,18 @@ namespace MonkeyBot.Services
 
                 if (players != null && players.Count > 0)
                 {
-                    _ = builder.AddField("Currently connected players:", string.Join(", ", players.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
+                    builder.AddField("Currently connected players:", string.Join(", ", players.Select(x => x.Name).Where(name => !name.IsEmpty()).OrderBy(x => x)).TruncateTo(1023));
                 }
 
                 //Discord removed support for protocols other than http or https so this currently makes no sense. Leaving it here, in case they re-enable it
                 //string connectLink = $"steam://connect/{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
-                //_ = builder.AddField("Connect using this link", connectLink);
+                //builder.AddField("Connect using this link", connectLink);
 
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version;
-                    _ = _dbContext.GameServers.Update(discordGameServer);
-                    _ = await _dbContext.SaveChangesAsync();
+                    _dbContext.GameServers.Update(discordGameServer);
+                    await _dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -93,8 +93,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _ = _dbContext.GameServers.Update(discordGameServer);
-                        _ = await _dbContext.SaveChangesAsync();
+                        _dbContext.GameServers.Update(discordGameServer);
+                        await _dbContext.SaveChangesAsync();
                     }
                 }
 
@@ -105,13 +105,13 @@ namespace MonkeyBot.Services
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 }
 
-                _ = builder.AddField("Server version", $"{serverInfo.Version}{lastServerUpdate}");
-                _ = builder.WithFooter($"Last check: {DateTime.Now}");
+                builder.AddField("Server version", $"{serverInfo.Version}{lastServerUpdate}");
+                builder.WithFooter($"Last check: {DateTime.Now}");
 
                 string chart = await GenerateHistoryChartAsync(discordGameServer, serverInfo.Players, serverInfo.MaxPlayers);
                 if (!chart.IsEmptyOrWhiteSpace())
                 {
-                    _ = builder.AddField("Player Count History", chart);
+                    builder.AddField("Player Count History", chart);
                 }
 
                 if (discordGameServer.MessageID.HasValue)
@@ -125,15 +125,15 @@ namespace MonkeyBot.Services
                     {
                         _logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
-                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
                     }
                 }
                 else
                 {
                     discordGameServer.MessageID = (await (channel?.SendMessageAsync(builder.Build()))).Id;
-                    _ = _dbContext.GameServers.Update(discordGameServer);
-                    _ = await _dbContext.SaveChangesAsync();
+                    _dbContext.GameServers.Update(discordGameServer);
+                    await _dbContext.SaveChangesAsync();
                 }
 
             }

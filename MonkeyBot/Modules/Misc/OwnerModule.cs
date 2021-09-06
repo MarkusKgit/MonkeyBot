@@ -27,16 +27,16 @@ namespace MonkeyBot.Modules
             DiscordGuild guild = await ctx.Client.GetGuildAsync(guildId);
             if (guild == null)
             {
-                _ = await ctx.ErrorAsync("Guild not found");
+                await ctx.ErrorAsync("Guild not found");
                 return;
             }
             DiscordChannel channel = guild.GetChannel(channelId);
             if (channel == null)
             {
-                _ = await ctx.ErrorAsync("Channel not found");
+                await ctx.ErrorAsync("Channel not found");
                 return;
             }
-            _ = await channel.SendMessageAsync(message);
+            await channel.SendMessageAsync(message);
         }
 
         [Command("ListGuilds")]
@@ -56,9 +56,9 @@ namespace MonkeyBot.Modules
                 {
                     guildInfo += $"\n Description: {guild.Description}";
                 }
-                _ = builder.AddField(guild.Name, guildInfo);
+                builder.AddField(guild.Name, guildInfo);
             }
-            _ = await ctx.RespondAsync(embed: builder.Build());
+            await ctx.RespondAsync(embed: builder.Build());
         }
 
         [Command("AddOwner")]
@@ -75,11 +75,11 @@ namespace MonkeyBot.Modules
             {
                 config.AddOwner(user.Id);
                 await config.SaveAsync();
-                _ = await ctx.OkAsync($"{user.Username} has been added to the list of bot owners!");
+                await ctx.OkAsync($"{user.Username} has been added to the list of bot owners!");
             }
             else
             {
-                _ = await ctx.ErrorAsync($"{user.Username} already is a bot owner!");
+                await ctx.ErrorAsync($"{user.Username} already is a bot owner!");
             }
         }
 
@@ -98,11 +98,11 @@ namespace MonkeyBot.Modules
             {
                 config.RemoveOwner(user.Id);
                 await config.SaveAsync();
-                _ = await ctx.OkAsync($"{user.Username} has been removed from the list of bot owners!");
+                await ctx.OkAsync($"{user.Username} has been removed from the list of bot owners!");
             }
             else
             {
-                _ = await ctx.ErrorAsync($"{user.Username} is not a bot owner!");
+                await ctx.ErrorAsync($"{user.Username} is not a bot owner!");
             }
         }
     }

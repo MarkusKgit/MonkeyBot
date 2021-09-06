@@ -89,19 +89,19 @@ namespace MonkeyBot.Services
 
             if (questionsToPlay < 1)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "At least one question has to be played");
+                await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "At least one question has to be played");
                 return false;
             }
             if (_status == TriviaStatus.Running)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "There is already a quiz running");
+                await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "There is already a quiz running");
                 return false;
             }
             _questionsToPlay = questionsToPlay;
             _questions = new List<OTDBQuestion>(await LoadQuestionsAsync(questionsToPlay));
             if (_questions == null || _questions.Count == 0)
             {
-                _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "Questions could not be loaded");
+                await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, "Questions could not be loaded");
                 return false;
             }
 
@@ -116,7 +116,7 @@ namespace MonkeyBot.Services
                     + "- Each wrong answer will reduce your points by 1 until you are back to zero"
                     )
                 .Build();
-            _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embed);
+            await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embed);
 
 
             _userScoresCurrent = new Dictionary<ulong, int>();
@@ -148,16 +148,16 @@ namespace MonkeyBot.Services
             string currentScores = GetCurrentHighScores();
             if (!currentScores.IsEmptyOrWhiteSpace())
             {
-                _ = embedBuilder.AddField("Final scores:", currentScores, true);
+                embedBuilder.AddField("Final scores:", currentScores, true);
             }
 
             string globalScores = await GetGlobalHighScoresAsync(int.MaxValue, _guildId);
             if (!globalScores.IsEmptyOrWhiteSpace())
             {
-                _ = embedBuilder.AddField("Global top scores:", globalScores);
+                embedBuilder.AddField("Global top scores:", globalScores);
             }
 
-            _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
+            await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
 
             _userScoresCurrent.Clear();
             _status = TriviaStatus.Stopped;
@@ -192,7 +192,7 @@ namespace MonkeyBot.Services
 
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
-                    _ = builder.AddField($"{currentQuestion.Question}", "True or false?");
+                    builder.AddField($"{currentQuestion.Question}", "True or false?");
 
                     correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
                     answerEmojis = truefalseEmojis;
@@ -205,7 +205,7 @@ namespace MonkeyBot.Services
                     // randomize the order of the answers
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next())
                                                    .ToList();
-                    _ = builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
+                    builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
                     correctAnswerEmoji = DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
                     answerEmojis = multipleChoiceEmojis;
                 }
@@ -237,7 +237,7 @@ namespace MonkeyBot.Services
                 {
                     msg = "No one had it right";
                 }
-                _ = embedBuilder.AddField("Correct answers", msg, true);
+                embedBuilder.AddField("Correct answers", msg, true);
                 if (wrongAnswerUsers.Count > 0)
                 {
                     wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
@@ -247,15 +247,15 @@ namespace MonkeyBot.Services
                 {
                     msg = "No one had it wrong.";
                 }
-                _ = embedBuilder.AddField("Incorrect answers", msg, true);
+                embedBuilder.AddField("Incorrect answers", msg, true);
 
                 string highScores = GetCurrentHighScores(3);
                 if (!highScores.IsEmptyOrWhiteSpace())
                 {
-                    _ = embedBuilder.AddField("Top 3:", highScores, true);
+                    embedBuilder.AddField("Top 3:", highScores, true);
                 }
 
-                _ = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
+                await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
 
                 currentIndex++;
             }
@@ -300,14 +300,14 @@ namespace MonkeyBot.Services
             }
             if (currentScore == null)
             {
-                _ = await _dbContext.AddAsync(new TriviaScore { GuildID = _guildId, UserID = user.Id, Score = pointsToAdd });
+                await _dbContext.AddAsync(new TriviaScore { GuildID = _guildId, UserID = user.Id, Score = pointsToAdd });
             }
             else
             {
                 currentScore.Score += pointsToAdd;
-                _ = _dbContext.Update(currentScore);
+                _dbContext.Update(currentScore);
             }
-            _ = await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
         }
 

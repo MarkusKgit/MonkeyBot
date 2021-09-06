@@ -22,7 +22,7 @@ namespace MonkeyBot.Common
                 string strippedPath = Path.GetDirectoryName(filePath);
                 if (!strippedPath.IsEmpty() && !Directory.Exists(strippedPath))
                 {
-                    _ = Directory.CreateDirectory(strippedPath);
+                    Directory.CreateDirectory(strippedPath);
                 }
             }
 

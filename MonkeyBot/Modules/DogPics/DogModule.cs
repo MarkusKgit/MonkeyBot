@@ -35,13 +35,13 @@ namespace MonkeyBot.Modules
                 await (_dogService?.GetRandomPictureUrlAsync(breed.ToLowerInvariant()));
             if (pictureURL == null)
             {
-                _ = await ctx.ErrorAsync($"Could not get a dog pic :(. Try using {ctx.Prefix}dogbreeds to get a list of dog breeds I can show you");
+                await ctx.ErrorAsync($"Could not get a dog pic :(. Try using {ctx.Prefix}dogbreeds to get a list of dog breeds I can show you");
                 return;
             }
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(dogColor)
                 .WithImageUrl(pictureURL);
-            _ = await ctx.RespondAsync(embed: builder.Build());
+            await ctx.RespondAsync(embed: builder.Build());
         }
 
         [Command("Dogbreeds")]
@@ -53,14 +53,14 @@ namespace MonkeyBot.Modules
             List<string> breeds = await (_dogService?.GetBreedsAsync());
             if (breeds == null || !breeds.Any())
             {
-                _ = await ctx.ErrorAsync("Could not get the dog breeds :(");
+                await ctx.ErrorAsync("Could not get the dog breeds :(");
                 return;
             }
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(dogColor)
                 .WithTitle("Here's a list of available dog breeds:")
                 .WithDescription(string.Join(", ", breeds));
-            _ = await ctx.RespondDeletableAsync(builder.Build());
+            await ctx.RespondDeletableAsync(builder.Build());
         }
     }
 }

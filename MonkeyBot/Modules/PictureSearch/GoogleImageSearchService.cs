@@ -38,7 +38,7 @@ namespace MonkeyBot.Services
                 {
                     return new Uri(randomImageUrl);
                 }
-                _ = urls.Remove(randomImageUrl);
+                urls.Remove(randomImageUrl);
             }
 
             return null;

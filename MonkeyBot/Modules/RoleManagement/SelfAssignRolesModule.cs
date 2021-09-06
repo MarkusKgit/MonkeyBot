@@ -26,7 +26,7 @@ namespace MonkeyBot.Modules
         {
             if (role == null)
             {
-                _ = await ctx.ErrorAsync("Invalid role");
+                await ctx.ErrorAsync("Invalid role");
                 return;
             }
             DiscordRole botRole = await GetBotRoleAsync(ctx);
@@ -34,17 +34,17 @@ namespace MonkeyBot.Modules
             // The bot's role must be higher than the role to be able to assign it
             if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to give you this role!");
+                await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to give you this role!");
                 return;
             }
 
             if (ctx.Member.Roles.Contains(role))
             {
-                _ = await ctx.ErrorAsync("You already have that role");
+                await ctx.ErrorAsync("You already have that role");
                 return;
             }
             await ctx.Member.GrantRoleAsync(role);
-            _ = await ctx.OkAsync($"Role {role.Name} has been added");
+            await ctx.OkAsync($"Role {role.Name} has been added");
         }
 
         [Command("RemoveRole")]
@@ -55,16 +55,16 @@ namespace MonkeyBot.Modules
         {
             if (!ctx.Member.Roles.Contains(role))
             {
-                _ = await ctx.ErrorAsync("You don't have that role");
+                await ctx.ErrorAsync("You don't have that role");
             }
             DiscordRole botRole = await GetBotRoleAsync(ctx);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole == null || botRole?.Position <= role.Position)
             {
-                _ = await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!");
+                await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!");
             }
             await ctx.Member.RevokeRoleAsync(role);
-            _ = await ctx.OkAsync($"Role {role.Name} has been revoked");
+            await ctx.OkAsync($"Role {role.Name} has been revoked");
         }
 
         [Command("ListRoles")]
@@ -96,7 +96,7 @@ namespace MonkeyBot.Modules
                     ? builder.AddField(role.Name, string.Join(", ", roleUsers), false)
                     : builder.AddField(role.Name, "-", false);
             }
-            _ = await ctx.RespondDeletableAsync(builder.Build());
+            await ctx.RespondDeletableAsync(builder.Build());
         }
 
         [Command("ListRoleMembers")]
@@ -110,7 +110,7 @@ namespace MonkeyBot.Modules
                                                               .OrderBy(x => x);
             if (roleUsers == null || !roleUsers.Any())
             {
-                _ = await ctx.ErrorAsync("This role does not have any members!");
+                await ctx.ErrorAsync("This role does not have any members!");
                 return;
             }
             var builder = new DiscordEmbedBuilder()
@@ -118,7 +118,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"These are the users assigned to the {role.Name} role:")
                 .WithDescription(string.Join(", ", roleUsers));
 
-            _ = await ctx.RespondDeletableAsync(builder.Build());
+            await ctx.RespondDeletableAsync(builder.Build());
         }
 
         private static async Task<DiscordRole> GetBotRoleAsync(CommandContext ctx)

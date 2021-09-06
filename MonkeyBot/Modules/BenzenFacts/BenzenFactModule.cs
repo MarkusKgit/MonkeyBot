@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                     .WithColor(DiscordColor.DarkBlue)
                     .WithTitle($"Benzen Fact #{randomOffset + 1}")
                     .WithDescription(fact);
-                _ = await ctx.RespondAsync(builder.Build());
+                await ctx.RespondAsync(builder.Build());
             }
         }
 
@@ -46,21 +46,21 @@ namespace MonkeyBot.Modules
             fact = fact.Trim('\"').Trim();
             if (fact.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please provide a fact!");
+                await ctx.ErrorAsync("Please provide a fact!");
                 return;
             }
             if (!fact.Contains(name, StringComparison.OrdinalIgnoreCase))
             {
-                _ = await ctx.ErrorAsync("The fact must include Benzen!");
+                await ctx.ErrorAsync("The fact must include Benzen!");
                 return;
             }
             if (_dbContext.BenzenFacts.Any(f => f.Fact == fact))
             {
-                _ = await ctx.ErrorAsync("I already know this fact!");
+                await ctx.ErrorAsync("I already know this fact!");
                 return;
             }
-            _ = _dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            _ = await _dbContext.SaveChangesAsync();
+            _dbContext.BenzenFacts.Add(new BenzenFact(fact));
+            await _dbContext.SaveChangesAsync();
             await ctx.OkAsync("Fact added");
         }
     }

@@ -28,9 +28,9 @@ namespace MonkeyBot.Database
 
         private static readonly ILoggerFactory NLogLoggerFactory = LoggerFactory.Create(builder =>
         {
-            _ = builder
-                .AddFilter((category, level) => level == LogLevel.Warning)
-                .AddNLog();
+            builder
+            .AddFilter((category, level) => level == LogLevel.Warning)
+            .AddNLog();
         });
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -38,75 +38,75 @@ namespace MonkeyBot.Database
             string databasePath = Path.Combine(AppContext.BaseDirectory, "Data");
             if (!Directory.Exists(databasePath))
             {
-                _ = Directory.CreateDirectory(databasePath);
+                Directory.CreateDirectory(databasePath);
             }
             string datadir = Path.Combine(databasePath, "MonkeyDatabase.sqlite.db");
-            _ = optionsBuilder.UseLoggerFactory(NLogLoggerFactory);
-            _ = optionsBuilder.UseSqlite($"Filename={datadir}");
+            optionsBuilder.UseLoggerFactory(NLogLoggerFactory);
+            optionsBuilder.UseSqlite($"Filename={datadir}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //BenzenFacts
-            _ = modelBuilder.Entity<BenzenFact>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<BenzenFact>().Property(x => x.Fact).IsRequired();
+            modelBuilder.Entity<BenzenFact>().HasKey(x => x.ID);
+            modelBuilder.Entity<BenzenFact>().Property(x => x.Fact).IsRequired();
 
             //GuildConfigs
-            _ = modelBuilder.Entity<GuildConfig>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.CommandPrefix).IsRequired();
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.Rules).HasJsonConversion();
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds).HasJsonConversion();
-            _ = modelBuilder.Entity<GuildConfig>().Property(x => x.StreamAnnouncementsEnabled).HasDefaultValue(false);
+            modelBuilder.Entity<GuildConfig>().HasKey(x => x.ID);
+            modelBuilder.Entity<GuildConfig>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<GuildConfig>().Property(x => x.CommandPrefix).IsRequired();
+            modelBuilder.Entity<GuildConfig>().Property(x => x.Rules).HasJsonConversion();
+            modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
+            modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds).HasJsonConversion();
+            modelBuilder.Entity<GuildConfig>().Property(x => x.StreamAnnouncementsEnabled).HasDefaultValue(false);
 
             //Feeds
-            _ = modelBuilder.Entity<Feed>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<Feed>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<Feed>().Property(x => x.ChannelID).IsRequired();
-            _ = modelBuilder.Entity<Feed>().Property(x => x.Name).IsRequired();
-            _ = modelBuilder.Entity<Feed>().Property(x => x.URL).IsRequired();
+            modelBuilder.Entity<Feed>().HasKey(x => x.ID);
+            modelBuilder.Entity<Feed>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<Feed>().Property(x => x.ChannelID).IsRequired();
+            modelBuilder.Entity<Feed>().Property(x => x.Name).IsRequired();
+            modelBuilder.Entity<Feed>().Property(x => x.URL).IsRequired();
 
             //GameServers
-            _ = modelBuilder.Entity<GameServer>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<GameServer>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<GameServer>().Property(x => x.ChannelID).IsRequired();
-            _ = modelBuilder.Entity<GameServer>().Property(x => x.GameServerType).IsRequired().HasConversion<string>();
-            _ = modelBuilder.Entity<GameServer>().Property(x => x.ServerIP).IsRequired()
+            modelBuilder.Entity<GameServer>().HasKey(x => x.ID);
+            modelBuilder.Entity<GameServer>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<GameServer>().Property(x => x.ChannelID).IsRequired();
+            modelBuilder.Entity<GameServer>().Property(x => x.GameServerType).IsRequired().HasConversion<string>();
+            modelBuilder.Entity<GameServer>().Property(x => x.ServerIP).IsRequired()
                 .HasConversion(
                     x => x.ToString(),
                     x => System.Net.IPEndPoint.Parse(x));
 
             //TriviaScores
-            _ = modelBuilder.Entity<TriviaScore>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<TriviaScore>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<TriviaScore>().Property(x => x.UserID).IsRequired();
-            _ = modelBuilder.Entity<TriviaScore>().Property(x => x.Score).IsRequired();
+            modelBuilder.Entity<TriviaScore>().HasKey(x => x.ID);
+            modelBuilder.Entity<TriviaScore>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<TriviaScore>().Property(x => x.UserID).IsRequired();
+            modelBuilder.Entity<TriviaScore>().Property(x => x.Score).IsRequired();
 
             //RoleButtonlinks
-            _ = modelBuilder.Entity<RoleButtonLink>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<RoleButtonLink>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<RoleButtonLink>().Property(x => x.RoleID).IsRequired();
-            _ = modelBuilder.Entity<RoleButtonLink>().Property(x => x.EmoteString).IsRequired();
-            _ = modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
+            modelBuilder.Entity<RoleButtonLink>().HasKey(x => x.ID);
+            modelBuilder.Entity<RoleButtonLink>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<RoleButtonLink>().Property(x => x.RoleID).IsRequired();
+            modelBuilder.Entity<RoleButtonLink>().Property(x => x.EmoteString).IsRequired();
+            modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
 
             //RoleButtonlinks
-            _ = modelBuilder.Entity<Announcement>().HasKey(x => x.ID);
-            _ = modelBuilder.Entity<Announcement>().Property(x => x.GuildID).IsRequired();
-            _ = modelBuilder.Entity<Announcement>().Property(x => x.ChannelID).IsRequired();
-            _ = modelBuilder.Entity<Announcement>().Property(x => x.Type).IsRequired().HasConversion<string>();
-            _ = modelBuilder.Entity<Announcement>().Property(x => x.Message).IsRequired();
-            _ = modelBuilder.Entity<Announcement>().Property(x => x.Name).IsRequired();
+            modelBuilder.Entity<Announcement>().HasKey(x => x.ID);
+            modelBuilder.Entity<Announcement>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.ChannelID).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.Type).IsRequired().HasConversion<string>();
+            modelBuilder.Entity<Announcement>().Property(x => x.Message).IsRequired();
+            modelBuilder.Entity<Announcement>().Property(x => x.Name).IsRequired();
 
             //Polls
-            _ = modelBuilder.Entity<Poll>().HasKey(x => x.Id);
-            _ = modelBuilder.Entity<Poll>().Property(x => x.GuildId).IsRequired();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.ChannelId).IsRequired();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.MessageId).IsRequired();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.CreatorId).IsRequired();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.Question).IsRequired();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.PossibleAnswers).IsRequired().HasJsonConversion();
-            _ = modelBuilder.Entity<Poll>().Property(x => x.EndTimeUTC).IsRequired();
+            modelBuilder.Entity<Poll>().HasKey(x => x.Id);
+            modelBuilder.Entity<Poll>().Property(x => x.GuildId).IsRequired();
+            modelBuilder.Entity<Poll>().Property(x => x.ChannelId).IsRequired();
+            modelBuilder.Entity<Poll>().Property(x => x.MessageId).IsRequired();
+            modelBuilder.Entity<Poll>().Property(x => x.CreatorId).IsRequired();
+            modelBuilder.Entity<Poll>().Property(x => x.Question).IsRequired();
+            modelBuilder.Entity<Poll>().Property(x => x.PossibleAnswers).IsRequired().HasJsonConversion();
+            modelBuilder.Entity<Poll>().Property(x => x.EndTimeUTC).IsRequired();
         }
     }
 }

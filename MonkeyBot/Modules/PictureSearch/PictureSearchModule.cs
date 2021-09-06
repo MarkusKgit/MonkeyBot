@@ -29,14 +29,14 @@ namespace MonkeyBot.Modules
 
             if (searchterm.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please provide a search term");
+                await ctx.ErrorAsync("Please provide a search term");
                 return;
             }
 
             Uri pictureURL = await (_pictureSearchService?.GetRandomPictureUrlAsync(searchterm));
             if (pictureURL == null)
             {
-                _ = await ctx.ErrorAsync($"Could not get a picture for {searchterm} :(.");
+                await ctx.ErrorAsync($"Could not get a picture for {searchterm} :(.");
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace MonkeyBot.Modules
                 .WithTitle($"Random image for \"{searchterm}\"")
                 .WithImageUrl(pictureURL);
 
-            _ = await ctx.RespondAsync(builder.Build());
+            await ctx.RespondAsync(builder.Build());
         }
     }
 }

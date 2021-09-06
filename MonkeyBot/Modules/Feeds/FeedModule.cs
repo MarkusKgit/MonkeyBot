@@ -52,12 +52,12 @@ namespace MonkeyBot.Modules
         {
             if (name.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please enter a name for the feed!");
+                await ctx.ErrorAsync("Please enter a name for the feed!");
                 return;
             }
             if (url.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please enter a feed url!");
+                await ctx.ErrorAsync("Please enter a feed url!");
                 return;
             }
             channel ??= ctx.Channel;
@@ -74,17 +74,17 @@ namespace MonkeyBot.Modules
             }
             else
             {
-                _ = await ctx.ErrorAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
+                await ctx.ErrorAsync($"Multiple feeds were found at this url. Please be more specific:{Environment.NewLine}{string.Join(Environment.NewLine, urls)}");
                 return;
             }
             List<GuildFeed> currentFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id, channel.Id);
             if (currentFeeds.Any(x => x.Url == feedUrl || x.Name == name))
             {
-                _ = await ctx.ErrorAsync("The specified feed is already in the list!");
+                await ctx.ErrorAsync("The specified feed is already in the list!");
                 return;
             }
             await _feedService.AddFeedAsync(name, feedUrl, ctx.Guild.Id, channel.Id);
-            _ = await ctx.OkAsync("Feed added");
+            await ctx.OkAsync("Feed added");
         }
 
         [Command("RemoveFeed")]
@@ -95,18 +95,18 @@ namespace MonkeyBot.Modules
         {
             if (nameOrUrl.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Please enter the feed's name or url");
+                await ctx.ErrorAsync("Please enter the feed's name or url");
                 return;
             }
             List<GuildFeed> currentFeeds = await _feedService.GetFeedsForGuildAsync(ctx.Guild.Id);
             if (!currentFeeds.Any(x => x.Url.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() || x.Name.ToLowerInvariant() == nameOrUrl.ToLowerInvariant()))
             {
-                _ = await ctx.ErrorAsync("The specified feed is not in the list!");
+                await ctx.ErrorAsync("The specified feed is not in the list!");
                 return;
             }
 
             await _feedService.RemoveFeedAsync(nameOrUrl, ctx.Guild.Id);
-            _ = await ctx.OkAsync("Feed removed");
+            await ctx.OkAsync("Feed removed");
         }
 
         [Command("ListFeeds")]
@@ -134,14 +134,14 @@ namespace MonkeyBot.Modules
                     foreach (GuildFeed guildFeed in guildFeeds)
                     {
                         DiscordChannel feedChannel = ctx.Guild.GetChannel(guildFeed.ChannelId);
-                        _ = sb.AppendLine($"{feedChannel.Mention}: {guildFeed.Name} ({guildFeed.Url})");
+                        sb.AppendLine($"{feedChannel.Mention}: {guildFeed.Name} ({guildFeed.Url})");
                     }
-                    _ = await ctx.RespondAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb}");
+                    await ctx.RespondAsync($"The following feeds are listed in all channels:{Environment.NewLine}{sb}");
                 }
                 else
                 {
                     string allUrls = string.Join(Environment.NewLine, guildFeeds.Select(x => x.Url));
-                    _ = await ctx.RespondAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, guildFeeds.Select(f => $"{f.Name} ({f.Url})"))}");
+                    await ctx.RespondAsync($"The following feeds are listed in {channel.Mention}:{Environment.NewLine}{string.Join(Environment.NewLine, guildFeeds.Select(f => $"{f.Name} ({f.Url})"))}");
                 }
             }
         }
@@ -152,7 +152,7 @@ namespace MonkeyBot.Modules
         public async Task RemoveFeedUrlsAsync(CommandContext ctx, [Description("Optional: The channel where the Feed urls should be removed. Defaults to all channels")] DiscordChannel channel = null)
         {
             await _feedService.RemoveAllFeedsAsync(ctx.Guild.Id, channel?.Id);
-            _ = await ctx.OkAsync(channel == null ? "All Feeds removed" : $"All Feeds in {channel.Mention} removed");
+            await ctx.OkAsync(channel == null ? "All Feeds removed" : $"All Feeds in {channel.Mention} removed");
         }
     }
 }

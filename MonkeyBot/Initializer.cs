@@ -109,8 +109,8 @@ namespace MonkeyBot
             IServiceCollection services = new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                     {
-                        _ = loggingBuilder.SetMinimumLevel(LogLevel.Trace);
-                        _ = loggingBuilder.AddNLog(loggingConfiguration);
+                        loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                        loggingBuilder.AddNLog(loggingConfiguration);
                     })
                 .AddHttpClient()
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
@@ -246,7 +246,7 @@ namespace MonkeyBot
                     .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
                     .WithTimestamp(DateTime.Now);
 
-                _ = await (channel?.SendMessageAsync(embed: builder.Build()));
+                await (channel?.SendMessageAsync(embed: builder.Build()));
             }
         }
 
@@ -264,7 +264,7 @@ namespace MonkeyBot
                     .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
                     .WithTimestamp(DateTime.Now);
 
-                _ = await (channel?.SendMessageAsync(embed: builder.Build()));
+                await (channel?.SendMessageAsync(embed: builder.Build()));
             }
         }
 
@@ -284,7 +284,7 @@ namespace MonkeyBot
                 {
                     channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? channel;
                 }
-                _ = await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
+                await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
             }
         }
 
@@ -292,7 +292,7 @@ namespace MonkeyBot
         {
             _discordClient.Logger.LogInformation($"Joined guild {e.Guild.Name}");
             // Make sure to create the config;
-            _ = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+            await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
         }
 
         private static async Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)

@@ -38,16 +38,16 @@ namespace MonkeyBot.Modules
             await ctx.TriggerTypingAsync();
             if (user == null)
             {
-                _ = await ctx.ErrorAsync("Invalid User");
+                await ctx.ErrorAsync("Invalid User");
             }
             string fact = await (_chuckService?.GetChuckFactAsync(user.Username));
             if (fact.IsEmpty())
             {
-                _ = await ctx.ErrorAsync("Could not get a chuck fact :(");
+                await ctx.ErrorAsync("Could not get a chuck fact :(");
                 return;
             }
             fact = fact.Replace(user.Username, $"Chuck \"*{user.Mention}*\"");
-            _ = await ctx.OkAsync(fact, $"Random Chuck \"*{user.Username}*\" Norris fact", false);
+            await ctx.OkAsync(fact, $"Random Chuck \"*{user.Username}*\" Norris fact", false);
         }
     }
 }

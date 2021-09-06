@@ -76,14 +76,14 @@ namespace MonkeyBot.Modules
             var questionReponse = await _interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, _timeOut);
             if (questionReponse.TimedOut)
             {
-                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
+                await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
             string pollQuestion = questionReponse.Result.Content.Trim();
             if (pollQuestion.IsEmptyOrWhiteSpace())
             {
-                _ = await ctx.ErrorAsync("You didn't provide a proper poll question. Please start over", "Empty question");
+                await ctx.ErrorAsync("You didn't provide a proper poll question. Please start over", "Empty question");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
@@ -99,7 +99,7 @@ namespace MonkeyBot.Modules
             var timeResponse = await _interactivity.WaitForMessageAsync(msg => msg.Author == ctx.Member && msg.ChannelId == ctx.Channel.Id, _timeOut);
             if (timeResponse.TimedOut)
             {
-                _ = await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
+                await ctx.ErrorAsync("You didn't respond in time. Please start over", "Timed out");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
@@ -107,14 +107,14 @@ namespace MonkeyBot.Modules
             Chronic.Span parsedTime = _timeParser.Parse(timeResponse.Result.Content);
             if (parsedTime == null)
             {
-                _ = await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time");
+                await ctx.ErrorAsync("I couldn't understand this Date/Time. Please start over", "Invalid Time");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
             DateTime endTime = parsedTime.ToTime();
             if (endTime < DateTime.Now)
             {
-                _ = await ctx.ErrorAsync("The provided time is in the past. Please start over", "Invalid Time");
+                await ctx.ErrorAsync("The provided time is in the past. Please start over", "Invalid Time");
                 await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                 return;
             }
@@ -146,7 +146,7 @@ namespace MonkeyBot.Modules
                         }
                         else
                         {
-                            _ = await ctx.ErrorAsync("You didn't provide enough answers in time. Please start over", "Timed out");
+                            await ctx.ErrorAsync("You didn't provide enough answers in time. Please start over", "Timed out");
                             await ctx.Channel.DeleteMessagesAsync(new[] { setupMessage, pollMessage });
                             return;
                         }
@@ -160,7 +160,7 @@ namespace MonkeyBot.Modules
                 {
                     if (pollAnswers.Count < 2)
                     {
-                        _ = await ctx.ErrorAsync("Not enough answer options! Please add more first!");
+                        await ctx.ErrorAsync("Not enough answer options! Please add more first!");
                     }
                     else
                     {

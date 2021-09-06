@@ -36,8 +36,8 @@ namespace MonkeyBot.Services
             }
             await pollMessage.PinAsync();
 
-            _ = await _dbContext.Polls.AddAsync(poll);
-            _ = await _dbContext.SaveChangesAsync();
+            await _dbContext.Polls.AddAsync(poll);
+            await _dbContext.SaveChangesAsync();
 
             await StartPollAsync(poll);
         }
@@ -61,7 +61,7 @@ namespace MonkeyBot.Services
             await pollMessage.UnpinAsync();
             if (!pollResult.Any(r => r.Count > 0))
             {
-                _ = await channel.SendMessageAsync($"No one participated in the poll {poll.Question} :(");
+                await channel.SendMessageAsync($"No one participated in the poll {poll.Question} :(");
                 return;
             }
             int totalVotes = pollResult.Sum(r => r.Count);
@@ -73,10 +73,10 @@ namespace MonkeyBot.Services
                     .Select(ans => new { Answer = ans.Value, Votes = pollResult.Single(r => r.Emoji == ans.Key).Count })
                     .Select(ans => $"**{ans.Answer}**: {"vote".ToQuantity(ans.Votes)} ({100.0 * ans.Votes / totalVotes:F1} %)"))
                 );
-            _ = await channel.SendMessageAsync(embed: pollResultEmbed.Build());
+            await channel.SendMessageAsync(embed: pollResultEmbed.Build());
 
-            _ = _dbContext.Polls.Remove(poll);
-            _ = await _dbContext.SaveChangesAsync();
+            _dbContext.Polls.Remove(poll);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task InitializeAsync()

@@ -63,8 +63,8 @@ namespace MonkeyBot.Services
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version.Name;
-                    _ = _dbContext.GameServers.Update(discordGameServer);
-                    _ = await _dbContext.SaveChangesAsync();
+                    _dbContext.GameServers.Update(discordGameServer);
+                    await _dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -72,8 +72,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _ = _dbContext.GameServers.Update(discordGameServer);
-                        _ = await _dbContext.SaveChangesAsync();
+                        _dbContext.GameServers.Update(discordGameServer);
+                        await _dbContext.SaveChangesAsync();
                     }
                 }
                 string lastServerUpdate = "";
@@ -82,7 +82,7 @@ namespace MonkeyBot.Services
                     lastServerUpdate = $" (Last update: {discordGameServer.LastVersionUpdate.Value})";
                 }
 
-                _ = builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
+                builder.WithFooter($"Server version: {serverInfo.Version.Name}{lastServerUpdate} || Last check: {DateTime.Now}");
 
                 // Generate chart every full 10 minutes                
                 if (DateTime.Now.Minute % 10 == 0)
@@ -91,7 +91,7 @@ namespace MonkeyBot.Services
 
                     if (!chart.IsEmptyOrWhiteSpace())
                     {
-                        _ = builder.AddField("Player Count History", chart);
+                        builder.AddField("Player Count History", chart);
                     }
                 }
 
@@ -106,7 +106,7 @@ namespace MonkeyBot.Services
                     {
                         _logger.LogWarning($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed.");
                         await RemoveServerAsync(discordGameServer.ServerIP, discordGameServer.GuildID);
-                        _ = await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
+                        await channel.SendMessageAsync($"Error getting updates for server {discordGameServer.ServerIP}. Original message was removed. Please use the proper remove command to remove the gameserver");
                         return false;
                     }
                 }
@@ -114,8 +114,8 @@ namespace MonkeyBot.Services
                 {
                     DiscordMessage message = await (channel?.SendMessageAsync(builder.Build()));
                     discordGameServer.MessageID = message.Id;
-                    _ = _dbContext.GameServers.Update(discordGameServer);
-                    _ = await _dbContext.SaveChangesAsync();
+                    _dbContext.GameServers.Update(discordGameServer);
+                    await _dbContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
