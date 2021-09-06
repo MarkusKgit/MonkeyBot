@@ -2,10 +2,5 @@
   "Owners": [
     Owner IDs here
   ],
-  "Token": "Bot token here",
-  "CloudinaryCredentials": {
-    "Cloud": "cloud name here",
-    "ApiKey": "Api key here",
-    "ApiSecret": "Api secret here"
-  }
+  "Token": "Bot token here"
 }
