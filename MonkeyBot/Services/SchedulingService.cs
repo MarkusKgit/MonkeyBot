@@ -23,21 +23,17 @@ namespace MonkeyBot.Services
         public void ScheduleJobOnce(string jobID, DateTime time, Action job)
             => JobManager.AddJob(job, (x) => x.WithName(jobID).ToRunOnceAt(time));
 
-        public void ScheduleJobOnce(string jobID, DateTime time, Task job)
-            => ScheduleJobOnce(jobID, time, async () => await job);
-
-        public void ScheduleJobRecurring(string jobID, TimeSpan interval, Action job, TimeSpan? delay = null)
+        public async void ScheduleJobRecurring(string jobID, TimeSpan interval, Action job, TimeSpan? delay = null)
         {
+            if (delay != null)
+            {
+                await Task.Delay((int)delay.Value.TotalSeconds);
+            }
             JobManager.AddJob(job, (x) => x.WithName(jobID)
                                            .ToRunNow()
                                            .AndEvery((int)interval.TotalSeconds)
-                                           .Seconds()
-                                           .DelayFor(delay.HasValue ? (int)delay.Value.TotalSeconds : 0)
                                            .Seconds());
         }
-
-        public void ScheduleJobRecurring(string jobID, TimeSpan interval, Task job, TimeSpan? delay = null)
-            => ScheduleJobRecurring(jobID, interval, async () => await job, delay);
 
         public void ScheduleJobRecurring(string jobID, string cronExpression, Action job)
         {
@@ -64,9 +60,6 @@ namespace MonkeyBot.Services
                   .SetValue(schedule, cnSchedule.GetNextOccurrence(DateTime.Now));
             }
         }
-
-        public void ScheduleJobRecurring(string jobID, string cronExpression, Task job)
-            => ScheduleJobRecurring(jobID, cronExpression, async () => await job);
 
         public DateTime GetNextRun(string jobID)
         {

@@ -59,7 +59,7 @@ namespace MonkeyBot.Services
         private void AddRecurringJob(Announcement announcement)
         {
             string id = GetUniqueId(announcement);
-            _schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID));
+            _schedulingService.ScheduleJobRecurring(id, announcement.CronExpression, async () => await AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID));
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace MonkeyBot.Services
             // The announcment's name must be unique on a per guild basis
             string uniqueName = GetUniqueId(announcement);
             // Add a new RunOnce job with the provided ID to the Scheduling Service
-            _schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, Task.WhenAll(
+            _schedulingService.ScheduleJobOnce(uniqueName, announcement.ExecutionTime.Value, async () => await Task.WhenAll(
                     AnnounceAsync(announcement.Message, announcement.GuildID, announcement.ChannelID),
                     RemovePastJobsAsync()
                 ));

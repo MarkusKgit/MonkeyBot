@@ -29,7 +29,7 @@ namespace MonkeyBot.Services
         }
 
         public void Start()
-            => _schedulingService.ScheduleJobRecurring("battlefieldNews", _updateIntervall, GetUpdatesAsync(), _startDelay);
+            => _schedulingService.ScheduleJobRecurring("battlefieldNews", _updateIntervall, async () => await GetUpdatesAsync(), _startDelay);
 
         public async Task EnableForGuildAsync(ulong guildID, ulong channelID)
         {

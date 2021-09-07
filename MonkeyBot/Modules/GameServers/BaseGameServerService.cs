@@ -36,7 +36,7 @@ namespace MonkeyBot.Services
         }
 
         public void Initialize()
-            => _schedulingService.ScheduleJobRecurring("GameServerInfos", _updateIntervall, PostAllServerInfoAsync(), _startDelay);
+            => _schedulingService.ScheduleJobRecurring("GameServerInfos", _updateIntervall, async () => await PostAllServerInfoAsync(), _startDelay);
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {
