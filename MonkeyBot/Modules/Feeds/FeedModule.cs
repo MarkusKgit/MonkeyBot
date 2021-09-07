@@ -91,7 +91,7 @@ namespace MonkeyBot.Modules
         [Description("Removes the specified feed from the list of feeds.")]
         [Example("RemoveFeed DotNet")]
         [Example("RemoveFeed https://blogs.msdn.microsoft.com/dotnet/feed/")]
-        public async Task RemoveFeedUrlAsync(CommandContext ctx, [Description("The name or the url of the feed")] string nameOrUrl)
+        public async Task RemoveFeedUrlAsync(CommandContext ctx, [RemainingText, Description("The name or the url of the feed")] string nameOrUrl)
         {
             if (nameOrUrl.IsEmpty())
             {

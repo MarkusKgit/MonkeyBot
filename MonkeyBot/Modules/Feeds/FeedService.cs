@@ -53,7 +53,8 @@ namespace MonkeyBot.Services
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID)
         {
-            Models.Feed feed = await _dbContext.Feeds.AsQueryable().SingleOrDefaultAsync(f => f.Name == nameOrUrl || (f.URL == nameOrUrl && f.GuildID == guildID));
+            var feeds = await _dbContext.Feeds.ToListAsync();
+            Models.Feed feed = feeds.SingleOrDefault(f => f.Name.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() || (f.URL.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() && f.GuildID == guildID));
             if (feed != null)
             {
                 _dbContext.Feeds.Remove(feed);
@@ -103,7 +104,7 @@ namespace MonkeyBot.Services
         }
 
         private async Task GetFeedUpdateAsync(Models.Feed guildFeed, bool getLatest = false)
-        {            
+        {
             if (!_discordClient.Guilds.TryGetValue(guildFeed.GuildID, out DiscordGuild guild))
             {
                 return;
@@ -135,24 +136,23 @@ namespace MonkeyBot.Services
                                         .ToList();
             if (updatedFeeds != null && updatedFeeds.Count == 0 && getLatest)
             {
-                updatedFeeds = allFeeds.Take(1)
+                updatedFeeds = allFeeds.OrderByDescending(x => x.PublishingDate)
+                                       .Take(1)
                                        .ToList();
             }
             if (updatedFeeds != null && updatedFeeds.Count > 0)
             {
-                var builder = new DiscordEmbedBuilder();
-                builder.WithColor(new DiscordColor(21, 26, 35));
-                if (!feed.ImageUrl.IsEmpty())
-                {
-                    builder.WithImageUrl(new Uri(feed.ImageUrl));
-                }
-                builder.WithTitle($"New update{(updatedFeeds.Count > 1 ? "s" : "")} for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
                 DateTime latestUpdateUTC = DateTime.MinValue;
                 foreach (FeedItem feedItem in updatedFeeds)
                 {
-                    if (feedItem.PublishingDate.HasValue && feedItem.PublishingDate.Value.ToUniversalTime() > latestUpdateUTC)
+                    var builder = new DiscordEmbedBuilder();
+                    builder.WithColor(DiscordColor.PhthaloGreen);
+
+                    builder.WithTitle($"New update for \"{guildFeed.Name}".TruncateTo(255, "") + "\"");
+                    var publishingDate = feedItem.PublishingDate.Value.ToUniversalTime();
+                    if (feedItem.PublishingDate.HasValue && publishingDate > latestUpdateUTC)
                     {
-                        latestUpdateUTC = feedItem.PublishingDate.Value.ToUniversalTime();
+                        latestUpdateUTC = publishingDate;
                     }
                     string fieldName = feedItem.PublishingDate.HasValue
                         ? feedItem.PublishingDate.Value.ToLocalTime().ToString()
@@ -169,18 +169,27 @@ namespace MonkeyBot.Services
                             author = (feedItem.SpecificItem as Rss20FeedItem)?.DC?.Creator;
                         }
                     }
-                    author = !author.IsEmptyOrWhiteSpace() ? $"{author.Trim()}: " : string.Empty;
-                    string maskedLink = $"[{author}{ParseHtml(feedItem.Title).Trim()}]({feedItem.Link})";
-                    string content = ParseHtml(feedItem.Description).Trim();
+                    author = author?.Trim() ?? string.Empty;
+                    (string content, string imgLink) = ParseHtml(feedItem.Description);
                     if (content.IsEmptyOrWhiteSpace())
                     {
-                        content = ParseHtml(feedItem.Content).Trim();
+                        (content, imgLink) = ParseHtml(feedItem.Content);
                     }
-                    content = content.IsEmptyOrWhiteSpace() ? "[...]" : content.TruncateTo(250, "");
-                    string fieldContent = $"{maskedLink}{Environment.NewLine}*{content}".TruncateTo(1023, "") + "*"; // Embed field value must be <= 1024 characters
-                    builder.AddField(fieldName, fieldContent, true);
+                    string title = feedItem.Title.Trim();
+                    string description = title != content
+                        ? $"{title}:\n{content}"
+                        : content;
+                    description = description.IsEmptyOrWhiteSpace() ? "[...]" : description.TruncateTo(500, $" [[...]]({feedItem.Link})");
+                    builder.WithDescription(description);
+                    builder.WithUrl(feedItem.Link);
+                    builder.WithFooter($"{feed.Title} {publishingDate}", feed.ImageUrl);
+                    if (!imgLink.IsEmptyOrWhiteSpace())
+                    {
+                        builder.WithImageUrl(imgLink);
+                    }
+                    await (channel?.SendMessageAsync(builder.Build()));
                 }
-                await (channel?.SendMessageAsync(builder.Build()));
+
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
                     guildFeed.LastUpdate = latestUpdateUTC;
@@ -190,11 +199,11 @@ namespace MonkeyBot.Services
             }
         }
 
-        private string ParseHtml(string html)
+        private (string TextContent, string ImgLink) ParseHtml(string html)
         {
             if (html.IsEmptyOrWhiteSpace())
             {
-                return string.Empty;
+                return new(string.Empty, string.Empty);
             }
 
             var htmlDoc = new HtmlDocument();
@@ -207,7 +216,7 @@ namespace MonkeyBot.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error parsing html");
-                return html;
+                return new(html, string.Empty);
             }
 
             var sb = new StringBuilder();
@@ -236,8 +245,19 @@ namespace MonkeyBot.Services
                     }
                 }
             }
-            string result = sb.ToString();
-            return !result.IsEmpty() ? result : html;
+            string textContent = sb.Length > 0 ? sb.ToString().Trim('|') : html;
+
+            var imgNodes = htmlDoc?
+                .DocumentNode?
+                .SelectNodes("//img");
+            string imgLink =
+                imgNodes?
+                .Where(x => x.HasAttributes && x.Attributes.Contains("src") && !x.Attributes["src"].Value.IsEmptyOrWhiteSpace())?
+                .Select(x => x.Attributes["src"].Value)?
+                .Where(l => !l.EndsWith("gif"))?
+                .FirstOrDefault() ?? string.Empty;
+
+            return new(textContent.Trim(), imgLink);
         }
     }
 }
