@@ -8,5 +8,6 @@ namespace MonkeyBot.Services
         Task<GuildConfig> GetOrCreateConfigAsync(ulong guildId);
         Task UpdateConfigAsync(GuildConfig config);
         Task RemoveConfigAsync(ulong guildId);
+        Task<string> GetPrefixForGuild(ulong guildId);
     }
 }

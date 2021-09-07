@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
+using MonkeyBot.Models;
 using MonkeyBot.Services;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace MonkeyBot.Common
     {
         private readonly DiscordEmbedBuilder _embedBuilder;
         private Command _specificCommand;
-        private readonly string prefix = "!";
+        private readonly string prefix = GuildConfig.DefaultPrefix;
 
         public MonkeyHelpFormatter(CommandContext ctx, IGuildService guildService) : base(ctx)
         {
@@ -23,9 +24,9 @@ namespace MonkeyBot.Common
                 .WithTitle("Help")
                 .WithColor(DiscordColor.SpringGreen);
 
-            if (ctx.Guild != null)
+            if (ctx.Guild != null && guildService != null)
             {
-                prefix = guildService?.GetOrCreateConfigAsync(ctx.Guild.Id)?.Result?.CommandPrefix ?? prefix;
+                prefix = guildService.GetPrefixForGuild(ctx.Guild.Id).GetAwaiter().GetResult();
             }
         }
 

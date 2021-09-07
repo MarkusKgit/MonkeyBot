@@ -41,5 +41,11 @@ namespace MonkeyBot.Services
                 await _dbContext.SaveChangesAsync();
             }
         }
+
+        public async Task<string> GetPrefixForGuild(ulong guildId)
+        {
+            var guildConfig = await GetOrCreateConfigAsync(guildId);
+            return guildConfig.CommandPrefix;
+        }
     }
 }

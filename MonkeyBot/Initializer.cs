@@ -20,7 +20,6 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -187,7 +186,7 @@ namespace MonkeyBot
                 EnableMentionPrefix = true,
                 PrefixResolver = HandlePrefixAsync,
                 EnableDms = true,
-                IgnoreExtraArguments = true,                
+                IgnoreExtraArguments = true,
                 Services = _services
             };
             var commandsNext = _discordClient.UseCommandsNext(commandsNextConfig);
@@ -200,12 +199,12 @@ namespace MonkeyBot
 
         private static async Task<int> HandlePrefixAsync(DiscordMessage msg)
         {
-            if (msg.Channel.Guild != null)
+            string prefix = GuildConfig.DefaultPrefix;
+            if (msg.Channel?.Guild != null)
             {
-                string prefix = (await _guildService.GetOrCreateConfigAsync(msg.Channel.Guild.Id)).CommandPrefix;
-                return msg.GetStringPrefixLength(prefix);
+                prefix = await _guildService.GetPrefixForGuild(msg.Channel.Guild.Id);                
             }
-            return msg.GetStringPrefixLength("!"); // Default prefix;
+            return msg.GetStringPrefixLength(prefix);
         }
 
         private static void SetupEventHandlers()
@@ -221,14 +220,14 @@ namespace MonkeyBot
 
         private static async Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
         {
-            _discordClient.Logger.LogInformation("Client Connected");            
-            await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));            
+            _discordClient.Logger.LogInformation("Client Connected");
+            await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));
         }
 
         private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
         {
             var guildInfo = e.Guilds.Select(g => $"{g.Value.Name}({g.Value.Id}): {g.Value.MemberCount} members");
-            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{string.Join("\n", guildInfo)}");            
+            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{string.Join("\n", guildInfo)}");
             return Task.CompletedTask;
         }
 
@@ -303,11 +302,10 @@ namespace MonkeyBot
 
         private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
         {
-            string prefix = "!";
+            string prefix = GuildConfig.DefaultPrefix;
             if (e.Context.Guild != null)
             {
-                var guildConfig = await _guildService.GetOrCreateConfigAsync(e.Context.Guild.Id);
-                prefix = guildConfig.CommandPrefix;
+                prefix = await _guildService.GetPrefixForGuild(e.Context.Guild.Id);
             }
             if (e.Exception is OperationCanceledException cex)
             {
@@ -327,7 +325,7 @@ namespace MonkeyBot
                 await e.Context.ErrorAsync($"You provided the wrong arguments for the command. Try {prefix}help {e.Command.Name}");
             }
             else
-            {   
+            {
                 await e.Context.ErrorAsync($"Command {e?.Command?.Name ?? ""} failed:\n{e.Exception.GetType()}\n{e.Exception.Message}");
             }
         }
@@ -342,11 +340,11 @@ namespace MonkeyBot
                 RequireBotPermissionsAttribute botperm => $"The Bot doesn't have the required permissions. It needs: {botperm.Permissions}",
                 RequireUserPermissionsAttribute userPerm => $"You don't have the required permissions. You need: {userPerm.Permissions}",
                 RequirePermissionsAttribute perms => $"You or the bot don't the required permissions: {perms.Permissions}",
-                RequireRolesAttribute roles => $"You need the following role(s) to use this command: {string.Join(", ",roles.RoleNames)}",
+                RequireRolesAttribute roles => $"You need the following role(s) to use this command: {string.Join(", ", roles.RoleNames)}",
                 RequireNsfwAttribute => $"This command can only be used in a nsfw channel!",
                 CooldownAttribute cooldown => $"This command has a cooldown. Please wait {cooldown.GetRemainingCooldown(ctx).Humanize(culture: new("en-GB"))} before you can use it again.",
                 _ => $"{check.TypeId} failed"
-            };            
+            };
         }
     }
 }
