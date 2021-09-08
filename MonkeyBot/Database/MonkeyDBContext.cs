@@ -59,6 +59,7 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<GuildConfig>().Property(x => x.BattlefieldUpdatesEnabled).HasDefaultValue(false);
             modelBuilder.Entity<GuildConfig>().Property(x => x.ConfirmedStreamerIds).HasJsonConversion();
             modelBuilder.Entity<GuildConfig>().Property(x => x.StreamAnnouncementsEnabled).HasDefaultValue(false);
+            modelBuilder.Entity<GuildConfig>().Property(x => x.GiveAwaysEnabled).HasDefaultValue(false);
 
             //Feeds
             modelBuilder.Entity<Feed>().HasKey(x => x.ID);

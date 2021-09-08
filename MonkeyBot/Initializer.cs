@@ -119,6 +119,7 @@ namespace MonkeyBot
                 .AddSingleton<IAnnouncementService, AnnouncementService>()
                 .AddSingleton<IFeedService, FeedService>()
                 .AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>()
+                .AddSingleton<IGiveAwaysService, GiveAwaysService>()
                 .AddSingleton<SteamGameServerService>()
                 .AddSingleton<MineCraftGameServerService>()
                 .AddSingleton<IRoleButtonService, RoleButtonService>()
@@ -161,6 +162,9 @@ namespace MonkeyBot
             IBattlefieldNewsService battlefieldNewsService = services.GetService<IBattlefieldNewsService>();
             battlefieldNewsService.Start();
 
+            IGiveAwaysService giveAwaysService = services.GetService<IGiveAwaysService>();
+            giveAwaysService.Start();
+
             IPollService pollService = services.GetService<IPollService>();
             await pollService.InitializeAsync();
 
@@ -202,7 +206,7 @@ namespace MonkeyBot
             string prefix = GuildConfig.DefaultPrefix;
             if (msg.Channel?.Guild != null)
             {
-                prefix = await _guildService.GetPrefixForGuild(msg.Channel.Guild.Id);                
+                prefix = await _guildService.GetPrefixForGuild(msg.Channel.Guild.Id);
             }
             return msg.GetStringPrefixLength(prefix);
         }

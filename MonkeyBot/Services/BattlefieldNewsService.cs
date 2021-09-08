@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Services
 {
     public class BattlefieldNewsService : IBattlefieldNewsService
-    {   
+    {
         private static readonly TimeSpan _updateIntervall = TimeSpan.FromHours(1);
         private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
 
@@ -50,6 +50,7 @@ namespace MonkeyBot.Services
             if (cfg.BattlefieldUpdatesEnabled)
             {
                 cfg.BattlefieldUpdatesEnabled = false;
+                cfg.BattlefieldUpdatesChannel = 0;
                 cfg.LastBattlefieldUpdate = null;
                 await _guildService.UpdateConfigAsync(cfg);
             }
@@ -105,13 +106,13 @@ namespace MonkeyBot.Services
             string description = latestUpdate?.SelectSingleNode(".//ea-tile-copy")?.InnerHtml?.Trim();
             string sUpdateDate = latestUpdate?.SelectNodes(".//div")?.LastOrDefault()?.InnerHtml;
             string link = latestUpdate?.SelectSingleNode(".//ea-cta")?.Attributes["link-url"]?.Value;
-            return  !string.IsNullOrEmpty(imgUrl)
+            return !string.IsNullOrEmpty(imgUrl)
                     && !string.IsNullOrEmpty(title)
                     && !string.IsNullOrEmpty(description)
                     && !string.IsNullOrEmpty(sUpdateDate)
                     && !string.IsNullOrEmpty(link)
                     && DateTime.TryParseExact(sUpdateDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate)
-                ? new BattlefieldUpdate (imgUrl, title, description, $"https://www.battlefield.com{link}", parsedDate.ToUniversalTime())
+                ? new BattlefieldUpdate(imgUrl, title, description, $"https://www.battlefield.com{link}", parsedDate.ToUniversalTime())
                 : null;
         }
     }

@@ -34,5 +34,11 @@ namespace MonkeyBot.Models
         public bool StreamAnnouncementsEnabled { get; set; }
 
         public List<ulong> ConfirmedStreamerIds { get; set; }
+
+        public bool GiveAwaysEnabled { get; set; }
+
+        public ulong GiveAwayChannel { get; set; }
+
+        public DateTime? LastGiveAway { get; set; }
     }
 }

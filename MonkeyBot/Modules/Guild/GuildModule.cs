@@ -17,11 +17,13 @@ namespace MonkeyBot.Modules
     {
         private readonly IGuildService _guildService;
         private readonly IBattlefieldNewsService _bfService;
+        private readonly IGiveAwaysService _giveAwaysService;
 
-        public GuildModule(IGuildService guildService, IBattlefieldNewsService bfService)
+        public GuildModule(IGuildService guildService, IBattlefieldNewsService bfService, IGiveAwaysService giveAwaysService)
         {
             _guildService = guildService;
             _bfService = bfService;
+            _giveAwaysService = giveAwaysService;
         }
 
         [Command("SetPrefix")]
@@ -111,7 +113,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("AddRule")]
-        [Description("Adds a rule to the server.")]        
+        [Description("Adds a rule to the server.")]
         [Example("AddRule You shall not pass!")]
         public async Task AddRuleAsync(CommandContext ctx, [RemainingText, Description("The rule to add")] string rule)
         {
@@ -144,10 +146,11 @@ namespace MonkeyBot.Modules
         [Command("EnableBattlefieldUpdates")]
         [Description("Enables automated posting of Battlefield update news in provided channel")]
         [Example("EnableBattlefieldUpdates #general")]
-        public async Task EnableBattlefieldUpdatesAsync(CommandContext ctx, [Description("The channel where the Battlefield updates should be posted")] DiscordChannel channel)
+        public async Task EnableBattlefieldUpdatesAsync(CommandContext ctx, [Description("The channel where the Battlefield updates should be posted. Defaults to current")] DiscordChannel channel = null)
         {
+            channel ??= ctx.Channel;
             await _bfService.EnableForGuildAsync(ctx.Guild.Id, channel.Id);
-            await ctx.OkAsync("Battlefield Updates enabled!");
+            await ctx.OkAsync($"Battlefield Updates enabled in {channel.Name}");
         }
 
         [Command("DisableBattlefieldUpdates")]
@@ -190,6 +193,25 @@ namespace MonkeyBot.Modules
             config.ConfirmedStreamerIds.Add(ctx.User.Id);
             await _guildService.UpdateConfigAsync(config);
             await ctx.OkAsync($"Your streams will now be announced!");
+        }
+
+        [Command("EnableGiveAways")]
+        [Description("Enable automatic posting of free games")]
+        [MinPermissions(AccessLevel.ServerMod)]
+        public async Task EnableGiveAwaysAsync(CommandContext ctx, [Description("Channel where to post the offers. Defaults to current")] DiscordChannel channel = null)
+        {
+            channel ??= ctx.Channel;
+            await _giveAwaysService.EnableForGuildAsync(ctx.Guild.Id, channel.Id);
+            await ctx.OkAsync($"Great, giveaways will now be posted in {channel.Mention}!");
+        }
+
+        [Command("DisableGiveAways")]
+        [Description("Disable automatic posting of free games")]
+        [MinPermissions(AccessLevel.ServerMod)]
+        public async Task DisableGiveAwaysAsync(CommandContext ctx)
+        {
+            await _giveAwaysService.DisableForGuildAsync(ctx.Guild.Id);
+            await ctx.OkAsync("Ok, giveaways won't be posted anymore. No more free games for you :-(");
         }
 
         private async Task ToggleStreamingAnnouncementsAsync(ulong guildId, bool enable)
