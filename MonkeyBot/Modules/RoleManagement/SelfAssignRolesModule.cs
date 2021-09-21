@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     //TODO: Consolidate with role buttons and make assignable roles configurable
-    
+
     /// <summary>Module that handles role assignments</summary>    
     [Description("Self role management")]
     [MinPermissions(AccessLevel.User)]
@@ -29,7 +29,7 @@ namespace MonkeyBot.Modules
                 await ctx.ErrorAsync("Invalid role");
                 return;
             }
-            DiscordRole botRole = await GetBotRoleAsync(ctx);
+            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
 
             // The bot's role must be higher than the role to be able to assign it
             if (botRole == null || botRole?.Position <= role.Position)
@@ -57,7 +57,7 @@ namespace MonkeyBot.Modules
             {
                 await ctx.ErrorAsync("You don't have that role");
             }
-            DiscordRole botRole = await GetBotRoleAsync(ctx);
+            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
             // The bot's role must be higher than the role to be able to remove it
             if (botRole == null || botRole?.Position <= role.Position)
             {
@@ -71,10 +71,17 @@ namespace MonkeyBot.Modules
         [Description("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync(CommandContext ctx)
         {
-            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(ctx);
-            _ = assignableRoles.Any()
-                ? await ctx.OkAsync(string.Join(", ", assignableRoles.Select(role => role.Name)), "The following assignable roles exist")
-                : await ctx.ErrorAsync("No assignable roles exist!");
+            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
+            if (assignableRoles.Any())
+            {
+                string roles = string.Join(", ", assignableRoles.OrderBy(r => r.Name).Select(r => r.Name));
+                await ctx.OkAsync(roles, "The following assignable roles exist");
+            }
+            else
+            {
+                await ctx.ErrorAsync("No assignable roles exist!");
+            }
         }
 
         [Command("ListRolesWithMembers")]
@@ -85,7 +92,8 @@ namespace MonkeyBot.Modules
                 .WithColor(new DiscordColor(114, 137, 218))
                 .WithDescription("These are the are all the assignable roles and the users assigned to them:");
 
-            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(ctx);
+            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             foreach (DiscordRole role in assignableRoles)
             {
@@ -121,19 +129,20 @@ namespace MonkeyBot.Modules
             await ctx.RespondDeletableAsync(builder.Build());
         }
 
-        private static async Task<DiscordRole> GetBotRoleAsync(CommandContext ctx)
+        private static async Task<DiscordRole> GetBotRoleAsync(DiscordUser botUser, DiscordGuild guild)
         {
-            // Get the role of the bot with permission manage roles            
-            DiscordMember bot = await ctx.Guild.GetMemberAsync(ctx.Client.CurrentUser.Id);
+            DiscordMember bot = await guild.GetMemberAsync(botUser.Id);
             return bot.Roles.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
         }
 
-        private static IEnumerable<DiscordRole> GetAssignableRoles(CommandContext ctx)
+        private static IEnumerable<DiscordRole> GetAssignableRoles(DiscordRole botRole, DiscordGuild guild)
         {
-            DiscordRole highestRole = ctx.Guild.Roles.Values.FirstOrDefault(x => x.Permissions.HasPermission(Permissions.ManageRoles));
             // Get all roles that are lower than the bot's role (roles the bot can assign)
-            return ctx.Guild.Roles.Values
-                .Where(role => role.IsMentionable && role != ctx.Guild.EveryoneRole && highestRole.Position > role.Position);
+            return guild.Roles.Values
+                .Where(role => role.IsMentionable
+                               && role != guild.EveryoneRole
+                               && !role.Permissions.HasFlag(Permissions.Administrator)
+                               && role.Position < botRole.Position);
 
         }
     }
