@@ -10,45 +10,44 @@ namespace MonkeyBot.Migrations
 
             migrationBuilder.RenameTable(
                 name: "Announcements",
-                newName: "Reminder");
+                newName: "Reminders");
 
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "ID",
                 newName: "Id");
 
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "GuildID",
                 newName: "GuildId");
 
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "ChannelID",
                 newName: "ChannelId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
-            migrationBuilder.RenameTable(
-                name: "Reminder",
-                newName: "Announcements");
-
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "Id",
                 newName: "ID");
 
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "GuildId",
                 newName: "GuildID");
 
             migrationBuilder.RenameColumn(
-                table: "Reminder",
+                table: "Reminders",
                 name: "ChannelId",
                 newName: "ChannelID");
+
+            migrationBuilder.RenameTable(
+                name: "Reminders",
+                newName: "Announcements");
         }
     }
 }

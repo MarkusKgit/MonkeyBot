@@ -13,7 +13,7 @@ namespace MonkeyBot.Database
         public DbSet<BenzenFact> BenzenFacts { get; set; }
         public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
-        public DbSet<Reminder> Reminder { get; set; }
+        public DbSet<Reminder> Reminders { get; set; }
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
         public DbSet<RoleButtonLink> RoleButtonLinks { get; set; }

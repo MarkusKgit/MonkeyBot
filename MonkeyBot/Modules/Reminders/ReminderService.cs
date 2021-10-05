@@ -52,7 +52,7 @@ namespace MonkeyBot.Modules.Reminders
             // Create the reminder, add it to the list and persist it
             var reminder = new Reminder { Type = ReminderType.Recurring, GuildId = guildId, ChannelId = channelId, CronExpression = cronExpression, Name = id, Message = message };
             AddRecurringJob(reminder);
-            _dbContext.Reminder.Add(reminder);
+            _dbContext.Reminders.Add(reminder);
             return _dbContext.SaveChangesAsync();
         }
 
@@ -83,7 +83,7 @@ namespace MonkeyBot.Modules.Reminders
             // Create the reminder, add it to the list and persist it
             var reminder = new Reminder { Type = ReminderType.Once, GuildId = guildId, ChannelId = channelId, ExecutionTime = excecutionTime, Name = id, Message = message };
             AddSingleJob(reminder);
-            _dbContext.Reminder.Add(reminder);
+            _dbContext.Reminders.Add(reminder);
             return _dbContext.SaveChangesAsync();
         }
 
@@ -114,7 +114,7 @@ namespace MonkeyBot.Modules.Reminders
             _schedulingService.RemoveJob(GetUniqueId(reminder));
             try
             {
-                _dbContext.Reminder.Remove(reminder);
+                _dbContext.Reminders.Remove(reminder);
                 await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -144,7 +144,7 @@ namespace MonkeyBot.Modules.Reminders
         /// <summary>Cleanup method to remove single reminders that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            List<Reminder> reminders = await _dbContext.Reminder
+            List<Reminder> reminders = await _dbContext.Reminders
                 .AsQueryable()
                 .Where(x => x.Type == ReminderType.Once && x.ExecutionTime < DateTime.Now)
                 .ToListAsync()
@@ -175,13 +175,13 @@ namespace MonkeyBot.Modules.Reminders
             => MonkeyHelpers.SendChannelMessageAsync(_discordClient, guildId, channelId, message);
 
         private Task<List<Reminder>> GetAllRemindersAsync()
-            => _dbContext.Reminder.AsQueryable().ToListAsync();
+            => _dbContext.Reminders.AsQueryable().ToListAsync();
 
         public Task<List<Reminder>> GetRemindersForGuildAsync(ulong guildId)
-            => _dbContext.Reminder.AsQueryable().Where(x => x.GuildId == guildId).ToListAsync();
+            => _dbContext.Reminders.AsQueryable().Where(x => x.GuildId == guildId).ToListAsync();
 
         private Task<Reminder> GetSpecificReminderAsync(ulong guildId, string reminderName)
-            => _dbContext.Reminder.AsQueryable().SingleOrDefaultAsync(x => x.GuildId == guildId && x.Name == reminderName);
+            => _dbContext.Reminders.AsQueryable().SingleOrDefaultAsync(x => x.GuildId == guildId && x.Name == reminderName);
 
         // The reminder's name must be unique on a per guild basis
         private static string GetUniqueId(Reminder reminder) => $"{reminder.Name}-{reminder.GuildId}";

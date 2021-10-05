@@ -37,13 +37,13 @@ namespace MonkeyBot.Modules.Reminders
         {
             if (reminderId.IsEmpty())
             {
-                await ctx.ErrorAsync("You need to specify an ID for the Reminder!");
+                await ctx.ErrorAsync("You need to specify an ID for the Reminders!");
                 return;
             }
 
             if (cronExpression.IsEmpty())
             {
-                await ctx.ErrorAsync("You need to specify a Cron expression that sets the interval for the Reminder!");
+                await ctx.ErrorAsync("You need to specify a Cron expression that sets the interval for the Reminders!");
                 return;
             }
 

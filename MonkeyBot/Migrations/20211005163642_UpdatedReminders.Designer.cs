@@ -242,7 +242,7 @@ namespace MonkeyBot.Migrations
                     b.ToTable("TriviaScores");
                 });
 
-            modelBuilder.Entity("MonkeyBot.Modules.Reminders.Reminder", b =>
+            modelBuilder.Entity("MonkeyBot.Modules.Reminders.Reminders", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -274,7 +274,7 @@ namespace MonkeyBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Reminder");
+                    b.ToTable("Reminders");
                 });
 #pragma warning restore 612, 618
         }
