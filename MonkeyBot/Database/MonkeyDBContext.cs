@@ -4,6 +4,7 @@ using MonkeyBot.Models;
 using NLog.Extensions.Logging;
 using System;
 using System.IO;
+using MonkeyBot.Modules.Reminders;
 
 namespace MonkeyBot.Database
 {
@@ -12,7 +13,7 @@ namespace MonkeyBot.Database
         public DbSet<BenzenFact> BenzenFacts { get; set; }
         public DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
-        public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<Reminder> Reminder { get; set; }
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
         public DbSet<RoleButtonLink> RoleButtonLinks { get; set; }
@@ -92,12 +93,12 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
 
             //RoleButtonlinks
-            modelBuilder.Entity<Announcement>().HasKey(x => x.ID);
-            modelBuilder.Entity<Announcement>().Property(x => x.GuildID).IsRequired();
-            modelBuilder.Entity<Announcement>().Property(x => x.ChannelID).IsRequired();
-            modelBuilder.Entity<Announcement>().Property(x => x.Type).IsRequired().HasConversion<string>();
-            modelBuilder.Entity<Announcement>().Property(x => x.Message).IsRequired();
-            modelBuilder.Entity<Announcement>().Property(x => x.Name).IsRequired();
+            modelBuilder.Entity<Reminder>().HasKey(x => x.Id);
+            modelBuilder.Entity<Reminder>().Property(x => x.GuildId).IsRequired();
+            modelBuilder.Entity<Reminder>().Property(x => x.ChannelId).IsRequired();
+            modelBuilder.Entity<Reminder>().Property(x => x.Type).IsRequired().HasConversion<string>();
+            modelBuilder.Entity<Reminder>().Property(x => x.Message).IsRequired();
+            modelBuilder.Entity<Reminder>().Property(x => x.Name).IsRequired();
 
             //Polls
             modelBuilder.Entity<Poll>().HasKey(x => x.Id);

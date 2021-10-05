@@ -23,6 +23,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using MonkeyBot.Modules.Reminders;
 
 namespace MonkeyBot
 {
@@ -116,7 +117,7 @@ namespace MonkeyBot
                 .AddSingleton(discordClient)
                 .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<ISchedulingService, SchedulingService>()
-                .AddSingleton<IAnnouncementService, AnnouncementService>()
+                .AddSingleton<IReminderService, ReminderService>()
                 .AddSingleton<IFeedService, FeedService>()
                 .AddSingleton<IBattlefieldNewsService, BattlefieldNewsService>()
                 .AddSingleton<IGiveAwaysService, GiveAwaysService>()
@@ -144,8 +145,8 @@ namespace MonkeyBot
             MonkeyDBContext dbContext = services.GetRequiredService<MonkeyDBContext>();
             await DBInitializer.InitializeAsync(dbContext);
 
-            IAnnouncementService announcements = services.GetService<IAnnouncementService>();
-            await announcements.InitializeAsync();
+            IReminderService reminders = services.GetService<IReminderService>();
+            await reminders.InitializeAsync();
 
             SteamGameServerService steamGameServerService = services.GetService<SteamGameServerService>();
             steamGameServerService.Initialize();
