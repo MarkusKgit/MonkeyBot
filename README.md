@@ -18,7 +18,7 @@
     <a href="https://github.com/MarkusKgit/MonkeyBot/blob/main/Commands.md"><strong>Explore the available commands »</strong></a>
     <br />
     <br />
-    <a href="https://discord.gg/u43XvME">Join Chat</a>
+    <a href="https://discord.gg/hHyntGMh8E">Join Chat</a>
     ·
     <a href="https://github.com/MarkusKgit/MonkeyBot/issues">Report Bug</a>
     ·
@@ -193,7 +193,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 Project Link: [https://github.com/MarkusKgit/MonkeyBot](https://github.com/MarkusKgit/MonkeyBot)
 
-Discord: [https://discord.gg/u43XvME](https://discord.gg/u43XvME)
+Discord: [https://discord.gg/hHyntGMh8E](https://discord.gg/hHyntGMh8E)
 
 
 
@@ -218,4 +218,4 @@ For a full list of commands see [Commands](Commands.md)
 [license-shield]: https://img.shields.io/badge/license-MIT-green.svg?style=flat-square
 [license-url]: LICENSE
 [discord-shield]: https://img.shields.io/discord/333960047761817601.svg?style=flat-square
-[discord-url]: https://discord.gg/u43XvME
+[discord-url]: https://discord.gg/hHyntGMh8E
