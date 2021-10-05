@@ -89,11 +89,15 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 1. Clone the repo
 
    ```sh
-   git clone https://github.com/MarkusKgit/MonkeyBot.git
+   git clone https://github.com/MarkusKgit/MonkeyBot.git   
    ```
    or download it from GitHub and unzip it
-
-2. Build
+2. Pick the right branch
+   The latest stable version is on the main branch:
+   `git checkout main`
+   If you want to try the latest development build then check out the development branch:
+   `git checkout develop`
+3. Build
 
    ```sh
    cd MonkeyBot
@@ -101,7 +105,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
    ```
    or open the solution in Visual Studio and build
 
-3. Run
+4. Run
 
    ```sh   
    dotnet run
@@ -109,7 +113,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
    On the first run of the Bot the configuration file will automatically be created by prompts on the command line. For a first test you only need to provide the Bot access token. The configuration will be stored in `/config/configuration.json`. Look at [exampleconfig.json](exampleconfig.json) to see the structure of the config file if you wish to create it manually.
 
-4. Publish 
+5. Publish 
 
    To permanently run the bot you should publish it first:
    ```sh
@@ -173,7 +177,7 @@ tl;dr:
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+5. Open a Pull Request against the develop branch
 
 
 

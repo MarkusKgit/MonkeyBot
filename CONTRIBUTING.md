@@ -25,8 +25,7 @@ You can request a new feature by submitting an issue to our [GitHub Repository](
 would like to implement a new feature then consider what kind of change it is:
 
 * **Major Changes** that you wish to contribute to the project should be discussed first in [Discord](https://discord.gg/u43XvME)
-* **Small Changes** can be crafted and submitted to the [GitHub Repository](https://github.com/MarkusKgit/MonkeyBot) as a Pull
-  Request.
+* **Small Changes** can be crafted and submitted to the [GitHub Repository](https://github.com/MarkusKgit/MonkeyBot) as a Pull Request against the development branch.
 
 ## <a name="submit"></a> Submission Guidelines
 
@@ -52,7 +51,7 @@ Before you submit your pull request consider the following guidelines:
 * Make your changes in a new git branch:
 
     ```shell
-    git checkout -b my-fix-branch main
+    git checkout -b my-fix-branch develop
     ```
 
 * Create your patch following the repositories code style.
@@ -71,6 +70,8 @@ Before you submit your pull request consider the following guidelines:
     git push origin my-fix-branch
     ```
 
+* Open a Pull Request against the development branch:
+
 That's it! Thank you for your contribution!
 
 #### After your pull request is merged
@@ -84,10 +85,10 @@ from the main (upstream) repository:
     git push origin --delete my-fix-branch
     ```
 
-* Check out the main branch:
+* Check out the development branch:
 
     ```shell
-    git checkout main -f
+    git checkout develop -f
     ```
 
 * Delete the local branch:
@@ -96,8 +97,8 @@ from the main (upstream) repository:
     git branch -D my-fix-branch
     ```
 
-* Update your main with the latest upstream version:
+* Update your development branch with the latest upstream version:
 
     ```shell
-    git pull --ff upstream main
+    git pull --ff upstream develop
     ```
