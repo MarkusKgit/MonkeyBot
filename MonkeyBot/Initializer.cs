@@ -302,7 +302,7 @@ namespace MonkeyBot
                 .WithThumbnail("https://raw.githubusercontent.com/MarkusKgit/MonkeyBot/main/Logos/MonkeyBot.png",50,50)
                 .WithColor(DiscordColor.SpringGreen)
                 .AddField("Documentation","https://github.com/MarkusKgit/MonkeyBot")
-                .AddField("Discord server", "https://discord.gg/u43XvME")
+                .AddField("Discord server", "https://discord.gg/hHyntGMh8E")
                 .WithDescription("Use command `!help` to check what can I do for you.");
             
             var channel = e.Guild.GetDefaultChannel() ?? await e.Guild.CreateTextChannelAsync("Welcome channel");
