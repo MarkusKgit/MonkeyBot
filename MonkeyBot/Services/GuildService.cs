@@ -35,7 +35,7 @@ namespace MonkeyBot.Services
         public async Task RemoveConfigAsync(ulong guildId)
         {
             GuildConfig config = await _dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
-            if (config == null)
+            if (config != null)
             {
                 _dbContext.GuildConfigs.Remove(config);
                 await _dbContext.SaveChangesAsync();
