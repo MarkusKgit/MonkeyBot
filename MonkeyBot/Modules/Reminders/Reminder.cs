@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace MonkeyBot.Models
+namespace MonkeyBot.Modules.Reminders
 {
-    public class Announcement
+    public class Reminder
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
 
-        public ulong GuildID { get; set; }
+        public ulong GuildId { get; set; }
 
-        public ulong ChannelID { get; set; }
+        public ulong ChannelId { get; set; }
 
-        public AnnouncementType Type { get; set; }
+        public ReminderType Type { get; set; }
 
         public string Name { get; set; }
 
@@ -21,7 +21,7 @@ namespace MonkeyBot.Models
         public string CronExpression { get; set; }
     }
 
-    public enum AnnouncementType
+    public enum ReminderType
     {
         Once,
         Recurring
