@@ -297,6 +297,17 @@ namespace MonkeyBot
             _discordClient.Logger.LogInformation($"Joined guild {e.Guild.Name}");
             // Make sure to create the config;
             await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+            
+            var msgBuilder = new DiscordEmbedBuilder()
+                .WithTitle("Hello, I am ***Monkey Bot***")
+                .WithThumbnail("https://raw.githubusercontent.com/MarkusKgit/MonkeyBot/main/Logos/MonkeyBot.png",50,50)
+                .WithColor(DiscordColor.SpringGreen)
+                .AddField("Documentation","https://github.com/MarkusKgit/MonkeyBot")
+                .AddField("Discord server", "https://discord.gg/hHyntGMh8E")
+                .WithDescription("Use command `!help` to check what can I do for you.");
+            
+            var channel = e.Guild.GetDefaultChannel() ?? await e.Guild.CreateTextChannelAsync("Welcome channel");
+            await channel.SendMessageAsync(msgBuilder.Build());
         }
 
         private static async Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)
