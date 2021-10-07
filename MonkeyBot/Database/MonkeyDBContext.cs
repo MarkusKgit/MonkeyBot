@@ -11,7 +11,7 @@ namespace MonkeyBot.Database
     public class MonkeyDBContext : DbContext
     {
         public DbSet<BenzenFact> BenzenFacts { get; set; }
-        public DbSet<GuildConfig> GuildConfigs { get; set; }
+        public virtual DbSet<GuildConfig> GuildConfigs { get; set; }
         public DbSet<TriviaScore> TriviaScores { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
         public DbSet<Feed> Feeds { get; set; }
