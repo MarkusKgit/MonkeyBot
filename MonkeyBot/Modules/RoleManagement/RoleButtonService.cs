@@ -32,6 +32,47 @@ namespace MonkeyBot.Services
         {
             _discordClient.MessageReactionAdded += DiscordClient_MessageReactionAdded;
             _discordClient.MessageReactionRemoved += DiscordClient_MessageReactionRemoved;
+
+            _discordClient.ComponentInteractionCreated += DiscordClient_ComponentInteractionCreated;
+        }
+
+        public async Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordSelectComponent roleSelectorComponent)
+        {
+            if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
+            {
+                throw new ArgumentException("Invalid guild");
+            }
+
+            DiscordChannel channel = guild.GetChannel(channelId);
+            if (channel == null)
+            {
+                throw new ArgumentException("Invalid channel");
+            }
+
+            DiscordMessage message = await channel.GetMessageAsync(messageId);
+            if (message == null)
+            {
+                throw new ArgumentException("Invalid message");
+            }
+
+            var messageBuilder = new DiscordMessageBuilder().WithContent("Please use this to assign yourself any role").AddComponents(roleSelectorComponent);
+            await message.RespondAsync(messageBuilder);
+
+            bool exists = await _dbContext.MessageComponentLinks
+                .AsQueryable()
+                .AnyAsync(x => x.GuildID == guildId && x.ChannelID == channelId && x.MessageID == messageId && x.ComponentId == roleSelectorComponent.CustomId)
+                ;
+
+            if (!exists)
+            {
+                var link = new MessageComponentLink { GuildID = guildId, ChannelID = channelId, MessageID = messageId, ComponentId = roleSelectorComponent.CustomId };
+                _dbContext.MessageComponentLinks.Add(link);
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new ArgumentException("The specified link already exists");
+            }
         }
 
         public async Task AddRoleButtonLinkAsync(ulong guildId, ulong channelId, ulong messageId, ulong roleId, string emojiString)
@@ -147,6 +188,15 @@ namespace MonkeyBot.Services
             return links?.Count > 0;
         }
 
+        public async Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID)
+        {
+            List<MessageComponentLink> links = await _dbContext.MessageComponentLinks
+                .AsQueryable()
+                .Where(x => x.GuildID == guildID && x.ChannelID == channelId && x.MessageID == messageID)
+                .ToListAsync();
+            return links?.Count > 0;
+        }
+
         public async Task<string> ListAllAsync(ulong guildID)
         {
             List<RoleButtonLink> links = await _dbContext.RoleButtonLinks
@@ -178,6 +228,54 @@ namespace MonkeyBot.Services
 
         private Task DiscordClient_MessageReactionRemoved(DiscordClient client, MessageReactionRemoveEventArgs e)
             => AddOrRemoveRoleAsync(AddOrRemove.Remove, e.Message, e.Channel, e.User, e.Emoji);
+
+        private async Task DiscordClient_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            var interactionUser = e.Interaction.User;
+            var guild = e.Guild;
+            var channel = e.Interaction.Channel;
+            var message = e.Message;
+
+            MessageComponentLink match = await _dbContext.MessageComponentLinks
+                .AsQueryable()
+                .SingleOrDefaultAsync(x => x.GuildID == guild.Id && x.ChannelID == message.Channel.Id && x.ComponentId == e.Id);
+            if (match is object && e.Values.Any())
+            {
+                var selectedRoleId = e.Values[0];
+                await AssignRole(sender, channel, guild, interactionUser, selectedRoleId);
+            }
+            await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+        }
+
+        private async Task AssignRole(DiscordClient client, DiscordChannel channel, DiscordGuild guild, DiscordUser interactionUser, string selectedRoleId)
+        {
+            if (interactionUser.IsBot)
+            {
+                _logger.LogDebug($"Error in {nameof(AssignRole)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
+                return;
+            }
+
+            var interactionMember = await guild.GetMemberAsync(interactionUser.Id);
+
+            if (ulong.TryParse(selectedRoleId, out var roleId))
+            {
+                DiscordRole role = guild.GetRole(roleId);
+
+                if (interactionMember.Roles.Contains(role))
+                {
+                    await client.SendMessageAsync(channel, $"{interactionMember.DisplayName} already has the role {role.Name}");
+                    return;
+                }
+
+                await interactionMember.GrantRoleAsync(role);
+                await client.SendMessageAsync(channel, $"Role {role.Name} assigned to user {interactionMember.DisplayName}");
+            }
+            else
+            {
+                _logger.LogDebug($"Error in {nameof(AssignRole)} of {nameof(RoleButtonService)} - Could not find the selected role");
+                return;
+            }
+        }
 
 
         private async Task AddOrRemoveRoleAsync(AddOrRemove action, DiscordMessage message, DiscordChannel channel, DiscordUser reactionUser, DiscordEmoji reactionEmoji)

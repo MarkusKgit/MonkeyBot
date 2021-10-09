@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using DSharpPlus.Entities;
+using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
@@ -54,5 +55,24 @@ namespace MonkeyBot.Services
         /// <param name="guildId">Id of the guild to get the links for</param>
         /// <returns></returns>
         Task<string> ListAllAsync(ulong guildId);
+
+        /// <summary>
+        /// Check if the specified link exists
+        /// </summary>
+        /// <param name="guildID">Id of the guild where the message lies</param>
+        /// <param name="channelId">Id of the channel where the message lies</param>
+        /// <param name="messageID"></param>
+        /// <returns></returns>
+        Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID);
+
+        /// <summary>
+        /// Add a new role selector dropdown. Assigns the selected role to the user who made the selection.
+        /// </summary>
+        /// <param name="guildId"></param>
+        /// <param name="channelId"></param>
+        /// <param name="messageId"></param>
+        /// <param name="roleSelectorComponent"></param>
+        /// <returns></returns>
+        Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordSelectComponent roleSelectorComponent);
     }
 }

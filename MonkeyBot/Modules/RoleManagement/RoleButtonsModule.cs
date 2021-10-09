@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -18,10 +19,40 @@ namespace MonkeyBot.Modules
     public class RoleButtonsModule : BaseCommandModule
     {
         private readonly IRoleButtonService _roleButtonService;
+        private readonly IRoleManagementService _roleManagementService;
 
-        public RoleButtonsModule(IRoleButtonService roleButtonService)
+        public const string AssignableRoleDropDownId = "assignableRoles-";
+
+        public RoleButtonsModule(IRoleButtonService roleButtonService, IRoleManagementService roleManagementService)
         {
             _roleButtonService = roleButtonService;
+            _roleManagementService = roleManagementService;
+        }
+
+        [Command("AddRoleSelectorLink")]
+        [Description("Adds a dropdown to the specified message to select any role")]
+        public async Task AddRoleSelectorLinkAsync(CommandContext ctx, [Description("Message to set up the dropdown for")] DiscordMessage message)
+        {
+            if (message == null)
+            {
+                await ctx.ErrorAsync("Message not found.");
+                return;
+            }
+
+            if (await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id))
+            {
+                await ctx.RespondAsync("The specified link already exists");
+                return;
+            }
+
+            var botRole = await _roleManagementService.GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            var assignableRoles = _roleManagementService.GetAssignableRoles(botRole, ctx.Guild);
+
+            var roleOptions = assignableRoles.Select(CreateSelectComponentOption);
+            var interactionDropdownId = AssignableRoleDropDownId + message.Id;
+            var roleDropdown = new DiscordSelectComponent(interactionDropdownId, null, roleOptions);
+
+            await _roleButtonService.AddRoleSelectorComponentAsync(ctx.Guild.Id, ctx.Channel.Id, message.Id, roleDropdown);
         }
 
         [Command("AddRoleLink")]
@@ -96,5 +127,8 @@ namespace MonkeyBot.Modules
                 ? await ctx.OkAsync(links, "Role links")
                 : await ctx.ErrorAsync("No role button links set up yet");
         }
+
+        private DiscordSelectComponentOption CreateSelectComponentOption(DiscordRole role)
+            => new(role.Name, role.Id.ToString(), null, false);
     }
 }

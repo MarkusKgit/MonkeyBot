@@ -17,6 +17,9 @@ namespace MonkeyBot.Database
         public DbSet<Feed> Feeds { get; set; }
         public DbSet<GameServer> GameServers { get; set; }
         public DbSet<RoleButtonLink> RoleButtonLinks { get; set; }
+
+        public DbSet<MessageComponentLink> MessageComponentLinks { get; set; }
+
         public DbSet<Poll> Polls { get; set; }
 
         public MonkeyDBContext() : base()
@@ -91,6 +94,12 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.RoleID).IsRequired();
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.EmoteString).IsRequired();
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
+
+            //MessageComponentLinks
+            modelBuilder.Entity<MessageComponentLink>().HasKey(x => x.ID);
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.ComponentId).IsRequired();
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.MessageID).IsRequired();
 
             //RoleButtonlinks
             modelBuilder.Entity<Reminder>().HasKey(x => x.Id);
