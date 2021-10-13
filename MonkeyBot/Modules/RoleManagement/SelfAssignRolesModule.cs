@@ -34,8 +34,9 @@ namespace MonkeyBot.Modules
         [Command("GiveRole")]
         [Aliases(new[] { "GrantRole", "AddRole" })]
         [Description("Adds the specified role to your own roles.")]
+        [Example("giverole")]
         [Example("giverole @bf")]
-        public async Task AddRoleAsync(CommandContext ctx, [Description("The role you want to have")] DiscordRole role = null)
+        public async Task AddRoleAsync(CommandContext ctx, [RemainingText, Description("The role you want to have")] DiscordRole role = null)
         {
             DiscordRole roleToAssign = role;
             DiscordMember member = ctx.Member;
@@ -43,7 +44,12 @@ namespace MonkeyBot.Modules
             if (roleToAssign == null)
             {
                 _interactivityExtension = ctx.Client.GetInteractivity();
-                var assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
+                var assignableRoles = GetAssignableRoles(botRole, ctx.Guild).Except(ctx.Member.Roles);
+                if(!assignableRoles.Any())
+                {
+                    await ctx.ErrorAsync("You already have all the roles I can assign");
+                    return;
+                }
                 (member, roleToAssign) = await GetUserRoleSelectionAsync(assignableRoles, ctx.Guild, ctx.Channel, "assignableRoles", "Roles to assign");
             }
 
@@ -72,8 +78,9 @@ namespace MonkeyBot.Modules
         [Command("RemoveRole")]
         [Aliases(new[] { "RevokeRole" })]
         [Description("Removes the specified role from your roles.")]
+        [Example("RemoveRole")]
         [Example("RemoveRole @bf")]
-        public async Task RemoveRoleAsync(CommandContext ctx, [Description("The role you want to get rid of")] DiscordRole role = null)
+        public async Task RemoveRoleAsync(CommandContext ctx, [RemainingText, Description("The role you want to get rid of")] DiscordRole role = null)
         {
             DiscordRole roleToRemove = role;
             DiscordMember member = ctx.Member;

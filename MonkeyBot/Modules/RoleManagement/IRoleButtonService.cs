@@ -61,7 +61,6 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="guildID">Id of the guild where the message lies</param>
         /// <param name="channelId">Id of the channel where the message lies</param>
-        /// <param name="messageID"></param>
         /// <returns></returns>
         Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID);
 
@@ -71,8 +70,22 @@ namespace MonkeyBot.Services
         /// <param name="guildId"></param>
         /// <param name="channelId"></param>
         /// <param name="messageId"></param>
-        /// <param name="roleSelectorComponent"></param>
         /// <returns></returns>
-        Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordSelectComponent roleSelectorComponent);
+        Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordUser botUser);
+
+        /// <summary>
+        /// Removes all role selecor links in the specified guild
+        /// </summary>
+        /// <param name="guildId">Id of the guild where to remove the links</param>
+        /// <returns></returns>
+        Task RemoveAllRoleSelectorComponentsAsync(ulong guildId);
+
+        /// <summary>
+        /// Removes a role selector link.
+        /// </summary>
+        /// <param name="guildId"></param>
+        /// <param name="messageId"></param>
+        /// <returns></returns>
+        Task RemoveRoleSelectorComponentsAsync(ulong guildId, ulong channelId, ulong messageId);
     }
 }

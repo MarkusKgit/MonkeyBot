@@ -96,10 +96,11 @@ namespace MonkeyBot.Database
             modelBuilder.Entity<RoleButtonLink>().Property(x => x.MessageID).IsRequired();
 
             //MessageComponentLinks
-            modelBuilder.Entity<MessageComponentLink>().HasKey(x => x.ID);
-            modelBuilder.Entity<MessageComponentLink>().Property(x => x.GuildID).IsRequired();
+            modelBuilder.Entity<MessageComponentLink>().HasKey(x => x.Id);
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.GuildId).IsRequired();
             modelBuilder.Entity<MessageComponentLink>().Property(x => x.ComponentId).IsRequired();
-            modelBuilder.Entity<MessageComponentLink>().Property(x => x.MessageID).IsRequired();
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.ParentMessageId).IsRequired();
+            modelBuilder.Entity<MessageComponentLink>().Property(x => x.MessageId).IsRequired();
 
             //RoleButtonlinks
             modelBuilder.Entity<Reminder>().HasKey(x => x.Id);
