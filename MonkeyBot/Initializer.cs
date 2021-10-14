@@ -156,7 +156,7 @@ namespace MonkeyBot
             minecraftGameServerService.Initialize();
 
             IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
-            roleButtonsService.Initialize();
+            await roleButtonsService.InitializeAsync();
 
             IFeedService feedService = services.GetService<IFeedService>();
             feedService.Start();

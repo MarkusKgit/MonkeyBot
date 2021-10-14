@@ -8,7 +8,7 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Start the RoleButtonService to watch for reactions
         /// </summary>
-        void Initialize();
+        Task InitializeAsync();
 
         /// <summary>
         /// List all links for the specified guild
@@ -21,9 +21,8 @@ namespace MonkeyBot.Services
         /// Check if the specified link exists
         /// </summary>
         /// <param name="guildID">Id of the guild where the message lies</param>
-        /// <param name="channelId">Id of the channel where the message lies</param>
         /// <returns></returns>
-        Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageID);
+        Task<bool> ExistsAsync(ulong guildID);
 
         /// <summary>
         /// Add a new role selector dropdown. Assigns the selected role to the user who made the selection.

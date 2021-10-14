@@ -35,7 +35,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            if (await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, messageToUse.Id))
+            if (await _roleButtonService.ExistsAsync(ctx.Guild.Id))
             {
                 await ctx.RespondAsync("The specified link already exists");
                 return;
@@ -55,7 +55,7 @@ namespace MonkeyBot.Modules
                 return;
             }
 
-            if (!(await _roleButtonService.ExistsAsync(ctx.Guild.Id, ctx.Channel.Id, messageToUse.Id)))
+            if (!(await _roleButtonService.ExistsAsync(ctx.Guild.Id)))
             {
                 await ctx.RespondAsync("The specified link does not exist");
                 return;

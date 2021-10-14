@@ -88,12 +88,25 @@ namespace MonkeyBot.Modules
             if (roleToRemove == null)
             {
                 _interactivityExtension = ctx.Client.GetInteractivity();
-                (member, roleToRemove) = await GetUserRoleSelectionAsync(ctx.Member.Roles, ctx.Guild, ctx.Channel, "revocableRoles", "Roles to revoke");
+                var rolesToRevoke = ctx.Member.Roles;
+                if(!rolesToRevoke.Any())
+                {
+                    await ctx.ErrorAsync("You don't have any roles to revoke");
+                    return;
+                }
+                (member, roleToRemove) = await GetUserRoleSelectionAsync(rolesToRevoke, ctx.Guild, ctx.Channel, "revocableRoles", "Roles to revoke");
+            }
+
+            if (roleToRemove == null)
+            {
+                await ctx.ErrorAsync("Invalid role");
+                return;
             }
 
             if (!member.Roles.Contains(roleToRemove))
             {
                 await ctx.ErrorAsync("You don't have that role");
+                return;
             }
 
             // The bot's role must be higher than the role to be able to remove it

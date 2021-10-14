@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
@@ -32,7 +33,7 @@ namespace MonkeyBot.Services
             _roleManagementService = roleManagementService;
         }
 
-        public void Initialize()
+        public async Task InitializeAsync()
         {
             _discordClient.ComponentInteractionCreated -= DiscordClient_ComponentInteractionCreated;
             _discordClient.ComponentInteractionCreated += DiscordClient_ComponentInteractionCreated;
@@ -44,6 +45,8 @@ namespace MonkeyBot.Services
             _discordClient.GuildRoleCreated += DiscordClient_GuildRoleCreated;
             _discordClient.GuildRoleDeleted += DiscordClient_GuildRoleDeleted;
             _discordClient.GuildRoleUpdated += DiscordClient_GuildRoleUpdated;
+
+            await InitializeMessageComponentLinksAsync();
         }
 
         public async Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordUser botUser)
@@ -105,10 +108,7 @@ namespace MonkeyBot.Services
             }
 
             await message.ModifyAsync(builder => builder.WithContent(_removedMessage).ClearComponents());
-
-            _dbContext.MessageComponentLinks.Remove(messageComponentLink);
-
-            await _dbContext.SaveChangesAsync();
+            await RemoveDatabaseEntryAsync(messageComponentLink);
         }
 
         public async Task RemoveAllRoleSelectorComponentsAsync(ulong guildId)
@@ -150,11 +150,11 @@ namespace MonkeyBot.Services
             }
         }
 
-        public async Task<bool> ExistsAsync(ulong guildID, ulong channelId, ulong messageId)
+        public async Task<bool> ExistsAsync(ulong guildID)
         {
             var linkCount = await _dbContext.MessageComponentLinks
                 .AsQueryable()
-                .CountAsync(x => x.GuildId == guildID && x.ChannelId == channelId && x.ParentMessageId == messageId);
+                .CountAsync(x => x.GuildId == guildID);
             return linkCount > 0;
         }
 
@@ -180,6 +180,13 @@ namespace MonkeyBot.Services
                 }
             }
             return sb.ToString();
+        }
+
+        private async Task RemoveDatabaseEntryAsync(MessageComponentLink messageComponentLink)
+        {
+            _dbContext.MessageComponentLinks.Remove(messageComponentLink);
+
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task<DiscordSelectComponent> PrepareRoleSelectorDropdownComponent(DiscordUser botUser, DiscordGuild guild, ulong messageId)
@@ -213,15 +220,15 @@ namespace MonkeyBot.Services
                 .SingleOrDefaultAsync(x => x.GuildId == guild.Id && x.ChannelId == message.Channel.Id && x.ComponentId == e.Id);
             if (match is object && e.Values.Any())
             {
-                await AssignRole(sender, guild, interactionUser, e.Values, e.Interaction);
+                await AssignRoles(sender, guild, interactionUser, e.Values, e.Interaction);
             }
         }
 
-        private async Task AssignRole(DiscordClient client, DiscordGuild guild, DiscordUser interactionUser, string[] selectedRoleIds, DiscordInteraction interaction)
+        private async Task AssignRoles(DiscordClient client, DiscordGuild guild, DiscordUser interactionUser, string[] selectedRoleIds, DiscordInteraction interaction)
         {
             if (interactionUser.IsBot)
             {
-                _logger.LogDebug($"Error in {nameof(AssignRole)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
+                _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
                 return;
             }
 
@@ -235,7 +242,7 @@ namespace MonkeyBot.Services
 
                     if (role == null)
                     {
-                        _logger.LogDebug($"Error in {nameof(AssignRole)} of {nameof(RoleButtonService)} - Invalid Role");
+                        _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Invalid Role");
                         continue;
                     }
 
@@ -248,31 +255,29 @@ namespace MonkeyBot.Services
                         await interactionMember.GrantRoleAsync(role);
                         await interactionMember.SendMessageAsync($"You're a {role.Name} {interactionMember.DisplayName}!");
                     }
-
-                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
                 }
                 else
                 {
-                    _logger.LogDebug($"Error in {nameof(AssignRole)} of {nameof(RoleButtonService)} - Could not find the selected role");
+                    _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Could not find the selected role");
                 }
             }
 
+            await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
         }
 
         private async Task DiscordClient_GuildRoleDeleted(DiscordClient sender, GuildRoleDeleteEventArgs e) =>
-            await UpdateRoleSelectorsAsync(e.Guild);
+            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
 
         private async Task DiscordClient_GuildRoleCreated(DiscordClient sender, GuildRoleCreateEventArgs e) =>
-            await UpdateRoleSelectorsAsync(e.Guild);
+            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
 
         private async Task DiscordClient_GuildRoleUpdated(DiscordClient sender, GuildRoleUpdateEventArgs e) =>
-            await UpdateRoleSelectorsAsync(e.Guild);
+            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
 
-        private async Task UpdateRoleSelectorsAsync(DiscordGuild guild)
+        private async Task UpdateRoleSelectorsAsync(DiscordUser botUser, DiscordGuild guild)
         {
-            var roles = guild.Roles.Select(d => d.Value).Where(role => role.IsMentionable
-                               && role != guild.EveryoneRole
-                               && !role.Permissions.HasFlag(Permissions.Administrator)).ToList();
+            var botRole = await _roleManagementService.GetBotRoleAsync(botUser, guild);
+            var roles = _roleManagementService.GetAssignableRoles(botRole, guild);
             var messageComponentLinks = await _dbContext.MessageComponentLinks.Where(m => m.GuildId == guild.Id).ToListAsync();
             foreach (var messageComponentLink in messageComponentLinks)
             {
@@ -301,6 +306,66 @@ namespace MonkeyBot.Services
                 builder.ClearComponents();
                 builder.WithContent(_message).AddComponents(roleSelectorComponent);
             });
+        }
+
+        private async Task InitializeMessageComponentLinksAsync()
+        {
+            var messageComponentLinks = await _dbContext.MessageComponentLinks.ToListAsync();
+            for (var index = 0; index < messageComponentLinks.Count; index++)
+            {
+                var messageComponentLink = messageComponentLinks.ElementAt(index);
+                var exists = await MessageExists(messageComponentLink);
+                if(exists.HasValue)
+                {
+                    if (exists.Value)
+                    {
+                        await UpdateRoleSelectorComponentsAsync(messageComponentLink);
+                    }
+                    else
+                    {
+                        await RemoveDatabaseEntryAsync(messageComponentLink);
+                    }
+                }
+            }
+        }
+
+        private async Task UpdateRoleSelectorComponentsAsync(MessageComponentLink messageComponentLink)
+        {
+            if (!_discordClient.Guilds.TryGetValue(messageComponentLink.GuildId, out DiscordGuild guild))
+            {
+                return;
+            }
+
+            DiscordRole botRole = await _roleManagementService.GetBotRoleAsync(_discordClient.CurrentUser, guild);
+            var roles = _roleManagementService.GetAssignableRoles(botRole, guild);
+            await UpdateRoleSelectorDropdownComponentAsync(guild, roles, messageComponentLink);
+        }
+
+        private async Task<bool?> MessageExists(MessageComponentLink messageComponentLink)
+        {
+            if (!_discordClient.Guilds.TryGetValue(messageComponentLink.GuildId, out DiscordGuild guild))
+            {
+                return false;
+            }
+
+            try
+            {
+                var channel = guild.GetChannel(messageComponentLink.ChannelId);
+                if (channel == null)
+                {
+                    return false;
+                }
+
+                var message = await channel.GetMessageAsync(messageComponentLink.MessageId);
+                if (message == null)
+                {
+                    return false;
+                }
+            }
+            catch(ServerErrorException) { return null; } // Thrown when Discord is unable to process the request. Therefore we do not have sufficient information to determine whether to update the message component or to remove it.
+            catch (NotFoundException) { return false; }
+
+            return true;
         }
     }
 }
