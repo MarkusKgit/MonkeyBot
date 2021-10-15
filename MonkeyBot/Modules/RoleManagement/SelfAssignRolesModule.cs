@@ -14,9 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
-{
-    //TODO: Consolidate with role buttons and make assignable roles configurable
-
+{    
     /// <summary>Module that handles role assignments</summary>    
     [Description("Self role management")]
     [MinPermissions(AccessLevel.User)]
