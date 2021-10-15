@@ -85,10 +85,11 @@ namespace MonkeyBot.Modules
             DiscordRole roleToRemove = role;
             DiscordMember member = ctx.Member;
             DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
             if (roleToRemove == null)
             {
                 _interactivityExtension = ctx.Client.GetInteractivity();
-                var rolesToRevoke = ctx.Member.Roles;
+                var rolesToRevoke = assignableRoles.Intersect(ctx.Member.Roles);
                 if(!rolesToRevoke.Any())
                 {
                     await ctx.ErrorAsync("You don't have any roles to revoke");
@@ -122,7 +123,7 @@ namespace MonkeyBot.Modules
         [Description("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync(CommandContext ctx)
         {
-            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);            
             IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
             if (assignableRoles.Any())
             {
