@@ -55,8 +55,11 @@ namespace DSharpPlus.CommandsNext
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Green)
-                .WithTitle(title.IsEmptyOrWhiteSpace() ? "👍" : title)
                 .WithDescription(message);
+            if (!title.IsEmptyOrWhiteSpace())
+            {
+                builder = builder.WithTitle(title);
+            }
             return deletable
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());
@@ -66,8 +69,11 @@ namespace DSharpPlus.CommandsNext
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Red)
-                .WithTitle(title.IsEmptyOrWhiteSpace() ? "🚫" : title)
                 .WithDescription(message);
+            if (!title.IsEmptyOrWhiteSpace())
+            {
+                builder = builder.WithTitle(title);
+            }
             return deletable
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());
