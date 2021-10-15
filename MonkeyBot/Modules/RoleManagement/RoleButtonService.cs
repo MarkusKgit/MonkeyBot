@@ -246,11 +246,7 @@ namespace MonkeyBot.Services
                         continue;
                     }
 
-                    if (interactionMember.Roles.Contains(role))
-                    {
-                        await interactionMember.SendMessageAsync($"You already are a {role.Name} {interactionMember.DisplayName}!");
-                    }
-                    else
+                    if (!interactionMember.Roles.Contains(role))
                     {
                         await interactionMember.GrantRoleAsync(role);
                         await interactionMember.SendMessageAsync($"You're a {role.Name} {interactionMember.DisplayName}!");
