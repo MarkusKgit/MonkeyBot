@@ -14,7 +14,7 @@ namespace MonkeyBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.10");
+                .HasAnnotation("ProductVersion", "5.0.11");
 
             modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
                 {

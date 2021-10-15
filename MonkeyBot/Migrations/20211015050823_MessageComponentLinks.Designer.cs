@@ -9,14 +9,14 @@ using MonkeyBot.Database;
 namespace MonkeyBot.Migrations
 {
     [DbContext(typeof(MonkeyDBContext))]
-    [Migration("20211013094422_RemoveReactionRoleAssignment")]
-    partial class RemoveReactionRoleAssignment
+    [Migration("20211015050823_MessageComponentLinks")]
+    partial class MessageComponentLinks
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.10");
+                .HasAnnotation("ProductVersion", "5.0.11");
 
             modelBuilder.Entity("MonkeyBot.Models.BenzenFact", b =>
                 {
