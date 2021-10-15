@@ -130,7 +130,8 @@ namespace MonkeyBot
                 .AddSingleton<IXkcdService, XkcdService>()
                 .AddSingleton<IPictureSearchService, GoogleImageSearchService>()
                 .AddSingleton<ITriviaService, TriviaService>()
-                .AddSingleton<IPollService, PollService>();
+                .AddSingleton<IPollService, PollService>()
+                .AddSingleton<IRoleManagementService, RoleManagementService>();
 
             //Remove unnecessary Http Client log clutter
             services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
@@ -155,7 +156,7 @@ namespace MonkeyBot
             minecraftGameServerService.Initialize();
 
             IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
-            roleButtonsService.Initialize();
+            await roleButtonsService.InitializeAsync();
 
             IFeedService feedService = services.GetService<IFeedService>();
             feedService.Start();
@@ -339,6 +340,10 @@ namespace MonkeyBot
             else if (e.Exception is ArgumentException arg)
             {
                 await e.Context.ErrorAsync($"You provided the wrong arguments for the command. Try {prefix}help {e.Command.Name}");
+            }
+            else if (e.Exception is DSharpPlus.Exceptions.UnauthorizedException unauthorizedException)
+            {
+                await e.Context.ErrorAsync(unauthorizedException.JsonMessage);
             }
             else
             {
