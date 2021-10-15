@@ -162,7 +162,7 @@ namespace MonkeyBot.Modules
         [Command("ListRoleMembers")]
         [Description("Lists all the members of the specified role")]
         [Example("ListRoleMembers @bf")]
-        public async Task ListMembersAsync(CommandContext ctx, [Description("The role to display members for")] DiscordRole role)
+        public async Task ListMembersAsync(CommandContext ctx, [RemainingText, Description("The role to display members for")] DiscordRole role)
         {
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             IOrderedEnumerable<string> roleUsers = guildMembers?.Where(x => x.Roles.Contains(role))
