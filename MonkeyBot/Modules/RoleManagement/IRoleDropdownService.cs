@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public interface IRoleButtonService
+    public interface IRoleDropdownService
     {
         /// <summary>
         /// Start the RoleButtonService to watch for reactions

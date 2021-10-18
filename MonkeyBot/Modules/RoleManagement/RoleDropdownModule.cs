@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 namespace MonkeyBot.Modules
 {
     /// <summary>
-    /// Commands to modify Role-Button-Links
+    /// Commands to modify Role-Dropdown-Links
     /// </summary>
-    [Description("Role Buttons management")]
+    [Description("Role Selection management")]
     [MinPermissions(AccessLevel.ServerAdmin)]
     [RequireBotPermissions(Permissions.AddReactions | Permissions.ManageRoles | Permissions.ManageMessages)]
-    public class RoleButtonsModule : BaseCommandModule
+    public class RoleDropdownModule : BaseCommandModule
     {
-        private readonly IRoleButtonService _roleButtonService;
+        private readonly IRoleDropdownService _roleButtonService;
 
-        public RoleButtonsModule(IRoleButtonService roleButtonService)
+        public RoleDropdownModule(IRoleDropdownService roleButtonService)
         {
             _roleButtonService = roleButtonService;
         }

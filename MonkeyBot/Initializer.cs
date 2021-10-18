@@ -123,7 +123,7 @@ namespace MonkeyBot
                 .AddSingleton<IGiveAwaysService, GiveAwaysService>()
                 .AddSingleton<SteamGameServerService>()
                 .AddSingleton<MineCraftGameServerService>()
-                .AddSingleton<IRoleButtonService, RoleButtonService>()
+                .AddSingleton<IRoleDropdownService, RoleDropdownService>()
                 .AddSingleton<IChuckService, ChuckService>()
                 .AddSingleton<ICatService, CatService>()
                 .AddSingleton<IDogService, DogService>()
@@ -155,7 +155,7 @@ namespace MonkeyBot
             MineCraftGameServerService minecraftGameServerService = services.GetService<MineCraftGameServerService>();
             minecraftGameServerService.Initialize();
 
-            IRoleButtonService roleButtonsService = services.GetService<IRoleButtonService>();
+            IRoleDropdownService roleButtonsService = services.GetService<IRoleDropdownService>();
             await roleButtonsService.InitializeAsync();
 
             IFeedService feedService = services.GetService<IFeedService>();

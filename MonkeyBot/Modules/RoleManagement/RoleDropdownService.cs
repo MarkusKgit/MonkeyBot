@@ -14,18 +14,18 @@ using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
 {
-    public class RoleButtonService : IRoleButtonService
+    public class RoleDropdownService : IRoleDropdownService
     {
         private readonly DiscordClient _discordClient;
         private readonly MonkeyDBContext _dbContext;
-        private readonly ILogger<RoleButtonService> _logger;
+        private readonly ILogger<RoleDropdownService> _logger;
         private readonly IRoleManagementService _roleManagementService;
 
         private const string _assignableRoleDropDownId = "assignableRoles-";
         private const string _message = "Please use this to assign yourself any role";
         private const string _removedMessage = "Removed";
 
-        public RoleButtonService(DiscordClient discordClient, MonkeyDBContext dbContext, ILogger<RoleButtonService> logger, IRoleManagementService roleManagementService)
+        public RoleDropdownService(DiscordClient discordClient, MonkeyDBContext dbContext, ILogger<RoleDropdownService> logger, IRoleManagementService roleManagementService)
         {
             _discordClient = discordClient;
             _dbContext = dbContext;
@@ -82,28 +82,28 @@ namespace MonkeyBot.Services
         {
             if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Guild was null");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Guild was null");
                 return;
             }
 
             var channel = guild.GetChannel(channelId);
             if (channel == null)
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Could not get the underlying channel");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying channel");
                 return;
             }
 
             var messageComponentLink = await _dbContext.MessageComponentLinks.FirstOrDefaultAsync(m => m.GuildId == guildId && m.ChannelId == channelId && m.ParentMessageId == messageId);
             if (messageComponentLink == null)
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Could not get the message");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the message");
                 return;
             }
 
             var message = await channel.GetMessageAsync(messageComponentLink.MessageId);
             if (message == null)
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Could not get the role selector component message");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the role selector component message");
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace MonkeyBot.Services
         {
             if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
-                _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Guild was null");
+                _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Guild was null");
                 return;
             }
 
@@ -128,14 +128,14 @@ namespace MonkeyBot.Services
                     var channel = guild.GetChannel(messageComponentLink.ChannelId);
                     if (channel == null)
                     {
-                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Could not get the underlying channel");
+                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying channel");
                         continue;
                     }
 
                     var message = await channel.GetMessageAsync(messageComponentLink.MessageId);
                     if (message == null)
                     {
-                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleButtonService)} - Could not get the underlying message");
+                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying message");
                         continue;
                     }
 
@@ -228,7 +228,7 @@ namespace MonkeyBot.Services
         {
             if (interactionUser.IsBot)
             {
-                _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Reaction was triggered by a bot");
+                _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleDropdownService)} - Reaction was triggered by a bot");
                 return;
             }
 
@@ -242,7 +242,7 @@ namespace MonkeyBot.Services
 
                     if (role == null)
                     {
-                        _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Invalid Role");
+                        _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleDropdownService)} - Invalid Role");
                         continue;
                     }
 
@@ -254,7 +254,7 @@ namespace MonkeyBot.Services
                 }
                 else
                 {
-                    _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleButtonService)} - Could not find the selected role");
+                    _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleDropdownService)} - Could not find the selected role");
                 }
             }
 
