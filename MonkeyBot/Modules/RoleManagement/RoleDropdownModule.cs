@@ -37,46 +37,73 @@ namespace MonkeyBot.Modules
 
             if (await _roleButtonService.ExistsAsync(ctx.Guild.Id))
             {
-                await ctx.RespondAsync("The specified link already exists");
+                var link = await _roleButtonService.GetForGuildAsync(ctx.Guild.Id);
+                if (ctx.Guild.Channels.TryGetValue(link.ChannelId, out var linkChannel)
+                    && (await linkChannel.GetMessageAsync(link.MessageId)) is DiscordMessage linkMessage)
+                {
+                    await ctx.RespondAsync($"There is already a role selector link - [{linkMessage.Id}]({linkMessage.JumpLink})");
+                }
+                else
+                {
+                    await ctx.RespondAsync("The was already a role selector link configured in this guild.");
+                }
                 return;
             }
 
-            await _roleButtonService.AddRoleSelectorComponentAsync(ctx.Guild.Id, ctx.Channel.Id, messageToUse.Id, ctx.Client.CurrentUser);
+            try
+            {
+                await _roleButtonService.AddRoleSelectorComponentAsync(ctx.Guild.Id, ctx.Channel.Id, messageToUse.Id);
+            }
+            catch (Exception ex) when (ex is ArgumentException or MessageComponentLinkAlreadyExistsException)
+            {
+                await ctx.ErrorAsync($"Error while trying to add the role selector component: {ex}");
+            } 
         }
 
         [Command("RemoveRoleSelectorLink")]
-        [Description("Removes role selector dropdowns from a message")]
-        public async Task RemoveRoleSelectorLinkAsync(CommandContext ctx, [Description("Message to remove the link from")] DiscordMessage message = null)
+        [Description("Removes role selector dropdowns for this guild")]
+        public async Task RemoveRoleSelectorLinkAsync(CommandContext ctx)
         {
-            var messageToUse = message ?? ctx.Message.ReferencedMessage;
-            if (messageToUse == null)
-            {
-                await ctx.ErrorAsync("Message not found. Please either reply to the message you want to set up the dropdown for or provide the message id as a parameter");
-                return;
-            }
-
             if (!(await _roleButtonService.ExistsAsync(ctx.Guild.Id)))
             {
-                await ctx.RespondAsync("The specified link does not exist");
+                await ctx.RespondAsync("There is no role dropdown configured for this guild");
                 return;
             }
 
-            await _roleButtonService.RemoveRoleSelectorComponentsAsync(ctx.Guild.Id, ctx.Channel.Id, messageToUse.Id);
+            try
+            {
+                await _roleButtonService.RemoveRoleSelectorComponentsAsync(ctx.Guild.Id);
+            }
+            catch (Exception ex) when (ex is ArgumentException or MessageComponentLinkNotFoundException)
+            {
+                await ctx.ErrorAsync($"Error while trying to remove the role selector component: {ex}");
+            }
+            
         }
 
-        [Command("RemoveAllRoleSelectorLinks")]
-        [Description("Removes all role selector dropdowns from messages")]
-        public async Task RemoveAllRoleSelectorLinkAsync(CommandContext ctx) => 
-            await _roleButtonService.RemoveAllRoleSelectorComponentsAsync(ctx.Guild.Id);
-
-        [Command("ListRoleLinks")]
-        [Description("Lists all Role Button Links")]
+        [Command("GetRoleLink")]
+        [Description("Displays an existing role link, if configured")]
         public async Task ListAsync(CommandContext ctx)
         {
-            string links = await _roleButtonService.ListAllAsync(ctx.Guild.Id);
-            _ = !links.IsEmptyOrWhiteSpace()
-                ? await ctx.OkAsync(links, "Role links")
-                : await ctx.ErrorAsync("No role button links set up yet");
+            var link = await _roleButtonService.GetForGuildAsync(ctx.Guild.Id);
+            if (link != null)
+            {
+                if (!ctx.Guild.Channels.TryGetValue(link.ChannelId, out var linkChannel))
+                {
+                    await ctx.ErrorAsync("Found a link, but the channel was deleted in the meantime!");
+                    return;
+                }
+                if ((await linkChannel.GetMessageAsync(link.MessageId)) is not DiscordMessage linkMessage)
+                {
+                    await ctx.ErrorAsync("Found a link, but the message was deleted in the meantime!");
+                    return;
+                }
+                await ctx.OkAsync($"Link found - [{linkMessage.Id}]({linkMessage.JumpLink})");
+            }
+            else
+            {
+                await ctx.ErrorAsync("No role button links set up yet");
+            }
         }
     }
 }

@@ -7,9 +7,7 @@ using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -21,10 +19,8 @@ namespace MonkeyBot.Services
         private readonly ILogger<RoleDropdownService> _logger;
         private readonly IRoleManagementService _roleManagementService;
 
-        private const string _assignableRoleDropDownId = "assignableRoles-";
         private const string _message = "Please use this to assign yourself any role";
-        private const string _removedMessage = "Removed";
-
+        
         public RoleDropdownService(DiscordClient discordClient, MonkeyDBContext dbContext, ILogger<RoleDropdownService> logger, IRoleManagementService roleManagementService)
         {
             _discordClient = discordClient;
@@ -49,26 +45,34 @@ namespace MonkeyBot.Services
             await InitializeMessageComponentLinksAsync();
         }
 
-        public async Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordUser botUser)
+        public async Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId)
         {
             if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
+                _logger.LogDebug($"Error in {nameof(AddRoleSelectorComponentAsync)} - Guild was null");
                 throw new ArgumentException("Invalid guild");
             }
 
-            var channel = guild.GetChannel(channelId);
-            if (channel == null)
+            if (!guild.Channels.TryGetValue(channelId, out var channel))
             {
+                _logger.LogDebug($"Error in {nameof(AddRoleSelectorComponentAsync)} - Channel not found");
                 throw new ArgumentException("Invalid channel");
             }
 
             var message = await channel.GetMessageAsync(messageId);
             if (message == null)
             {
+                _logger.LogDebug($"Error in {nameof(AddRoleSelectorComponentAsync)} - Message not found");
                 throw new ArgumentException("Invalid message");
             }
 
-            var roleSelectorComponent = await PrepareRoleSelectorDropdownComponent(botUser, guild, message.Id);
+            if (await ExistsAsync(guildId))
+            {
+                _logger.LogDebug($"Error in {nameof(AddRoleSelectorComponentAsync)} - Link already exists");
+                throw new MessageComponentLinkAlreadyExistsException();
+            }
+
+            var roleSelectorComponent = await PrepareRoleSelectorDropdownComponentAsync(guild);
 
             var messageBuilder = new DiscordMessageBuilder().WithContent(_message).AddComponents(roleSelectorComponent);
             var roleSelectorComponentMessage = await message.RespondAsync(messageBuilder);
@@ -78,131 +82,56 @@ namespace MonkeyBot.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveRoleSelectorComponentsAsync(ulong guildId, ulong channelId, ulong messageId)
+        public async Task RemoveRoleSelectorComponentsAsync(ulong guildId)
         {
             if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Guild was null");
-                return;
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} - Guild was null");
+                throw new ArgumentException("Invalid guild");
             }
 
-            var channel = guild.GetChannel(channelId);
-            if (channel == null)
-            {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying channel");
-                return;
-            }
-
-            var messageComponentLink = await _dbContext.MessageComponentLinks.FirstOrDefaultAsync(m => m.GuildId == guildId && m.ChannelId == channelId && m.ParentMessageId == messageId);
+            var messageComponentLink = await _dbContext.MessageComponentLinks.FirstOrDefaultAsync(m => m.GuildId == guildId);
             if (messageComponentLink == null)
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the message");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} - Could not get the message link");
+                throw new MessageComponentLinkNotFoundException("No role selector component found in this guild");
+            }
+
+            await RemoveDatabaseEntryAsync(messageComponentLink);
+
+            if (!guild.Channels.TryGetValue(messageComponentLink.ChannelId, out var channel))
+            {
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} - Could not get the underlying channel");
                 return;
             }
 
             var message = await channel.GetMessageAsync(messageComponentLink.MessageId);
             if (message == null)
             {
-                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the role selector component message");
+                _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} - Could not get the role selector component message");
                 return;
             }
 
-            await message.ModifyAsync(builder => builder.WithContent(_removedMessage).ClearComponents());
-            await RemoveDatabaseEntryAsync(messageComponentLink);
+            await message.DeleteAsync();
         }
 
-        public async Task RemoveAllRoleSelectorComponentsAsync(ulong guildId)
-        {
-            if (!_discordClient.Guilds.TryGetValue(guildId, out DiscordGuild guild))
-            {
-                _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Guild was null");
-                return;
-            }
+        public async Task<bool> ExistsAsync(ulong guildId)
+            => await _dbContext.MessageComponentLinks.AnyAsync(x => x.GuildId == guildId);
 
-            var messageComponentLinks = await _dbContext.MessageComponentLinks.Where(m => m.GuildId == guildId).ToListAsync();
-            try
-            {
-                for (var index = 0; index < messageComponentLinks.Count; index++)
-                {
-                    var messageComponentLink = messageComponentLinks.ElementAt(index);
-                    var channel = guild.GetChannel(messageComponentLink.ChannelId);
-                    if (channel == null)
-                    {
-                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying channel");
-                        continue;
-                    }
-
-                    var message = await channel.GetMessageAsync(messageComponentLink.MessageId);
-                    if (message == null)
-                    {
-                        _logger.LogDebug($"Error in {nameof(RemoveAllRoleSelectorComponentsAsync)} of {nameof(RoleDropdownService)} - Could not get the underlying message");
-                        continue;
-                    }
-
-                    await message.ModifyAsync(builder => builder.WithContent(_removedMessage).ClearComponents());
-
-                    _dbContext.MessageComponentLinks.Remove(messageComponentLink);
-                }
-            }
-            finally
-            {
-                await _dbContext.SaveChangesAsync();
-            }
-        }
-
-        public async Task<bool> ExistsAsync(ulong guildID)
-        {
-            var linkCount = await _dbContext.MessageComponentLinks
-                .AsQueryable()
-                .CountAsync(x => x.GuildId == guildID);
-            return linkCount > 0;
-        }
-
-        public async Task<string> ListAllAsync(ulong guildID)
-        {
-            var links = await _dbContext.MessageComponentLinks
-                .AsQueryable()
-                .Where(x => x.GuildId == guildID)
-                .ToListAsync();
-            if (links == null || links.Count < 1)
-            {
-                return "";
-            }
-
-            var sb = new StringBuilder();
-            foreach (var link in links)
-            {
-                if (_discordClient.Guilds.TryGetValue(link.GuildId, out DiscordGuild guild)
-                    && guild.GetChannel(link.ChannelId) is DiscordChannel channel
-                    && (await channel.GetMessageAsync(link.ParentMessageId)) is DiscordMessage message)
-                {
-                    sb.AppendLine($"Message Id: [{link.ParentMessageId}]({message.JumpLink})");
-                }
-            }
-            return sb.ToString();
-        }
+        public async Task<MessageComponentLink> GetForGuildAsync(ulong guildId)
+            => await _dbContext.MessageComponentLinks.SingleOrDefaultAsync(x => x.GuildId == guildId);
 
         private async Task RemoveDatabaseEntryAsync(MessageComponentLink messageComponentLink)
         {
             _dbContext.MessageComponentLinks.Remove(messageComponentLink);
-
             await _dbContext.SaveChangesAsync();
         }
 
-        private async Task<DiscordSelectComponent> PrepareRoleSelectorDropdownComponent(DiscordUser botUser, DiscordGuild guild, ulong messageId)
+        private async Task<DiscordSelectComponent> PrepareRoleSelectorDropdownComponentAsync(DiscordGuild guild)
         {
-            var botRole = await _roleManagementService.GetBotRoleAsync(botUser, guild);
-            var assignableRoles = _roleManagementService.GetAssignableRoles(botRole, guild);
-
-            return PrepareRoleSelectorDropdownComponent(assignableRoles, messageId);
-        }
-
-        private DiscordSelectComponent PrepareRoleSelectorDropdownComponent(IEnumerable<DiscordRole> assignableRoles, ulong messageId) => PrepareRoleSelectorDropdownComponent(assignableRoles, _assignableRoleDropDownId + messageId);
-
-        private DiscordSelectComponent PrepareRoleSelectorDropdownComponent(IEnumerable<DiscordRole> assignableRoles, string dropdownId)
-        {
+            var assignableRoles = await _roleManagementService.GetAssignableRolesAsync(guild);
             var roleOptions = assignableRoles.Select(CreateSelectComponentOption);
-            return new DiscordSelectComponent(dropdownId, null, roleOptions, disabled: !roleOptions.Any(), maxOptions: roleOptions.Count());
+            return new DiscordSelectComponent($"RoleDropdown-{guild.Id}", null, roleOptions, disabled: !roleOptions.Any(), minOptions: 0, maxOptions: roleOptions.Count());
         }
 
         private DiscordSelectComponentOption CreateSelectComponentOption(DiscordRole role)
@@ -210,6 +139,7 @@ namespace MonkeyBot.Services
 
         private async Task DiscordClient_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
         {
+            await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             var interactionUser = e.Interaction.User;
             var guild = e.Guild;
             var channel = e.Interaction.Channel;
@@ -218,13 +148,13 @@ namespace MonkeyBot.Services
             MessageComponentLink match = await _dbContext.MessageComponentLinks
                 .AsQueryable()
                 .SingleOrDefaultAsync(x => x.GuildId == guild.Id && x.ChannelId == message.Channel.Id && x.ComponentId == e.Id);
-            if (match is object && e.Values.Any())
+            if (match is not null && e.Values.Any())
             {
-                await AssignRoles(sender, guild, interactionUser, e.Values, e.Interaction);
+                await AssignRoles(guild, interactionUser, e.Values);
             }
         }
 
-        private async Task AssignRoles(DiscordClient client, DiscordGuild guild, DiscordUser interactionUser, string[] selectedRoleIds, DiscordInteraction interaction)
+        private async Task AssignRoles(DiscordGuild guild, DiscordUser interactionUser, string[] selectedRoleIds)
         {
             if (interactionUser.IsBot)
             {
@@ -249,7 +179,7 @@ namespace MonkeyBot.Services
                     if (!interactionMember.Roles.Contains(role))
                     {
                         await interactionMember.GrantRoleAsync(role);
-                        await interactionMember.SendMessageAsync($"You're a {role.Name} {interactionMember.DisplayName}!");
+                        await interactionMember.SendMessageAsync($"You now have the role {role.Name} in {interactionMember.Guild.Name}!");
                     }
                 }
                 else
@@ -257,32 +187,20 @@ namespace MonkeyBot.Services
                     _logger.LogDebug($"Error in {nameof(AssignRoles)} of {nameof(RoleDropdownService)} - Could not find the selected role");
                 }
             }
-
-            await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
         }
 
         private async Task DiscordClient_GuildRoleDeleted(DiscordClient sender, GuildRoleDeleteEventArgs e) =>
-            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
+            await UpdateRoleSelectorMessageAsync(e.Guild);
 
         private async Task DiscordClient_GuildRoleCreated(DiscordClient sender, GuildRoleCreateEventArgs e) =>
-            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
+            await UpdateRoleSelectorMessageAsync(e.Guild);
 
         private async Task DiscordClient_GuildRoleUpdated(DiscordClient sender, GuildRoleUpdateEventArgs e) =>
-            await UpdateRoleSelectorsAsync(sender.CurrentUser, e.Guild);
+            await UpdateRoleSelectorMessageAsync(e.Guild);
 
-        private async Task UpdateRoleSelectorsAsync(DiscordUser botUser, DiscordGuild guild)
+        private async Task UpdateRoleSelectorMessageAsync(DiscordGuild guild, MessageComponentLink messageComponentLink = null)
         {
-            var botRole = await _roleManagementService.GetBotRoleAsync(botUser, guild);
-            var roles = _roleManagementService.GetAssignableRoles(botRole, guild);
-            var messageComponentLinks = await _dbContext.MessageComponentLinks.Where(m => m.GuildId == guild.Id).ToListAsync();
-            foreach (var messageComponentLink in messageComponentLinks)
-            {
-                await UpdateRoleSelectorDropdownComponentAsync(guild, roles, messageComponentLink);
-            }
-        }
-
-        private async Task UpdateRoleSelectorDropdownComponentAsync(DiscordGuild guild, IEnumerable<DiscordRole> roles, MessageComponentLink messageComponentLink)
-        {
+            messageComponentLink ??= await _dbContext.MessageComponentLinks.SingleOrDefaultAsync(m => m.GuildId == guild.Id);
             var messageId = messageComponentLink.MessageId;
             var channelId = messageComponentLink.ChannelId;
             DiscordChannel channel = guild.GetChannel(channelId);
@@ -290,7 +208,7 @@ namespace MonkeyBot.Services
             {
                 throw new ArgumentException("Invalid channel");
             }
-            var roleSelectorComponent = PrepareRoleSelectorDropdownComponent(roles, messageComponentLink.ComponentId);
+            var roleSelectorComponent = await PrepareRoleSelectorDropdownComponentAsync(guild);
             DiscordMessage message = await channel.GetMessageAsync(messageId);
             if (message == null)
             {
@@ -307,37 +225,21 @@ namespace MonkeyBot.Services
         private async Task InitializeMessageComponentLinksAsync()
         {
             var messageComponentLinks = await _dbContext.MessageComponentLinks.ToListAsync();
-            for (var index = 0; index < messageComponentLinks.Count; index++)
+            foreach (var messageComponentLink in messageComponentLinks)
             {
-                var messageComponentLink = messageComponentLinks.ElementAt(index);
-                var exists = await MessageExists(messageComponentLink);
-                if(exists.HasValue)
+                var exists = await LinkExists(messageComponentLink);
+                if (exists == true && _discordClient.Guilds.TryGetValue(messageComponentLink.GuildId, out DiscordGuild guild))
                 {
-                    if (exists.Value)
-                    {
-                        await UpdateRoleSelectorComponentsAsync(messageComponentLink);
-                    }
-                    else
-                    {
-                        await RemoveDatabaseEntryAsync(messageComponentLink);
-                    }
+                    await UpdateRoleSelectorMessageAsync(guild, messageComponentLink);
+                }
+                else
+                {
+                    await RemoveDatabaseEntryAsync(messageComponentLink);
                 }
             }
         }
 
-        private async Task UpdateRoleSelectorComponentsAsync(MessageComponentLink messageComponentLink)
-        {
-            if (!_discordClient.Guilds.TryGetValue(messageComponentLink.GuildId, out DiscordGuild guild))
-            {
-                return;
-            }
-
-            DiscordRole botRole = await _roleManagementService.GetBotRoleAsync(_discordClient.CurrentUser, guild);
-            var roles = _roleManagementService.GetAssignableRoles(botRole, guild);
-            await UpdateRoleSelectorDropdownComponentAsync(guild, roles, messageComponentLink);
-        }
-
-        private async Task<bool?> MessageExists(MessageComponentLink messageComponentLink)
+        private async Task<bool?> LinkExists(MessageComponentLink messageComponentLink)
         {
             if (!_discordClient.Guilds.TryGetValue(messageComponentLink.GuildId, out DiscordGuild guild))
             {
@@ -358,7 +260,7 @@ namespace MonkeyBot.Services
                     return false;
                 }
             }
-            catch(ServerErrorException) { return null; } // Thrown when Discord is unable to process the request. Therefore we do not have sufficient information to determine whether to update the message component or to remove it.
+            catch (ServerErrorException) { return null; } // Thrown when Discord is unable to process the request. Therefore we do not have sufficient information to determine whether to update the message component or to remove it.
             catch (NotFoundException) { return false; }
 
             return true;

@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Entities;
+﻿using MonkeyBot.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -6,16 +7,16 @@ namespace MonkeyBot.Services
     public interface IRoleDropdownService
     {
         /// <summary>
-        /// Start the RoleButtonService to watch for reactions
+        /// Start the <see cref="IRoleDropdownService"/> to watch for component interactions
         /// </summary>
         Task InitializeAsync();
 
         /// <summary>
-        /// List all links for the specified guild
+        /// Get the <see cref="MessageComponentLink"/> for the specified guild
         /// </summary>
-        /// <param name="guildId">Id of the guild to get the links for</param>
-        /// <returns></returns>
-        Task<string> ListAllAsync(ulong guildId);
+        /// <param name="guildId">Id of the guild to get the link</param>
+        /// <returns><see cref="MessageComponentLink"/> if found, otherwise null</returns>
+        Task<MessageComponentLink> GetForGuildAsync(ulong guildId);
 
         /// <summary>
         /// Check if the specified link exists
@@ -31,21 +32,17 @@ namespace MonkeyBot.Services
         /// <param name="channelId"></param>
         /// <param name="messageId"></param>
         /// <returns></returns>
-        Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId, DiscordUser botUser);
+        /// <exception cref="ArgumentException">Thrown when Guild, Channel or Message are null</exception>
+        /// <exception cref="MessageComponentLinkAlreadyExistsException">Thrown when a message component link already exists in the guild</exception>
+        Task AddRoleSelectorComponentAsync(ulong guildId, ulong channelId, ulong messageId);
 
         /// <summary>
-        /// Removes all role selecor links in the specified guild
+        /// Removes the role selector link in the specified guild.
         /// </summary>
-        /// <param name="guildId">Id of the guild where to remove the links</param>
+        /// <param name="guildId">Id of the guild where the role selector link should be removed</param>
         /// <returns></returns>
-        Task RemoveAllRoleSelectorComponentsAsync(ulong guildId);
-
-        /// <summary>
-        /// Removes a role selector link.
-        /// </summary>
-        /// <param name="guildId"></param>
-        /// <param name="messageId"></param>
-        /// <returns></returns>
-        Task RemoveRoleSelectorComponentsAsync(ulong guildId, ulong channelId, ulong messageId);
+        /// <exception cref="ArgumentException">Thrown when Guild is null</exception>
+        /// <exception cref="MessageComponentLinkNotFoundException">Thrown when message component link does not exist</exception>
+        Task RemoveRoleSelectorComponentsAsync(ulong guildId);
     }
 }

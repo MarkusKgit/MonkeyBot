@@ -2,26 +2,22 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using MonkeyBot.Common;
 using MonkeyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
-{    
+{
     /// <summary>Module that handles role assignments</summary>    
     [Description("Self role management")]
     [MinPermissions(AccessLevel.User)]
     [RequireGuild]
     public class SelfAssignRolesModule : BaseCommandModule
     {
-        private InteractivityExtension _interactivityExtension;
         private readonly IRoleManagementService _roleManagementService;
 
         public SelfAssignRolesModule(IRoleManagementService roleManagementService)
@@ -38,17 +34,16 @@ namespace MonkeyBot.Modules
         {
             DiscordRole roleToAssign = role;
             DiscordMember member = ctx.Member;
-            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
+            DiscordRole botRole = await _roleManagementService.GetBotRoleAsync(ctx.Guild);
             if (roleToAssign == null)
             {
-                _interactivityExtension = ctx.Client.GetInteractivity();
-                var assignableRoles = GetAssignableRoles(botRole, ctx.Guild).Except(ctx.Member.Roles);
-                if(!assignableRoles.Any())
+                var assignableRoles = (await _roleManagementService.GetAssignableRolesAsync(ctx.Guild)).Except(ctx.Member.Roles);
+                if (!assignableRoles.Any())
                 {
                     await ctx.ErrorAsync("You already have all the roles I can assign");
                     return;
                 }
-                (member, roleToAssign) = await GetUserRoleSelectionAsync(assignableRoles, ctx.Guild, ctx.Channel, "assignableRoles", "Roles to assign");
+                roleToAssign = await GetUserRoleSelectionAsync(assignableRoles, ctx.Channel, ctx.Member, "Roles to assign");
             }
 
             if (roleToAssign == null)
@@ -80,49 +75,49 @@ namespace MonkeyBot.Modules
         [Example("RemoveRole @bf")]
         public async Task RemoveRoleAsync(CommandContext ctx, [RemainingText, Description("The role you want to get rid of")] DiscordRole role = null)
         {
-            DiscordRole roleToRemove = role;
+            DiscordRole roleToRevoke = role;
             DiscordMember member = ctx.Member;
-            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
-            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
-            if (roleToRemove == null)
+            DiscordRole botRole = await _roleManagementService.GetBotRoleAsync(ctx.Guild);
+
+            if (roleToRevoke == null)
             {
-                _interactivityExtension = ctx.Client.GetInteractivity();
+                IEnumerable<DiscordRole> assignableRoles = await _roleManagementService.GetAssignableRolesAsync(ctx.Guild);
                 var rolesToRevoke = assignableRoles.Intersect(ctx.Member.Roles);
-                if(!rolesToRevoke.Any())
+                if (!rolesToRevoke.Any())
                 {
                     await ctx.ErrorAsync("You don't have any roles to revoke");
                     return;
                 }
-                (member, roleToRemove) = await GetUserRoleSelectionAsync(rolesToRevoke, ctx.Guild, ctx.Channel, "revocableRoles", "Roles to revoke");
+                roleToRevoke = await GetUserRoleSelectionAsync(rolesToRevoke, ctx.Channel, ctx.Member, "Roles to revoke");
             }
 
-            if (roleToRemove == null)
+            if (roleToRevoke == null)
             {
                 await ctx.ErrorAsync("Invalid role");
                 return;
             }
 
-            if (!member.Roles.Contains(roleToRemove))
+            if (!member.Roles.Contains(roleToRevoke))
             {
                 await ctx.ErrorAsync("You don't have that role");
                 return;
             }
 
             // The bot's role must be higher than the role to be able to remove it
-            if (botRole == null || botRole?.Position <= roleToRemove.Position)
+            if (botRole == null || botRole?.Position <= roleToRevoke.Position)
             {
                 await ctx.ErrorAsync("Sorry, I don't have sufficient permissions to take this role from you!");
+                return;
             }
-            await member.RevokeRoleAsync(roleToRemove);
-            await ctx.OkAsync($"Role {roleToRemove.Name} has been revoked");
+            await member.RevokeRoleAsync(roleToRevoke);
+            await ctx.OkAsync($"Role {roleToRevoke.Name} has been revoked");
         }
 
         [Command("ListRoles")]
         [Description("Lists all roles that can be mentioned and assigned.")]
         public async Task ListRolesAsync(CommandContext ctx)
         {
-            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);            
-            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
+            IEnumerable<DiscordRole> assignableRoles = await _roleManagementService.GetAssignableRolesAsync(ctx.Guild);
             if (assignableRoles.Any())
             {
                 string roles = string.Join(", ", assignableRoles.OrderBy(r => r.Name).Select(r => r.Name));
@@ -142,17 +137,21 @@ namespace MonkeyBot.Modules
                 .WithColor(new DiscordColor(114, 137, 218))
                 .WithDescription("These are the are all the assignable roles and the users assigned to them:");
 
-            DiscordRole botRole = await GetBotRoleAsync(ctx.Client.CurrentUser, ctx.Guild);
-            IEnumerable<DiscordRole> assignableRoles = GetAssignableRoles(botRole, ctx.Guild);
+            IEnumerable<DiscordRole> assignableRoles = await _roleManagementService.GetAssignableRolesAsync(ctx.Guild);
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             foreach (DiscordRole role in assignableRoles)
             {
                 IOrderedEnumerable<string> roleUsers = guildMembers?.Where(m => m.Roles.Contains(role))
                                                                     .Select(x => x.Username)
                                                                     .OrderBy(x => x);
-                _ = roleUsers != null && roleUsers.Any()
-                    ? builder.AddField(role.Name, string.Join(", ", roleUsers), false)
-                    : builder.AddField(role.Name, "-", false);
+                if (roleUsers != null && roleUsers.Any())
+                {
+                    builder.AddField(role.Name, string.Join(", ", roleUsers), false);
+                }
+                else
+                {
+                    builder.AddField(role.Name, "-", false);
+                }
             }
             await ctx.RespondDeletableAsync(builder.Build());
         }
@@ -162,6 +161,18 @@ namespace MonkeyBot.Modules
         [Example("ListRoleMembers @bf")]
         public async Task ListMembersAsync(CommandContext ctx, [RemainingText, Description("The role to display members for")] DiscordRole role)
         {
+            if (role == null)
+            {
+                IEnumerable<DiscordRole> assignableRoles = await _roleManagementService.GetAssignableRolesAsync(ctx.Guild);
+                role = await GetUserRoleSelectionAsync(assignableRoles, ctx.Channel, ctx.Member, "Role to list members for");
+            }
+
+            if (role == null)
+            {
+                await ctx.ErrorAsync("Invalid role");
+                return;
+            }
+
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             IOrderedEnumerable<string> roleUsers = guildMembers?.Where(x => x.Roles.Contains(role))
                                                               .Select(x => x.Username)
@@ -179,51 +190,21 @@ namespace MonkeyBot.Modules
             await ctx.RespondDeletableAsync(builder.Build());
         }
 
-        private async Task<(DiscordMember member, DiscordRole role)> GetUserRoleSelectionAsync(IEnumerable<DiscordRole> discordRoles, DiscordGuild guild, DiscordChannel channel, string interactionDropdownId, string messageContent = "Roles")
+        private async Task<DiscordRole> GetUserRoleSelectionAsync(IEnumerable<DiscordRole> discordRoles, DiscordChannel channel, DiscordMember user, string messageContent = "Roles")
         {
-            var cancellation = new CancellationTokenSource();
-
+            string interactionDropdownId = $"roleSelection-{Guid.NewGuid()}";
             var roleOptions = discordRoles.Select(CreateSelectComponentOption);
             var roleDropdown = new DiscordSelectComponent(interactionDropdownId, null, roleOptions);
-
             var messageBuilder = new DiscordMessageBuilder().WithContent(messageContent).AddComponents(roleDropdown);
-
             var message = await messageBuilder.SendAsync(channel);
-
-            var chosenOption = await _interactivityExtension.WaitForSelectAsync(message, interactionDropdownId, cancellation.Token);
-
-            await PostInteraction(chosenOption, message);
-
+            var chosenOption = await message.WaitForSelectAsync(user, interactionDropdownId, null);
+            await message.DeleteAsync();
             var chosenRole = discordRoles.First(r => r.Id.ToString() == chosenOption.Result.Values[0]);
-
-            var user = await guild.GetMemberAsync(chosenOption.Result.User.Id);
-            return (user, chosenRole);
-        }
-
-        private async Task PostInteraction(InteractivityResult<ComponentInteractionCreateEventArgs> interactivityResult, DiscordMessage message)
-        {
-            if (interactivityResult.TimedOut)
-            {
-                await message.ModifyAsync(b =>
-                {
-                    b.Clear();
-                    b.ClearComponents();
-                });
-            }
-            else
-            {
-                await message.DeleteAsync();
-            }
+            return chosenRole;
         }
 
         private static DiscordSelectComponentOption CreateSelectComponentOption(DiscordRole role)
-            => new(role.Name, role.Id.ToString(), null, false);
+            => new(role.Name, role.Id.ToString());
 
-        private async Task<DiscordRole> GetBotRoleAsync(DiscordUser botUser, DiscordGuild guild) 
-            => await _roleManagementService.GetBotRoleAsync(botUser, guild);
-
-        private IEnumerable<DiscordRole> GetAssignableRoles(DiscordRole botRole, DiscordGuild guild) =>
-            // Get all roles that are lower than the bot's role (roles the bot can assign)
-            _roleManagementService.GetAssignableRoles(botRole, guild);
     }
 }
