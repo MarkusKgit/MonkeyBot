@@ -44,5 +44,12 @@ namespace MonkeyBot.Services
         /// <param name="channelId"></param>
         /// <returns></returns>
         Task<List<GuildFeed>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null);
+
+        /// <summary>
+        /// Get a list of possible feeds urls at a base url
+        /// </summary>
+        /// <param name="baseUrl"></param>
+        /// <returns></returns>
+        Task<IEnumerable<string>> GetFeedUrls(string baseUrl);
     }
 }

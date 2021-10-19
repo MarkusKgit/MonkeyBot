@@ -1,5 +1,4 @@
-﻿using CodeHollow.FeedReader;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -62,7 +61,7 @@ namespace MonkeyBot.Modules
             }
             channel ??= ctx.Channel;
 
-            IEnumerable<HtmlFeedLink> urls = await FeedReader.GetFeedUrlsFromUrlAsync(url);
+            IEnumerable<string> urls = await _feedService.GetFeedUrls(url);
             string feedUrl;
             if (!urls.Any()) // no url - probably the url is already the right feed url
             {
@@ -70,7 +69,7 @@ namespace MonkeyBot.Modules
             }
             else if (urls.Count() == 1)
             {
-                feedUrl = urls.First().Url;
+                feedUrl = urls.First();
             }
             else
             {

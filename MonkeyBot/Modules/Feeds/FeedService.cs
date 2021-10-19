@@ -79,6 +79,9 @@ namespace MonkeyBot.Services
             return allFeeds?.Select(x => new GuildFeed(x.Name, x.URL, x.ChannelID)).ToList();
         }
 
+        public async Task<IEnumerable<string>> GetFeedUrls(string baseUrl)
+            => (await FeedReader.GetFeedUrlsFromUrlAsync(baseUrl)).Select(x => x.Url);
+
         private Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
             return channelID.HasValue
