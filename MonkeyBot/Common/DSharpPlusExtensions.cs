@@ -28,12 +28,7 @@ namespace DSharpPlus.CommandsNext
                 var interactivityResult = await interactivity.WaitForButtonAsync(msg, ctx.User, TimeSpan.FromSeconds(10));
                 if (interactivityResult.TimedOut)
                 {
-                    await msg.ModifyAsync(b =>
-                    {
-                        b.Clear();
-                        b.WithContent(content);
-                        b.WithEmbed(embed);
-                    });
+                    await msg.ModifyAsync(b => b.ClearComponents());
                 }
                 else
                 {
@@ -55,11 +50,9 @@ namespace DSharpPlus.CommandsNext
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Green)
-                .WithDescription(message);
-            if (!title.IsEmptyOrWhiteSpace())
-            {
-                builder = builder.WithTitle(title);
-            }
+                .WithDescription(message)
+                .WithThumbnail("https://cdn.discordapp.com/emojis/900001540306268191.png?size=40")
+                .WithTitle(!title.IsEmptyOrWhiteSpace() ? title : "Ok");
             return deletable
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());
@@ -69,11 +62,9 @@ namespace DSharpPlus.CommandsNext
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Red)
-                .WithDescription(message);
-            if (!title.IsEmptyOrWhiteSpace())
-            {
-                builder = builder.WithTitle(title);
-            }
+                .WithDescription(message)
+                .WithThumbnail("https://cdn.discordapp.com/emojis/900001540855713824.png?size=40")
+                .WithTitle(!title.IsEmptyOrWhiteSpace() ? title : "Oh oh");
             return deletable
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());

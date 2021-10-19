@@ -22,7 +22,8 @@ namespace MonkeyBot.Common
         {
             _embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle("Help")
-                .WithColor(DiscordColor.SpringGreen);
+                .WithColor(DiscordColor.CornflowerBlue)
+                .WithThumbnail("https://cdn.discordapp.com/emojis/899999039620259850.png?size=40");
 
             if (ctx.Guild != null && guildService != null)
             {
