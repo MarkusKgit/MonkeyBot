@@ -1,10 +1,8 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using MonkeyBot.Database;
-using MonkeyBot.Models;
+using MonkeyBot.Services;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Modules
@@ -12,12 +10,11 @@ namespace MonkeyBot.Modules
     [Description("Benzen Facts")]
     public class BenzenFactModule : BaseCommandModule
     {
-        private const string name = "benzen";
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IBenzenFactService _benzenFactService;
 
-        public BenzenFactModule(MonkeyDBContext dbContext)
+        public BenzenFactModule(IBenzenFactService benzenFactService)
         {
-            _dbContext = dbContext;
+            _benzenFactService = benzenFactService;
         }
 
         [Command("Benzen")]
@@ -25,15 +22,12 @@ namespace MonkeyBot.Modules
         public async Task GetBenzenFactAsync(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            int totalFacts = _dbContext.BenzenFacts.Count();
-            var r = new Random();
-            int randomOffset = r.Next(0, totalFacts);
-            string fact = _dbContext.BenzenFacts.AsQueryable().Skip(randomOffset).FirstOrDefault()?.Fact;
+            (string fact, int factNumber) = await _benzenFactService.GetRandomFactAsync();
             if (!fact.IsEmpty())
             {
                 DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                     .WithColor(DiscordColor.DarkBlue)
-                    .WithTitle($"Benzen Fact #{randomOffset + 1}")
+                    .WithTitle($"Benzen Fact #{factNumber}")
                     .WithDescription(fact);
                 await ctx.RespondAsync(builder.Build());
             }
@@ -49,18 +43,17 @@ namespace MonkeyBot.Modules
                 await ctx.ErrorAsync("Please provide a fact!");
                 return;
             }
-            if (!fact.Contains(name, StringComparison.OrdinalIgnoreCase))
+            if (!fact.Contains("benzen", StringComparison.OrdinalIgnoreCase))
             {
                 await ctx.ErrorAsync("The fact must include Benzen!");
                 return;
             }
-            if (_dbContext.BenzenFacts.Any(f => f.Fact == fact))
+            if (await _benzenFactService.Exists(fact))
             {
                 await ctx.ErrorAsync("I already know this fact!");
                 return;
             }
-            _dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            await _dbContext.SaveChangesAsync();
+            await _benzenFactService.AddFactAsync(fact);
             await ctx.OkAsync("Fact added");
         }
     }

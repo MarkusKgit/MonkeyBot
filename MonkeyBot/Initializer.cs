@@ -131,7 +131,8 @@ namespace MonkeyBot
                 .AddSingleton<IPictureSearchService, GoogleImageSearchService>()
                 .AddSingleton<ITriviaService, TriviaService>()
                 .AddSingleton<IPollService, PollService>()
-                .AddSingleton<IRoleManagementService, RoleManagementService>();
+                .AddSingleton<IRoleManagementService, RoleManagementService>()
+                .AddSingleton<IBenzenFactService, BenzenFactService>();
 
             //Remove unnecessary Http Client log clutter
             services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
