@@ -46,16 +46,13 @@ namespace MonkeyBot.Services
             DiscordChannel channel = guild?.GetChannel(poll.ChannelId);
             DiscordMember pollCreator = await guild.GetMemberAsync(poll.CreatorId);
             DiscordMessage pollMessage = await channel.GetMessageAsync(poll.MessageId);
-            
             pollMessage = await pollMessage.ModifyAsync(x => x.AddComponents(PollMessageUpdater.BuildAnswerButtons(poll.PossibleAnswers)));
+            var pollMessageUpdater = PollMessageUpdater.Create(pollMessage);
             
             TimeSpan pollDuration = poll.EndTimeUTC - DateTime.UtcNow;
             var cancelTokenSource = new CancellationTokenSource();
             cancelTokenSource.CancelAfter(pollDuration);
-
-            var embedBuilder = new DiscordEmbedBuilder(pollMessage.Embeds.Single());
-            var msgBuilder = new DiscordMessageBuilder()
-                .AddComponents(pollMessage.Components);
+            
             while (!cancelTokenSource.IsCancellationRequested)
             {
                 var btnClick = await pollMessage.WaitForButtonAsync(cancelTokenSource.Token);
@@ -64,25 +61,23 @@ namespace MonkeyBot.Services
                     var user = btnClick.Result.User;
                     var answerId = btnClick.Result.Id;
 
-                    var answerDb = poll.PossibleAnswers.First(x => x.Id == answerId);
+                    var answer = poll.PossibleAnswers.First(x => x.Id == answerId);
                     
-                    answerDb.UpdateCount(user.Id);
+                    answer.UpdateCount(user.Id);
                     _dbContext.Update(poll);
                     await  _dbContext.SaveChangesAsync(cancelTokenSource.Token);
                     
-                    embedBuilder = embedBuilder
-                        .WithDescription(PollMessageUpdater.BuildDescription(poll.PossibleAnswers));
-                    msgBuilder = msgBuilder
-                        .WithEmbed(embedBuilder.Build());
-                    var interactionBuilder = new DiscordInteractionResponseBuilder(msgBuilder);
-                    await btnClick.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, interactionBuilder);
+                    await btnClick.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage);
+                    
+                    await pollMessageUpdater.UpdateAnswers(poll.PossibleAnswers);
                 }
             }
 
             var pollResult = poll.PossibleAnswers
                 .Select(r => (Emoji: r.Emoji, Count: r.Count))
                 .ToList();
-
+            
+            await pollMessageUpdater.SetAsEnded(poll.EndTimeUTC);
             await pollMessage.UnpinAsync();
             if (!pollResult.Any(r => r.Count > 0))
             {
@@ -104,7 +99,7 @@ namespace MonkeyBot.Services
                             $"**{ans.Answer}**: {"vote".ToQuantity(ans.Votes)} ({100.0 * ans.Votes / totalVotes:F1} %)"))
                 );
             await channel.SendMessageAsync(embed: pollResultEmbed.Build());
-
+            
             _dbContext.Polls.Remove(poll);
             await _dbContext.SaveChangesAsync();
         }
