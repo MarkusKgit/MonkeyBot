@@ -24,9 +24,7 @@ namespace MonkeyBot.Modules
         {
             _pollService = pollService;
         }
-
-        //TODO: Convert to buttons instead of reactions
-
+        
         [Command("Poll")]
         [Aliases("Vote")]
         [Description("Starts a new poll with the specified question and automatically adds reactions")]
