@@ -115,10 +115,9 @@ namespace MonkeyBot.Services
                 await _dbContext.SaveChangesAsync();
             }
 
-            foreach (Poll poll in dbPolls.Where(p => p.EndTimeUTC > DateTime.UtcNow))
-            {
-                await StartPollAsync(poll);
-            }
+            var pollsTasks = dbPolls.Where(p => p.EndTimeUTC > DateTime.UtcNow)
+                .Select(StartPollAsync);
+            await Task.WhenAll(pollsTasks);
         }
 
         public Task RemovePollAsync(Poll poll)
