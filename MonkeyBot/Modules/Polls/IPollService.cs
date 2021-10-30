@@ -1,6 +1,4 @@
-﻿using DSharpPlus.Entities;
-using MonkeyBot.Models;
-using System.Collections.Generic;
+﻿using MonkeyBot.Models;
 using System.Threading.Tasks;
 
 namespace MonkeyBot.Services
@@ -10,7 +8,5 @@ namespace MonkeyBot.Services
         Task AddAndStartPollAsync(Poll poll);
 
         Task InitializeAsync();
-
-        Dictionary<DiscordEmoji, string> GetEmojiMapping(List<string> pollAnswers);
     }
 }
