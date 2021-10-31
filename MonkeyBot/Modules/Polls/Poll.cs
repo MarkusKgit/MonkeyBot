@@ -17,7 +17,7 @@ namespace MonkeyBot.Models
 
         public string Question { get; set; }
 
-        public List<string> PossibleAnswers { get; set; }
+        public List<PollAnswer> PossibleAnswers { get; set; }
 
         public DateTime EndTimeUTC { get; set; }
 
@@ -25,14 +25,14 @@ namespace MonkeyBot.Models
         {
         }
 
-        public Poll(ulong guildId, ulong channelId, ulong messageId, ulong pollCreatorId, string question, IEnumerable<string> answers, DateTime endTimeUTC)
+        public Poll(ulong guildId, ulong channelId, ulong messageId, ulong pollCreatorId, string question, IEnumerable<PollAnswer> answers, DateTime endTimeUTC)
         {
             GuildId = guildId;
             ChannelId = channelId;
             MessageId = messageId;
             CreatorId = pollCreatorId;
             Question = question;
-            PossibleAnswers = new List<string>(answers);
+            PossibleAnswers = new List<PollAnswer>(answers);
             EndTimeUTC = endTimeUTC;
         }
     }
