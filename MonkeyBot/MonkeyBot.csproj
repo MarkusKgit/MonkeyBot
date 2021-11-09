@@ -42,7 +42,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="ncrontab" Version="3.3.1" />    
     <PackageReference Include="NLog" Version="4.7.12" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
