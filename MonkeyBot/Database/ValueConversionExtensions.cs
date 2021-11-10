@@ -11,13 +11,13 @@ namespace MonkeyBot.Database
         public static PropertyBuilder<T> HasJsonConversion<T>(this PropertyBuilder<T> propertyBuilder)
         {
             var converter = new ValueConverter<T, string>(
-                v => JsonSerializer.Serialize(v, null),
-                v => JsonSerializer.Deserialize<T>(v, null));
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => JsonSerializer.Deserialize<T>(v, (JsonSerializerOptions)null));
 
             var comparer = new ValueComparer<T>(
-                (l, r) => JsonSerializer.Serialize(l, null) == JsonSerializer.Serialize(r, null),
-                v => v == null ? 0 : JsonSerializer.Serialize(v, null).GetHashCode(),
-                v => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(v, null), null));
+                (l, r) => JsonSerializer.Serialize(l, (JsonSerializerOptions)null) == JsonSerializer.Serialize(r, (JsonSerializerOptions)null),
+                v => v == null ? 0 : JsonSerializer.Serialize(v, (JsonSerializerOptions)null).GetHashCode(),
+                v => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(v, (JsonSerializerOptions)null), (JsonSerializerOptions)null));
 
             propertyBuilder.HasConversion(converter);
             propertyBuilder.Metadata.SetValueConverter(converter);
