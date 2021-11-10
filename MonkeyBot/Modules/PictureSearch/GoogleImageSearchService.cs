@@ -1,7 +1,9 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -11,6 +13,14 @@ namespace MonkeyBot.Services
     {
         private static readonly Random _rng = new();
         private static readonly string[] _imageExtensions = new string[] { "jpg", "jpeg", "png", "gif" };
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly ILogger<GoogleImageSearchService> _logger;
+
+        public GoogleImageSearchService(IHttpClientFactory clientFactory, ILogger<GoogleImageSearchService> logger)
+        {
+            _clientFactory = clientFactory;
+            _logger = logger;
+        }
 
         public async Task<Uri> GetRandomPictureUrlAsync(string searchterm)
         {
@@ -34,7 +44,7 @@ namespace MonkeyBot.Services
             for (int i = 0; i < urls.Count; i++)
             {
                 string randomImageUrl = urls.ElementAt(_rng.Next(0, urls.Count));
-                if (UrlIsValid(randomImageUrl))
+                if (await UrlIsValid(randomImageUrl))
                 {
                     return new Uri(randomImageUrl);
                 }
@@ -49,34 +59,39 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="url">The path to check</param>
         /// <returns></returns>
-        private static bool UrlIsValid(string url)
+        private async Task<bool> UrlIsValid(string url)
         {
             try
             {
-                var request = WebRequest.Create(new Uri(url)) as HttpWebRequest;
-                request.Timeout = 1000;
-                request.Method = "HEAD"; //Get only the header information -- no need to download any content
+                var uri = new Uri(url);                
 
-                using HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                int statusCode = (int)response.StatusCode;
-                if (statusCode >= 100 && statusCode < 400) //Good requests
+                using (var result = await Get(uri))
                 {
-                    return true;
-                }
-                else if (statusCode >= 500 && statusCode <= 510) //Server Errors
-                {
-                    return false;
+                    int statusCode = (int)result.StatusCode;
+                    if (statusCode >= 100 && statusCode < 400) //Good requests
+                    {
+                        return true;
+                    }
+                    else if (statusCode >= 500 && statusCode <= 510) //Server Errors
+                    {
+                        return false;
+                    }
                 }
             }
-            catch (WebException ex)
+            catch (Exception e)
             {
-                if (ex.Status == WebExceptionStatus.ProtocolError) //400 errors
-                {
-                    return false;
-                }
+                _logger.LogError(e, $"There was a problem checking the url {url}");
             }
-            catch (Exception) { } //YOLO
-            return false;
+            return false;            
+        }
+
+        private async Task<HttpResponseMessage> Get(Uri uri)
+        {
+            var httpClient = _clientFactory.CreateClient();
+            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri));
+            return response.StatusCode != HttpStatusCode.MethodNotAllowed
+                ? response
+                : await httpClient.SendAsync(new HttpRequestMessage() { RequestUri = uri }, HttpCompletionOption.ResponseHeadersRead);
         }
     }
 }
