@@ -1,4 +1,4 @@
-name: Build
+name: Build and Test
 
 on: [push, pull_request]
 
@@ -18,3 +18,5 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
