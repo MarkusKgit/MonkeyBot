@@ -186,11 +186,19 @@ namespace MonkeyBot.Services
                     builder.WithDescription(description);
                     builder.WithUrl(feedItem.Link);
                     builder.WithFooter($"{feed.Title} {publishingDate}", feed.ImageUrl);
-                    if (!imgLink.IsEmptyOrWhiteSpace())
+                    if (!imgLink.IsEmptyOrWhiteSpace() && imgLink.ToLowerInvariant().StartsWith("http"))
                     {
                         builder.WithImageUrl(imgLink);
                     }
-                    await (channel?.SendMessageAsync(builder.Build()));
+                    try
+                    {
+                        await (channel?.SendMessageAsync(builder.Build()));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error with posting updates to feed {guildFeed.URL} in {guild.Name}.");
+                    }
+                    
                 }
 
                 if (latestUpdateUTC > DateTime.MinValue)
