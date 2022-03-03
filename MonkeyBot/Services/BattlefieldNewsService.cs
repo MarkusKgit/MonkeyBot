@@ -86,8 +86,9 @@ namespace MonkeyBot.Services
             }
             var builder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(21, 26, 35))
-                .WithTitle("New Battlefield Update")
-                .WithDescription($"[{latestBattlefieldUpdate.Title}]({latestBattlefieldUpdate.UpdateUrl})\n{latestBattlefieldUpdate.Description}")
+                .WithTitle(latestBattlefieldUpdate.Title)
+                .WithUrl(latestBattlefieldUpdate.UpdateUrl)
+                .WithDescription(latestBattlefieldUpdate.Description)
                 .WithImageUrl(latestBattlefieldUpdate.ImgUrl)
                 .WithFooter(latestBattlefieldUpdate.UpdateDate.ToString());
             await (channel?.SendMessageAsync(builder.Build()));
@@ -99,7 +100,7 @@ namespace MonkeyBot.Services
         private static async Task<BattlefieldUpdate> GetLatestBattlefieldUpdateAsync()
         {
             var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync("https://www.battlefield.com/en-gb/news");
+            HtmlDocument document = await web.LoadFromWebAsync("https://www.ea.com/en-gb/games/battlefield/news");
             HtmlNode latestUpdate = document?.DocumentNode?.SelectNodes("//ea-grid/ea-container/ea-tile")?.FirstOrDefault();
             string imgUrl = latestUpdate?.GetAttributeValue<string>("media", "");
             string title = latestUpdate?.SelectNodes(".//h3")?.FirstOrDefault()?.InnerHtml.Trim();
@@ -112,7 +113,7 @@ namespace MonkeyBot.Services
                     && !string.IsNullOrEmpty(sUpdateDate)
                     && !string.IsNullOrEmpty(link)
                     && DateTime.TryParseExact(sUpdateDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate)
-                ? new BattlefieldUpdate(imgUrl, title, description, $"https://www.battlefield.com{link}", parsedDate.ToUniversalTime())
+                ? new BattlefieldUpdate(imgUrl, title, description, link, parsedDate.ToUniversalTime())
                 : null;
         }
     }
