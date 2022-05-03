@@ -50,9 +50,19 @@ namespace MonkeyBot.Services
 
         private readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        private static readonly DiscordEmoji trueEmoji = DiscordEmoji.FromUnicode("👍");
-        private static readonly DiscordEmoji falseEmoji = DiscordEmoji.FromUnicode("👎");
-        private static readonly DiscordEmoji[] truefalseEmojis = new DiscordEmoji[] { trueEmoji, falseEmoji };
+        private static readonly DiscordButtonComponent[] trueFalseOptions = new DiscordButtonComponent[] 
+        { 
+            new(ButtonStyle.Primary, "Trivia_Answer_True", "👍"), 
+            new(ButtonStyle.Primary, "Trivia_Answer_False", "👎") 
+        };
+
+        private static readonly DiscordButtonComponent[] multipleChoiceOptions = new DiscordButtonComponent[]
+        {
+            new(ButtonStyle.Primary, "Trivia_Answer_A", "A"),
+            new(ButtonStyle.Primary, "Trivia_Answer_B", "B"),
+            new(ButtonStyle.Primary, "Trivia_Answer_C", "C"),
+            new(ButtonStyle.Primary, "Trivia_Answer_D", "D")
+        };
 
         private static readonly DiscordEmoji[] multipleChoiceEmojis = new[] {
                         DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(0)),
@@ -185,17 +195,16 @@ namespace MonkeyBot.Services
 
                 int points = QuestionToPoints(currentQuestion);
                 builder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
-
-                DiscordEmoji[] answerEmojis;
-                DiscordEmoji correctAnswerEmoji;
+                DiscordButtonComponent[] answerButtons;
                 DiscordMessage m;
 
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
                     builder.AddField($"{currentQuestion.Question}", "True or false?");
 
-                    correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
-                    answerEmojis = truefalseEmojis;
+                    //correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
+                    //answerEmojis = truefalseEmojis;
+                    answerButtons = trueFalseOptions;
                 }
                 else // TriviaQuestionType.MultipleChoice)
                 {
@@ -206,56 +215,62 @@ namespace MonkeyBot.Services
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next())
                                                    .ToList();
                     builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
-                    correctAnswerEmoji = DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
-                    answerEmojis = multipleChoiceEmojis;
+                    //correctAnswerEmoji = DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
+                    answerButtons = multipleChoiceOptions;
                 }
+                
+                var msgBuilder = new DiscordMessageBuilder().WithEmbed(builder.Build()).AddComponents(answerButtons);                
+                //TODO: cache
+                var guild = await _discordClient.GetGuildAsync(_guildId);
+                var channel = guild.GetChannel(_channelId);
+                m = await msgBuilder.SendAsync(channel);
+                await Task.Delay(TimeSpan.FromSeconds(30));
+                await m.DeleteAsync();
+                ////var results = await _interactivityExtension
+                ////    .WaitForButtonAsync(m, buttons, _timeout)
+                ////    .WithCancellationAsync(_cancellation.Token)
+                ////    ;
+                ////List<DiscordUser> correctAnswerUsers = results.Where(x => x.Emoji == correctAnswerEmoji)
+                ////                                              .SelectMany(x => x.Voted)
+                ////                                              .ToList();
+                ////List<DiscordUser> wrongAnswerUsers = results.Where(x => x.Emoji != correctAnswerEmoji)
+                ////                                            .SelectMany(x => x.Voted)
+                ////                                            .ToList();
 
-                m = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: builder.Build());
-                var results = await _interactivityExtension
-                    .DoPollAsync(m, answerEmojis, PollBehaviour.DeleteEmojis, _timeout)
-                    .WithCancellationAsync(_cancellation.Token)
-                    ;
-                List<DiscordUser> correctAnswerUsers = results.Where(x => x.Emoji == correctAnswerEmoji)
-                                                              .SelectMany(x => x.Voted)
-                                                              .ToList();
-                List<DiscordUser> wrongAnswerUsers = results.Where(x => x.Emoji != correctAnswerEmoji)
-                                                            .SelectMany(x => x.Voted)
-                                                            .ToList();
+                ////DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
+                ////    .WithColor(new DiscordColor(46, 191, 84))
+                ////    .WithTitle("Time is up")
+                ////    .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
 
-                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
-                    .WithColor(new DiscordColor(46, 191, 84))
-                    .WithTitle("Time is up")
-                    .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
+                ////string msg;
+                ////if (correctAnswerUsers.Count > 0)
+                ////{
+                ////    correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points));
+                ////    msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.Username))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
+                ////}
+                ////else
+                ////{
+                ////    msg = "No one had it right";
+                ////}
+                ////embedBuilder.AddField("Correct answers", msg, true);
+                ////if (wrongAnswerUsers.Count > 0)
+                ////{
+                ////    wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
+                ////    msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.Username))}* had it wrong! You lose 1 point.";
+                ////}
+                ////else
+                ////{
+                ////    msg = "No one had it wrong.";
+                ////}
+                ////embedBuilder.AddField("Incorrect answers", msg, true);
 
-                string msg;
-                if (correctAnswerUsers.Count > 0)
-                {
-                    correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points));
-                    msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.Username))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
-                }
-                else
-                {
-                    msg = "No one had it right";
-                }
-                embedBuilder.AddField("Correct answers", msg, true);
-                if (wrongAnswerUsers.Count > 0)
-                {
-                    wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
-                    msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.Username))}* had it wrong! You lose 1 point.";
-                }
-                else
-                {
-                    msg = "No one had it wrong.";
-                }
-                embedBuilder.AddField("Incorrect answers", msg, true);
+                ////string highScores = GetCurrentHighScores(3);
+                ////if (!highScores.IsEmptyOrWhiteSpace())
+                ////{
+                ////    embedBuilder.AddField("Top 3:", highScores, true);
+                ////}
 
-                string highScores = GetCurrentHighScores(3);
-                if (!highScores.IsEmptyOrWhiteSpace())
-                {
-                    embedBuilder.AddField("Top 3:", highScores, true);
-                }
-
-                await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
+                //await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embedBuilder.Build());
 
                 currentIndex++;
             }
