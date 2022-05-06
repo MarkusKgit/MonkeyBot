@@ -24,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MonkeyBot.Modules.Reminders;
+using System.Text;
 
 namespace MonkeyBot
 {
@@ -233,9 +234,26 @@ namespace MonkeyBot
 
         private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
         {
-            var guildInfo = e.Guilds.Select(g => $"{g.Value.Name}({g.Value.Id}): {g.Value.MemberCount} members");
-            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{string.Join("\n", guildInfo)}");
+            var guildInfos = e.Guilds.Select(async g => await GetGuildInfo(g.Value)).Select(t => t.Result);
+            string guildInfo = string.Join("\n", guildInfos);
+            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{guildInfo}");
             return Task.CompletedTask;
+        }
+
+        private static async Task<string> GetGuildInfo(DiscordGuild guild)
+        {
+            var channels = await guild.GetChannelsAsync();
+            string channelInfo = $"Text: {channels.Count(c => c.Type == ChannelType.Text)} Voice: {channels.Count(c => c.Type == ChannelType.Voice)} Other: {channels.Count(c => c.Type != ChannelType.Voice && c.Type != ChannelType.Text && c.Type != ChannelType.Category)}";            
+            StringBuilder builder = new();
+            builder.AppendLine($"{guild.Name}({guild.Id}):");
+            builder.AppendLine($"├ Created on:    {guild.CreationTimestamp}");
+            builder.AppendLine($"├ Owned by:      {guild.Owner.Username}");
+            builder.AppendLine($"├ Description:   {guild.Description}");
+            builder.AppendLine($"├ Membercount:   {guild.MemberCount}");            
+            builder.AppendLine($"├ Channel count: {channelInfo}");
+            builder.AppendLine($"└ Roles:         {string.Join(", ", guild.Roles.Values.OrderByDescending(r => r.Position).Select(r => r.Name))}");
+            
+            return builder.ToString();
         }
 
         private static async Task DiscordClient_GuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
@@ -296,7 +314,7 @@ namespace MonkeyBot
 
         private static async Task DiscordClient_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
         {
-            _discordClient.Logger.LogInformation($"Joined guild {e.Guild.Name}");
+            _discordClient.Logger.LogInformation($"Joined guild:\n{await GetGuildInfo(e.Guild)}");
             // Make sure to create the config;
             await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
             
