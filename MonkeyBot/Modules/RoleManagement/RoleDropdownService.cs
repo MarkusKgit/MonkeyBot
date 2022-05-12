@@ -144,8 +144,7 @@ namespace MonkeyBot.Services
         private Task DiscordClient_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
         {
             Task.Run(async () =>
-            {
-                await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            {                
                 var interactionUser = e.Interaction.User;
                 var guild = e.Guild;
                 var channel = e.Interaction.Channel;
@@ -156,6 +155,7 @@ namespace MonkeyBot.Services
                     .SingleOrDefaultAsync(x => x.GuildId == guild.Id && x.ChannelId == message.Channel.Id && x.ComponentId == e.Id);
                 if (match is not null)
                 {
+                    await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
                     if (!roleCache.TryGetValue(interactionUser.Id, out ulong[] previouslySelectedRoles))
                     {
                         previouslySelectedRoles = Array.Empty<ulong>();
