@@ -8,6 +8,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -34,7 +35,6 @@ namespace MonkeyBot.Services
 
         private readonly DiscordClient _discordClient;
         private readonly MonkeyDBContext _dbContext;
-        private readonly InteractivityExtension _interactivityExtension;
         private readonly IHttpClientFactory _clientFactory;
         private CancellationTokenSource _cancellation;
 
@@ -44,6 +44,7 @@ namespace MonkeyBot.Services
         private TriviaStatus _status = TriviaStatus.Stopped;
 
         // <userID, score>
+        private ConcurrentDictionary<ulong, string> userAnswers = new();
         private Dictionary<ulong, int> _userScoresCurrent;
         private readonly ulong _channelId;
         private readonly ulong _guildId;
@@ -71,6 +72,8 @@ namespace MonkeyBot.Services
                         DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(3)),
                     };
 
+        private DiscordMessage currentQuestionMessage;
+
         //TODO: Convert this to using buttons
 
         /// <summary>
@@ -83,8 +86,7 @@ namespace MonkeyBot.Services
             _guildId = guildId;
             _channelId = channelId;
             _discordClient = discordClient;
-            _dbContext = dbContext;
-            _interactivityExtension = discordClient.GetInteractivity();
+            _dbContext = dbContext;            
             _clientFactory = clientFactory;            
         }
 
@@ -127,10 +129,11 @@ namespace MonkeyBot.Services
                     )
                 .Build();
             await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embed);
-
-
+            await MonkeyHelpers.TriggerTypingAsync(_discordClient, _guildId, _channelId);
+            await Task.Delay(TimeSpan.FromSeconds(5));
             _userScoresCurrent = new Dictionary<ulong, int>();
             _status = TriviaStatus.Running;
+            _discordClient.ComponentInteractionCreated += ComponentInteractionCreated;
             await PlayTriviaAsync();
             return true;
         }
@@ -145,6 +148,8 @@ namespace MonkeyBot.Services
             {
                 return;
             }
+
+            _discordClient.ComponentInteractionCreated -= ComponentInteractionCreated;
 
             if (_cancellation != null)
             {
@@ -189,18 +194,18 @@ namespace MonkeyBot.Services
                 }
 
                 OTDBQuestion currentQuestion = _questions.ElementAt(currentIndex);
-                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new DiscordColor(26, 137, 185))
                     .WithTitle($"Question {currentIndex + 1}");
 
                 int points = QuestionToPoints(currentQuestion);
-                builder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
+                embedBuilder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
                 DiscordButtonComponent[] answerButtons;
-                DiscordMessage m;
+                
 
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
-                    builder.AddField($"{currentQuestion.Question}", "True or false?");
+                    embedBuilder.AddField($"{currentQuestion.Question}", "True or false?");
 
                     //correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
                     //answerEmojis = truefalseEmojis;
@@ -214,18 +219,19 @@ namespace MonkeyBot.Services
                     // randomize the order of the answers
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next())
                                                    .ToList();
-                    builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
+                    embedBuilder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
                     //correctAnswerEmoji = DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
                     answerButtons = multipleChoiceOptions;
                 }
-                
-                var msgBuilder = new DiscordMessageBuilder().WithEmbed(builder.Build()).AddComponents(answerButtons);                
+                var msgEmbed = embedBuilder.Build();
+                var msgBuilder = new DiscordMessageBuilder().WithEmbed(msgEmbed).AddComponents(answerButtons);                
                 //TODO: cache
                 var guild = await _discordClient.GetGuildAsync(_guildId);
                 var channel = guild.GetChannel(_channelId);
-                m = await msgBuilder.SendAsync(channel);
-                await Task.Delay(TimeSpan.FromSeconds(30));
-                await m.DeleteAsync();
+                currentQuestionMessage = await msgBuilder.SendAsync(channel);
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await currentQuestionMessage.ModifyAsync(b => b.WithEmbed(msgEmbed));
+                
                 ////var results = await _interactivityExtension
                 ////    .WaitForButtonAsync(m, buttons, _timeout)
                 ////    .WithCancellationAsync(_cancellation.Token)
@@ -276,6 +282,17 @@ namespace MonkeyBot.Services
             }
             
             await EndTriviaAsync();
+        }
+
+        private Task ComponentInteractionCreated(DiscordClient sender, DSharpPlus.EventArgs.ComponentInteractionCreateEventArgs e)
+        {            
+            if (e.Message != currentQuestionMessage || !e.Id.StartsWith("Trivia_Answer_"))
+                return Task.CompletedTask;
+            
+            string answer = e.Id.Substring("Trivia_Answer_".Length);
+            userAnswers.AddOrUpdate(e.User.Id, answer, (_, _) => answer);
+            e.Handled = true;
+            return Task.CompletedTask;
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)

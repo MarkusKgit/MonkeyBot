@@ -78,5 +78,17 @@ namespace MonkeyBot.Common
             }
             return Task.FromResult<DiscordMessage>(null);
         }
+
+        internal static Task TriggerTypingAsync(DiscordClient discordClient, ulong guildID, ulong channelID)
+        {
+            if (discordClient.Guilds.TryGetValue(guildID, out DiscordGuild guild))
+            {
+                if (guild.Channels.TryGetValue(channelID, out DiscordChannel channel))
+                {
+                    return channel.TriggerTypingAsync();
+                }
+            }
+            return Task.CompletedTask;
+        }
     }
 }
