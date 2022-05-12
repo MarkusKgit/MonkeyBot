@@ -226,17 +226,24 @@ namespace MonkeyBot
             _discordClient.GuildDeleted += DiscordClient_GuildDeleted;
         }
 
-        private static async Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
+        private static Task DiscordClient_Ready(DiscordClient client, ReadyEventArgs e)
         {
-            _discordClient.Logger.LogInformation("Client Connected");
-            await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));
+            _ = Task.Run(async () =>
+            {
+                _discordClient.Logger.LogInformation("Client Connected");
+                await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));
+            });
+            return Task.CompletedTask;
         }
 
         private static Task DiscordClient_GuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
         {
-            var guildInfos = e.Guilds.Select(async g => await GetGuildInfo(g.Value)).Select(t => t.Result);
-            string guildInfo = string.Join("\n", guildInfos);
-            _discordClient.Logger.LogInformation($"Guild Download Complete:\n{guildInfo}");
+            _ = Task.Run(() =>
+            {
+                var guildInfos = e.Guilds.Select(async g => await GetGuildInfo(g.Value)).Select(t => t.Result);
+                string guildInfo = string.Join("\n", guildInfos);
+                _discordClient.Logger.LogInformation($"Guild Download Complete:\n{guildInfo}");
+            });
             return Task.CompletedTask;
         }
 
@@ -256,84 +263,104 @@ namespace MonkeyBot
             return builder.ToString();
         }
 
-        private static async Task DiscordClient_GuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
+        private static Task DiscordClient_GuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
         {
-            GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
-            string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
-            if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
+            _ = Task.Run(async () =>
             {
-                DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
-                welcomeMessage = welcomeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
-                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-                    .WithColor(DiscordColor.DarkBlue)
-                    .WithDescription(welcomeMessage)
-                    .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
-                    .WithTimestamp(DateTime.Now);
-
-                await (channel?.SendMessageAsync(embed: builder.Build()));
-            }
-        }
-
-        private static async Task DiscordClient_GuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
-        {
-            GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
-            string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
-            if (config?.GoodbyeMessageChannelId != null && !goodbyeMessage.IsEmpty())
-            {
-                DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
-                goodbyeMessage = goodbyeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
-                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-                    .WithColor(DiscordColor.DarkBlue)
-                    .WithDescription(goodbyeMessage)
-                    .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
-                    .WithTimestamp(DateTime.Now);
-
-                await (channel?.SendMessageAsync(embed: builder.Build()));
-            }
-        }
-
-        private static async Task DiscordClient_GuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
-        {
-            GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
-            if (config == null || !config.StreamAnnouncementsEnabled || config.ConfirmedStreamerIds == null || !config.ConfirmedStreamerIds.Contains(e.Member.Id))
-            {
-                // Streaming announcements has to be enabled for the guild and the streamer must first opt in to have it announced
-                return;
-            }
-
-            if (e.Member.Presence.Activity.ActivityType == ActivityType.Streaming)
-            {
-                DiscordChannel channel = e.Guild.GetDefaultChannel();
-                if (config?.DefaultChannelId != null)
+                GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+                string welcomeMessage = config?.WelcomeMessageText ?? string.Empty;
+                if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
                 {
-                    channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? channel;
+                    DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
+                    welcomeMessage = welcomeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .WithColor(DiscordColor.DarkBlue)
+                        .WithDescription(welcomeMessage)
+                        .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
+                        .WithTimestamp(DateTime.Now);
+
+                    await (channel?.SendMessageAsync(embed: builder.Build()));
                 }
-                await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
-            }
+            });
+            return Task.CompletedTask;
         }
 
-        private static async Task DiscordClient_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+        private static Task DiscordClient_GuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
         {
-            _discordClient.Logger.LogInformation($"Joined guild:\n{await GetGuildInfo(e.Guild)}");
-            // Make sure to create the config;
-            await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
-            
-            var msgBuilder = new DiscordEmbedBuilder()
-                .WithTitle("Hello, I am ***Monkey Bot***")
-                .WithThumbnail("https://raw.githubusercontent.com/MarkusKgit/MonkeyBot/main/Logos/MonkeyBot.png",50,50)
-                .WithColor(DiscordColor.SpringGreen)
-                .AddField("Documentation","https://github.com/MarkusKgit/MonkeyBot")
-                .AddField("Discord server", "https://discord.gg/hHyntGMh8E")
-                .WithDescription("Use command `!help` to check what can I do for you.");
-            
-            var channel = e.Guild.GetDefaultChannel() ?? await e.Guild.CreateTextChannelAsync("Welcome channel");
-            await channel.SendMessageAsync(msgBuilder.Build());
+            _ = Task.Run(async () =>
+            {
+                GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+                string goodbyeMessage = config?.GoodbyeMessageText ?? string.Empty;
+                if (config?.GoodbyeMessageChannelId != null && !goodbyeMessage.IsEmpty())
+                {
+                    DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
+                    goodbyeMessage = goodbyeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .WithColor(DiscordColor.DarkBlue)
+                        .WithDescription(goodbyeMessage)
+                        .WithThumbnail(new Uri(e.Member.AvatarUrl ?? e.Member.DefaultAvatarUrl))
+                        .WithTimestamp(DateTime.Now);
+
+                    await (channel?.SendMessageAsync(embed: builder.Build()));
+                }
+            });
+            return Task.CompletedTask;
         }
 
-        private static async Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)
+        private static Task DiscordClient_GuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
         {
-            _discordClient.Logger.LogInformation($"Left guild {e.Guild.Name}");
-            await _guildService.RemoveConfigAsync(e.Guild.Id);
+            _ = Task.Run(async () =>
+            {
+                GuildConfig config = await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+                if (config == null || !config.StreamAnnouncementsEnabled || config.ConfirmedStreamerIds == null || !config.ConfirmedStreamerIds.Contains(e.Member.Id))
+                {
+                    // Streaming announcements has to be enabled for the guild and the streamer must first opt in to have it announced
+                    return;
+                }
+
+                if (e.Member.Presence.Activity.ActivityType == ActivityType.Streaming)
+                {
+                    DiscordChannel channel = e.Guild.GetDefaultChannel();
+                    if (config?.DefaultChannelId != null)
+                    {
+                        channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? channel;
+                    }
+                    await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
+                }
+            });
+            return Task.CompletedTask;
+        }
+
+        private static Task DiscordClient_GuildCreated(DiscordClient client, GuildCreateEventArgs e)
+        {
+            _ = Task.Run(async () =>
+            {
+                _discordClient.Logger.LogInformation($"Joined guild:\n{await GetGuildInfo(e.Guild)}");
+                // Make sure to create the config;
+                await _guildService.GetOrCreateConfigAsync(e.Guild.Id);
+            
+                var msgBuilder = new DiscordEmbedBuilder()
+                    .WithTitle("Hello, I am ***Monkey Bot***")
+                    .WithThumbnail("https://raw.githubusercontent.com/MarkusKgit/MonkeyBot/main/Logos/MonkeyBot.png",50,50)
+                    .WithColor(DiscordColor.SpringGreen)
+                    .AddField("Documentation","https://github.com/MarkusKgit/MonkeyBot")
+                    .AddField("Discord server", "https://discord.gg/hHyntGMh8E")
+                    .WithDescription("Use command `!help` to check what can I do for you.");
+            
+                var channel = e.Guild.GetDefaultChannel() ?? await e.Guild.CreateTextChannelAsync("Welcome channel");
+                await channel.SendMessageAsync(msgBuilder.Build());
+            });
+            return Task.CompletedTask;
+        }
+
+        private static Task DiscordClient_GuildDeleted(DiscordClient client, GuildDeleteEventArgs e)
+        {
+            _ = Task.Run(async () =>
+            {
+                _discordClient.Logger.LogInformation($"Left guild {e.Guild.Name}");
+                await _guildService.RemoveConfigAsync(e.Guild.Id);
+            });
+            return Task.CompletedTask;
         }
 
         private static async Task Commands_CommandErrored(CommandsNextExtension commandsNext, CommandErrorEventArgs e)
