@@ -21,6 +21,7 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Chuck")]
+        [Priority(0)]
         [Description("Gets a random Chuck Norris fact.")]
         public async Task GetChuckFactAsync(CommandContext ctx)
         {
@@ -32,22 +33,22 @@ namespace MonkeyBot.Modules
         }
 
         [Command("Chuck")]
+        [Priority(1)]
         [Description("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
-        public async Task GetChuckFactAsync(CommandContext ctx, [RemainingText][Description("The person to chuck")] DiscordUser user)
+        public async Task GetChuckFactAsync(CommandContext ctx, [RemainingText][Description("The person to chuck")] DiscordMember user)
         {
             await ctx.TriggerTypingAsync();
             if (user == null)
             {
                 await ctx.ErrorAsync("Invalid User");
-            }
-            string fact = await (_chuckService?.GetChuckFactAsync(user.Username));
+            }            
+            string fact = await (_chuckService?.GetChuckFactAsync(user.DisplayName));
             if (fact.IsEmpty())
             {
                 await ctx.ErrorAsync("Could not get a chuck fact :(");
                 return;
-            }
-            fact = fact.Replace(user.Username, $"Chuck \"*{user.Mention}*\"");
-            await ctx.OkAsync(fact, $"Random Chuck \"*{user.Username}*\" Norris fact", false);
+            }            
+            await ctx.OkAsync(fact, $"Random Chuck \"*{user.DisplayName}*\" Norris fact", false);
         }
     }
 }

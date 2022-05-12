@@ -142,7 +142,7 @@ namespace MonkeyBot.Modules
             foreach (DiscordRole role in assignableRoles)
             {
                 IOrderedEnumerable<string> roleUsers = guildMembers?.Where(m => m.Roles.Contains(role))
-                                                                    .Select(x => x.Username)
+                                                                    .Select(x => x.DisplayName)
                                                                     .OrderBy(x => x);
                 if (roleUsers != null && roleUsers.Any())
                 {
@@ -175,7 +175,7 @@ namespace MonkeyBot.Modules
 
             IReadOnlyCollection<DiscordMember> guildMembers = await ctx.Guild.GetAllMembersAsync();
             IOrderedEnumerable<string> roleUsers = guildMembers?.Where(x => x.Roles.Contains(role))
-                                                              .Select(x => x.Username)
+                                                              .Select(x => x.DisplayName)
                                                               .OrderBy(x => x);
             if (roleUsers == null || !roleUsers.Any())
             {

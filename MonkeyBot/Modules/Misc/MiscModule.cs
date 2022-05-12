@@ -59,7 +59,7 @@ namespace MonkeyBot.Modules
             var builder = new DiscordEmbedBuilder()
                 .WithTitle("Let me google that for you")
                 .WithThumbnail("https://lmgtfy.com/assets/SERP/lmgtfy_logo.png")                
-                .WithDescription($"{ctx.Member.Nickname ?? ctx.Member.Username} wants to point you to a magic place filled with answers. [Just click this link]({url})")
+                .WithDescription($"{ctx.Member.Nickname ?? ctx.Member.DisplayName} wants to point you to a magic place filled with answers. [Just click this link]({url})")
                 .WithUrl(url);
             await ctx.RespondAsync(builder.Build());
         }

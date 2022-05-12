@@ -231,7 +231,7 @@ namespace MonkeyBot
             _ = Task.Run(async () =>
             {
                 _discordClient.Logger.LogInformation("Client Connected");
-                await _discordClient.UpdateStatusAsync(new DiscordActivity($"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));
+                await _discordClient.UpdateStatusAsync(new DiscordActivity($"{_discordClient.CurrentUser.Mention} help", ActivityType.Watching));
             });
             return Task.CompletedTask;
         }
@@ -272,7 +272,7 @@ namespace MonkeyBot
                 if (config?.WelcomeMessageChannelId != null && !welcomeMessage.IsEmpty())
                 {
                     DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
-                    welcomeMessage = welcomeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
+                    welcomeMessage = welcomeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.DisplayName);
                     DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                         .WithColor(DiscordColor.DarkBlue)
                         .WithDescription(welcomeMessage)
@@ -294,7 +294,7 @@ namespace MonkeyBot
                 if (config?.GoodbyeMessageChannelId != null && !goodbyeMessage.IsEmpty())
                 {
                     DiscordChannel channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? e.Guild.GetDefaultChannel();
-                    goodbyeMessage = goodbyeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.Username);
+                    goodbyeMessage = goodbyeMessage.Replace("%server%", e.Guild.Name).Replace("%user%", e.Member.DisplayName);
                     DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                         .WithColor(DiscordColor.DarkBlue)
                         .WithDescription(goodbyeMessage)
@@ -325,7 +325,7 @@ namespace MonkeyBot
                     {
                         channel = e.Guild.GetChannel(config.WelcomeMessageChannelId) ?? channel;
                     }
-                    await (channel?.SendMessageAsync($"{e.Member.Username} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
+                    await (channel?.SendMessageAsync($"{e.Member.DisplayName} has started streaming. Watch it [here]({e.Member.Presence.Activity.StreamUrl}) "));
                 }
             });
             return Task.CompletedTask;

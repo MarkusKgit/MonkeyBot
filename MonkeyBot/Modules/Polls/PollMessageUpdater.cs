@@ -43,7 +43,7 @@ namespace MonkeyBot.Modules
                 .WithTitle("New poll")
                 .WithColor(DiscordColor.Azure)
                 .WithDescription("...")
-                .WithAuthor(ctx.Member.Username, iconUrl: ctx.Member.AvatarUrl);
+                .WithAuthor(ctx.Member.DisplayName, iconUrl: ctx.Member.AvatarUrl);
             var pollMessage = await ctx.RespondAsync(pollEmbedBuilder.Build());
             var msgBuilder = new DiscordMessageBuilder()
                 .WithEmbed(pollEmbedBuilder.Build());

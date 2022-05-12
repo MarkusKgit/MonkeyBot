@@ -91,7 +91,7 @@ namespace MonkeyBot.Services
                 .WithTitle($"Poll results: {poll.Question}")
                 .WithColor(DiscordColor.Azure)
                 .WithDescription(
-                    $"**{pollCreator.Mention}{(pollCreator.Username.EndsWith('s') ? "'" : "'s")} poll ended. Here are the results:**\n\n" +
+                    $"**{pollCreator.Mention}{(pollCreator.DisplayName.EndsWith('s') ? "'" : "'s")} poll ended. Here are the results:**\n\n" +
                     string.Join("\n", emojiMapping
                         .Select(ans =>
                             new {Answer = ans.Value, Votes = pollResult.Single(r => r.Emoji == ans.Key).Count})
