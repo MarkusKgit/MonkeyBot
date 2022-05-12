@@ -1,8 +1,11 @@
 ﻿using DSharpPlus;
+using Microsoft.EntityFrameworkCore;
 using MonkeyBot.Database;
+using MonkeyBot.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -47,10 +50,14 @@ namespace MonkeyBot.Services
             return false;
         }
 
-        public Task<IEnumerable<(ulong userId, int score)>> GetGlobalHighScoresAsync(ulong guildId, int amount)
+        public async Task<IEnumerable<(ulong userId, int score)>> GetGlobalHighScoresAsync(ulong guildId, int amount)
         {
-            throw new NotImplementedException();
-            //TODO: Implement
+            List<TriviaScore> userScoresAllTime = await _dbContext.TriviaScores
+                .AsQueryable()
+                .Where(s => s.GuildID == guildId)
+                .OrderByDescending(x => x.Score)
+                .ToListAsync();
+            return userScoresAllTime.Select(s => (s.UserID, s.Score));
         }
     }
 }

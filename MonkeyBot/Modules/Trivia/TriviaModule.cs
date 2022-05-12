@@ -1,4 +1,5 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using MonkeyBot.Common;
@@ -49,17 +50,21 @@ namespace MonkeyBot.Modules
         [Example("triviascores 10")]
         public async Task GetScoresAsync(CommandContext ctx, [Description("The amount of scores to get.")] int amount = 5)
         {
-            IEnumerable<(ulong userId, int score)> globalScores = await _triviaService.GetGlobalHighScoresAsync(ctx.Guild.Id, amount);
+            List<(ulong UserId, int Score)> globalScores = (await _triviaService.GetGlobalHighScoresAsync(ctx.Guild.Id, amount)).ToList();
             if (globalScores != null && globalScores.Any())
-            {
-
-                string highScores = string.Join('\n', globalScores
-                    .OrderByDescending(x => x.score)
-                    .Select(async (x, i) => $"{i + 1}. {(await ctx.Guild.GetMemberAsync(x.userId))?.Mention ?? "Invalid user"}"));
+            {   
+                List<string> scores = new List<string>();
+                for (int i = 0; i < globalScores.Count; i++)
+                {
+                    var score = globalScores[i];
+                    DiscordMember member = await ctx.Guild.GetMemberAsync(score.UserId);
+                    scores.Add(Formatter.Bold($"#{i + 1} ") + (member?.DisplayName ?? "Invalid User") + $": {score.Score} points");
+                }
+                
                 var embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new DiscordColor(46, 191, 84))
                     .WithTitle("Trivia high scores")
-                    .WithDescription(highScores);
+                    .WithDescription(string.Join("\n", scores));
                 await ctx.RespondAsync("", embed: embedBuilder.Build());
             }
             else

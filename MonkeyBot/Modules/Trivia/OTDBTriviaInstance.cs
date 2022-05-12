@@ -8,6 +8,7 @@ using MonkeyBot.Common;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -34,7 +35,6 @@ namespace MonkeyBot.Services
 
         private readonly DiscordClient _discordClient;
         private readonly MonkeyDBContext _dbContext;
-        private readonly InteractivityExtension _interactivityExtension;
         private readonly IHttpClientFactory _clientFactory;
         private CancellationTokenSource _cancellation;
 
@@ -44,22 +44,30 @@ namespace MonkeyBot.Services
         private TriviaStatus _status = TriviaStatus.Stopped;
 
         // <userID, score>
+        private ConcurrentDictionary<DiscordMember, string> userAnswers = new();
         private Dictionary<ulong, int> _userScoresCurrent;
         private readonly ulong _channelId;
         private readonly ulong _guildId;
 
         private readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        private static readonly DiscordEmoji trueEmoji = DiscordEmoji.FromUnicode("👍");
-        private static readonly DiscordEmoji falseEmoji = DiscordEmoji.FromUnicode("👎");
-        private static readonly DiscordEmoji[] truefalseEmojis = new DiscordEmoji[] { trueEmoji, falseEmoji };
+        private static readonly DiscordButtonComponent[] trueFalseButtons = new DiscordButtonComponent[] 
+        { 
+            new(ButtonStyle.Primary, "Trivia_Answer_True", "👍"), 
+            new(ButtonStyle.Primary, "Trivia_Answer_False", "👎") 
+        };
 
-        private static readonly DiscordEmoji[] multipleChoiceEmojis = new[] {
-                        DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(0)),
-                        DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(1)),
-                        DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(2)),
-                        DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(3)),
-                    };
+        private static readonly DiscordButtonComponent[] multipleChoiceButtons = new DiscordButtonComponent[]
+        {
+            new(ButtonStyle.Primary, "Trivia_Answer_A", "A"),
+            new(ButtonStyle.Primary, "Trivia_Answer_B", "B"),
+            new(ButtonStyle.Primary, "Trivia_Answer_C", "C"),
+            new(ButtonStyle.Primary, "Trivia_Answer_D", "D")
+        };
+
+        private static readonly string[] multipleChoiceOptions = new string[] {"A", "B", "C", "D"};
+
+        private DiscordMessage currentQuestionMessage;
 
         //TODO: Convert this to using buttons
 
@@ -73,8 +81,7 @@ namespace MonkeyBot.Services
             _guildId = guildId;
             _channelId = channelId;
             _discordClient = discordClient;
-            _dbContext = dbContext;
-            _interactivityExtension = discordClient.GetInteractivity();
+            _dbContext = dbContext;            
             _clientFactory = clientFactory;            
         }
 
@@ -110,17 +117,19 @@ namespace MonkeyBot.Services
                 .WithTitle("Trivia")
                 .WithDescription(
                      $"Starting trivia with {questionsToPlay} question{ (questionsToPlay == 1 ? "" : "s")}. \n"
-                    + "- Answer each question by clicking on the corresponding Emoji \n"
-                    + "- Each question has a value of 1-3 points \n"
-                    + $"- You have {_timeout.TotalSeconds} seconds for each question. \n"                    
+                    + $"- Answer each question by clicking on the corresponding Button \n"
+                    + $"- Each question has a value of 1-3 points \n"
+                    + $"- You have {_timeout.TotalSeconds} seconds for each question. \n"
+                    + $"- Only your first answer counts! Choose wisely. \n"
                     + "- Each wrong answer will reduce your points by 1 until you are back to zero"
                     )
                 .Build();
             await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: embed);
-
-
+            await MonkeyHelpers.TriggerTypingAsync(_discordClient, _guildId, _channelId);
+            await Task.Delay(TimeSpan.FromSeconds(5));
             _userScoresCurrent = new Dictionary<ulong, int>();
             _status = TriviaStatus.Running;
+            _discordClient.ComponentInteractionCreated += ComponentInteractionCreated;
             await PlayTriviaAsync();
             return true;
         }
@@ -135,6 +144,8 @@ namespace MonkeyBot.Services
             {
                 return;
             }
+
+            _discordClient.ComponentInteractionCreated -= ComponentInteractionCreated;
 
             if (_cancellation != null)
             {
@@ -179,23 +190,20 @@ namespace MonkeyBot.Services
                 }
 
                 OTDBQuestion currentQuestion = _questions.ElementAt(currentIndex);
-                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new DiscordColor(26, 137, 185))
                     .WithTitle($"Question {currentIndex + 1}");
 
                 int points = QuestionToPoints(currentQuestion);
-                builder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
+                embedBuilder.Description = $"{currentQuestion.Category} - {currentQuestion.Difficulty} : {points} point{(points == 1 ? "" : "s")}";
+                DiscordButtonComponent[] answerButtons;
 
-                DiscordEmoji[] answerEmojis;
-                DiscordEmoji correctAnswerEmoji;
-                DiscordMessage m;
-
+                string correctAnswer = "";
                 if (currentQuestion.Type == TriviaQuestionType.TrueFalse)
                 {
-                    builder.AddField($"{currentQuestion.Question}", "True or false?");
-
-                    correctAnswerEmoji = currentQuestion.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase) ? trueEmoji : falseEmoji;
-                    answerEmojis = truefalseEmojis;
+                    embedBuilder.AddField($"{currentQuestion.Question}", "True or false?");
+                    answerButtons = trueFalseButtons;
+                    correctAnswer = currentQuestion.CorrectAnswer;
                 }
                 else // TriviaQuestionType.MultipleChoice)
                 {
@@ -205,24 +213,31 @@ namespace MonkeyBot.Services
                     // randomize the order of the answers
                     var randomizedAnswers = answers.OrderBy(_ => rand.Next())
                                                    .ToList();
-                    builder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{MonkeyHelpers.GetUnicodeRegionalLetter(i)} {s}")));
-                    correctAnswerEmoji = DiscordEmoji.FromUnicode(MonkeyHelpers.GetUnicodeRegionalLetter(randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)));
-                    answerEmojis = multipleChoiceEmojis;
+                    embedBuilder.AddField($"{currentQuestion.Question}", string.Join(Environment.NewLine, randomizedAnswers.Select((s, i) => $"{Formatter.Bold(multipleChoiceOptions[i])}: {s}")));
+                    //DEBUG:
+                    //embedBuilder.AddField("Correct Answer:", currentQuestion.CorrectAnswer);
+                    answerButtons = multipleChoiceButtons;
+                    correctAnswer = multipleChoiceOptions[randomizedAnswers.IndexOf(currentQuestion.CorrectAnswer)];
                 }
-
-                m = await MonkeyHelpers.SendChannelMessageAsync(_discordClient, _guildId, _channelId, embed: builder.Build());
-                var results = await _interactivityExtension
-                    .DoPollAsync(m, answerEmojis, PollBehaviour.DeleteEmojis, _timeout)
-                    .WithCancellationAsync(_cancellation.Token)
-                    ;
-                List<DiscordUser> correctAnswerUsers = results.Where(x => x.Emoji == correctAnswerEmoji)
-                                                              .SelectMany(x => x.Voted)
+                var msgEmbed = embedBuilder.Build();
+                var msgBuilder = new DiscordMessageBuilder().WithEmbed(msgEmbed).AddComponents(answerButtons);                
+                //TODO: cache
+                var guild = await _discordClient.GetGuildAsync(_guildId);
+                var channel = guild.GetChannel(_channelId);
+                currentQuestionMessage = await msgBuilder.SendAsync(channel);
+                userAnswers.Clear();
+                // Give the users time to answer and listen to the Interaction events to collect answers
+                await Task.Delay(_timeout);
+                await currentQuestionMessage.ModifyAsync(b => b.WithEmbed(msgEmbed));
+                                
+                List<DiscordMember> correctAnswerUsers = userAnswers.Where(x => x.Value == correctAnswer)
+                                                              .Select(x => x.Key)
                                                               .ToList();
-                List<DiscordUser> wrongAnswerUsers = results.Where(x => x.Emoji != correctAnswerEmoji)
-                                                            .SelectMany(x => x.Voted)
+                List<DiscordMember> wrongAnswerUsers = userAnswers.Where(x => x.Value != correctAnswer)
+                                                            .Select(x => x.Key)
                                                             .ToList();
 
-                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
+                embedBuilder = new DiscordEmbedBuilder()
                     .WithColor(new DiscordColor(46, 191, 84))
                     .WithTitle("Time is up")
                     .WithDescription($"The correct answer was: **{ currentQuestion.CorrectAnswer}**");
@@ -231,7 +246,7 @@ namespace MonkeyBot.Services
                 if (correctAnswerUsers.Count > 0)
                 {
                     correctAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, points));
-                    msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.Username))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
+                    msg = $"*{string.Join(", ", correctAnswerUsers.Select(u => u.DisplayName))}* had it right! Here, have {points} point{(points == 1 ? "" : "s")}.";
                 }
                 else
                 {
@@ -241,7 +256,7 @@ namespace MonkeyBot.Services
                 if (wrongAnswerUsers.Count > 0)
                 {
                     wrongAnswerUsers.ForEach(async usr => await AddPointsToUserAsync(usr, -1));
-                    msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.Username))}* had it wrong! You lose 1 point.";
+                    msg = $"*{string.Join(", ", wrongAnswerUsers.Select(u => u.DisplayName))}* had it wrong! You lose 1 point.";
                 }
                 else
                 {
@@ -261,6 +276,26 @@ namespace MonkeyBot.Services
             }
             
             await EndTriviaAsync();
+        }
+
+        private async Task ComponentInteractionCreated(DiscordClient sender, DSharpPlus.EventArgs.ComponentInteractionCreateEventArgs e)
+        {            
+            if (e.Message != currentQuestionMessage || !e.Id.StartsWith("Trivia_Answer_"))
+                return;
+
+            var member = await e.Guild.GetMemberAsync(e.User.Id);
+            string answer = e.Id.Substring("Trivia_Answer_".Length);
+            if (!userAnswers.ContainsKey(member))
+            {
+                userAnswers.TryAdd(member, answer);
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"You answered {answer}").AsEphemeral());
+            }
+            else
+            {
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Only your first answer counts! Choose wisely").AsEphemeral());
+            }
+            
+            
         }
 
         private static int QuestionToPoints(ITriviaQuestion question)
@@ -285,27 +320,28 @@ namespace MonkeyBot.Services
             // Add points to current scores and global scores
             AddPointsCurrent(user, _userScoresCurrent, pointsToAdd);
 
-            TriviaScore currentScore = await _dbContext.TriviaScores
+            int currentGameScore = _userScoresCurrent[user.Id];
+            TriviaScore currentDBScore = await _dbContext.TriviaScores
                 .AsQueryable()
                 .FirstOrDefaultAsync(s => s.GuildID == _guildId && s.UserID == user.Id)
                 ;
-            //pointsToAdd can be negative -> prevent less than zero points
-            if (currentScore == null && pointsToAdd < 0)
+            //pointsToAdd can be negative -> prevent less than zero points. Also don't deduct points if the current game has zero points already
+            if ((currentDBScore == null || currentGameScore == 0) && pointsToAdd < 0)
             {
                 pointsToAdd = 0;
-            }
-            else if (currentScore != null && currentScore.Score + pointsToAdd < 0)
+            }            
+            else if (currentDBScore != null && currentDBScore.Score + pointsToAdd < 0)
             {
-                pointsToAdd = -1 * currentScore.Score;
+                pointsToAdd = -1 * currentDBScore.Score;
             }
-            if (currentScore == null)
+            if (currentDBScore == null)
             {
                 await _dbContext.AddAsync(new TriviaScore { GuildID = _guildId, UserID = user.Id, Score = pointsToAdd });
             }
             else
             {
-                currentScore.Score += pointsToAdd;
-                _dbContext.Update(currentScore);
+                currentDBScore.Score += pointsToAdd;
+                _dbContext.Update(currentDBScore);
             }
             await _dbContext.SaveChangesAsync();
 
@@ -340,7 +376,7 @@ namespace MonkeyBot.Services
             IEnumerable<string> sortedScores = _userScoresCurrent
                 .OrderByDescending(x => x.Value)
                 .Take(amount)
-                .Select((score, pos) => $"**#{pos + 1}: {(_discordClient.Guilds[_guildId].Members[score.Key]).Username}**: {score.Value} point{(score.Value == 1 ? "" : "s")}");
+                .Select((score, pos) => $"**#{pos + 1}: {(_discordClient.Guilds[_guildId].Members[score.Key]).DisplayName}**: {score.Value} point{(score.Value == 1 ? "" : "s")}");
 
             return string.Join(", ", sortedScores);
         }
@@ -373,7 +409,7 @@ namespace MonkeyBot.Services
             IEnumerable<string> sortedScores = userScoresAllTime
                 .OrderByDescending(x => x.Score)
                 .Take(correctedCount)
-                .Select((score, pos) => $"**#{pos + 1}: {(guild.Members[score.UserID])?.Username}**: {score.Score} point{(score.Score == 1 ? "" : "s")}");
+                .Select((score, pos) => $"**#{pos + 1}: {(guild.Members[score.UserID])?.DisplayName}**: {score.Score} point{(score.Score == 1 ? "" : "s")}");
 
             return string.Join(Environment.NewLine, sortedScores);
         }
