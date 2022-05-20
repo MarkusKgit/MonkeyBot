@@ -20,35 +20,21 @@ namespace MonkeyBot.Modules
             _chuckService = chuckService;
         }
 
-        [Command("Chuck")]
-        [Priority(0)]
-        [Description("Gets a random Chuck Norris fact.")]
-        public async Task GetChuckFactAsync(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-            string fact = await (_chuckService?.GetChuckFactAsync());
-            _ = fact.IsEmpty()
-                ? await ctx.ErrorAsync("Could not get a chuck fact :(")
-                : await ctx.OkAsync(fact, "Random Chuck Norris fact", false);
-        }
-
-        [Command("Chuck")]
-        [Priority(1)]
+        [Command("Chuck")]        
         [Description("Gets a random Chuck Norris fact and replaces Chuck Norris with the given name.")]
-        public async Task GetChuckFactAsync(CommandContext ctx, [RemainingText][Description("The person to chuck")] DiscordMember user)
+        public async Task GetChuckFactAsync(CommandContext ctx, [RemainingText][Description("The person to chuck")] DiscordMember user = null)
         {
-            await ctx.TriggerTypingAsync();
-            if (user == null)
-            {
-                await ctx.ErrorAsync("Invalid User");
-            }            
-            string fact = await (_chuckService?.GetChuckFactAsync(user.DisplayName));
-            if (fact.IsEmpty())
-            {
-                await ctx.ErrorAsync("Could not get a chuck fact :(");
-                return;
-            }            
-            await ctx.OkAsync(fact, $"Random Chuck \"*{user.DisplayName}*\" Norris fact", false);
+            await ctx.TriggerTypingAsync();            
+            string fact = user == null 
+                ? await (_chuckService?.GetChuckFactAsync()) 
+                : await (_chuckService?.GetChuckFactAsync(user.DisplayName));            
+            string title = user == null
+                ? "Random Chuck Norris fact"
+                : $"Random Chuck \"*{user.DisplayName}*\" Norris fact";
+            _ = fact.IsEmpty()
+               ? await ctx.ErrorAsync("Could not get a chuck fact :(")
+               : await ctx.OkAsync(fact, title, false);
+
         }
     }
 }
