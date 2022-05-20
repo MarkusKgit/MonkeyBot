@@ -232,7 +232,7 @@ namespace MonkeyBot
             _ = Task.Run(async () =>
             {
                 _discordClient.Logger.LogInformation("Client Connected");
-                await _discordClient.UpdateStatusAsync(new DiscordActivity($"{_discordClient.CurrentUser.Mention} help", ActivityType.Watching));
+                await _discordClient.UpdateStatusAsync(new DiscordActivity(@$"@{_discordClient.CurrentUser.Username} help", ActivityType.Watching));
             });
             return Task.CompletedTask;
         }
