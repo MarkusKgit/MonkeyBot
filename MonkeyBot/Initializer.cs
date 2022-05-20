@@ -81,10 +81,14 @@ namespace MonkeyBot
             };
             logConfig.AddTarget(fileTarget);
 
+            // Surpress message clutter from entity framework and HTTP client
+            logConfig.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Info, new NullTarget(), "Microsoft.*", final: true);
+            logConfig.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Info, new NullTarget(), "System.Net.Http.*", final: true);
+            
             logConfig.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, coloredConsoleTarget);
             logConfig.AddRuleForAllLevels(debugTarget);
             logConfig.AddRuleForAllLevels(fileTarget);
-
+            
             return logConfig;
         }
         private static async Task<DiscordClient> SetupDiscordClient(LoggingConfiguration loggingConfig)
@@ -111,8 +115,8 @@ namespace MonkeyBot
                 .AddLogging(loggingBuilder =>
                     {
                         loggingBuilder.SetMinimumLevel(LogLevel.Trace);
-                        loggingBuilder.AddNLog(loggingConfiguration);
-                    })
+                        loggingBuilder.AddNLog(loggingConfiguration);                        
+                    })                
                 .AddHttpClient()
                 .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
                 .AddSingleton(discordClient)
@@ -134,9 +138,6 @@ namespace MonkeyBot
                 .AddSingleton<IPollService, PollService>()
                 .AddSingleton<IRoleManagementService, RoleManagementService>()
                 .AddSingleton<IBenzenFactService, BenzenFactService>();
-
-            //Remove unnecessary Http Client log clutter
-            services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
 
             IServiceProvider provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
 
