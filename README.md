@@ -80,9 +80,9 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Prerequisites
 
-* Latest .NET SDK for your platform (5.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
+* Latest .NET SDK for your platform (6.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
 * A registered Discord application with a bot access token. If you don't have one, you can create one with your existing Discord account [here](https://discordapp.com/developers/applications/). There you have to add a Bot and need to copy both **Bot Token** and **Client ID**. To then add the bot to your Discord server go to `https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID]`, replacing *[ID]* with the **Client ID** of your bot (not the token)
-* Optional: An IDE of your choice (Visual Studio 2019 recommended)
+* Optional: An IDE of your choice (Visual Studio 2022 recommended)
 
 ### Installation
 
