@@ -60,7 +60,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Built With
 
-* [.NET 5](https://docs.microsoft.com/en-us/dotnet/fundamentals/)
+* [.NET 6](https://docs.microsoft.com/en-us/dotnet/fundamentals/)
 * [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus)
 * [nChronic](https://github.com/PingmanTools/nChronic)
 * [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
