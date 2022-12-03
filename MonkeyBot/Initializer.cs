@@ -174,7 +174,7 @@ namespace MonkeyBot
 
             IPollService pollService = services.GetService<IPollService>();
             //Disable for now and fix later
-            await pollService.InitializeAsync();
+            //await pollService.InitializeAsync();
 
             return;
         }
