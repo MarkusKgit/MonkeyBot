@@ -18,12 +18,12 @@ namespace MonkeyBot.Services
     public class PollService : IPollService
     {
         private readonly DiscordClient _discordClient;
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
 
-        public PollService(DiscordClient discordClient, MonkeyDBContext dbContext)
+        public PollService(DiscordClient discordClient, IDbContextFactory<MonkeyDBContext> dbContextFactory)
         {
             _discordClient = discordClient;
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task AddAndStartPollAsync(Poll poll)
@@ -34,8 +34,9 @@ namespace MonkeyBot.Services
             
             await pollMessage.PinAsync();
 
-            await _dbContext.Polls.AddAsync(poll);
-            await _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            await dbContext.Polls.AddAsync(poll);
+            await dbContext.SaveChangesAsync();
 
             await StartPollAsync(poll);
         }
@@ -64,8 +65,9 @@ namespace MonkeyBot.Services
                     var answer = poll.PossibleAnswers.First(x => x.Id == answerId);
                     
                     answer.UpdateCount(user.Id);
-                    _dbContext.Update(poll);
-                    await  _dbContext.SaveChangesAsync(cancelTokenSource.Token);
+                    using var dbContext = _dbContextFactory.CreateDbContext();
+                    dbContext.Update(poll);
+                    await  dbContext.SaveChangesAsync(cancelTokenSource.Token);
                     
                     await btnClick.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage);
                     
@@ -99,20 +101,22 @@ namespace MonkeyBot.Services
                             $"**{ans.Answer}**: {"vote".ToQuantity(ans.Votes)} ({100.0 * ans.Votes / totalVotes:F1} %)"))
                 );
             await channel.SendMessageAsync(embed: pollResultEmbed.Build());
-            
-            _dbContext.Polls.Remove(poll);
-            await _dbContext.SaveChangesAsync();
+
+            using var dbContext1 = _dbContextFactory.CreateDbContext();
+            dbContext1.Polls.Remove(poll);
+            await dbContext1.SaveChangesAsync();
         }
 
         public async Task InitializeAsync()
         {
-            List<Poll> dbPolls = await _dbContext.Polls.ToListAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            List<Poll> dbPolls = await dbContext.Polls.ToListAsync();
             var pastPolls = dbPolls.Where(p => p.EndTimeUTC < DateTime.UtcNow);
             //TODO: Decide with what to do with past polls. Show result if the overdue time is not too large? For now just delete from DB
             if (pastPolls.Any())
-            {
-                _dbContext.Polls.RemoveRange(pastPolls);
-                await _dbContext.SaveChangesAsync();
+            {                
+                dbContext.Polls.RemoveRange(pastPolls);
+                await dbContext.SaveChangesAsync();
             }
 
             var pollsTasks = dbPolls.Where(p => p.EndTimeUTC > DateTime.UtcNow)

@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -15,18 +16,18 @@ namespace MonkeyBot.Services
 {
     public class SteamGameServerService : BaseGameServerService
     {
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly DiscordClient _discordClient;
         private readonly ILogger<SteamGameServerService> _logger;
 
         public SteamGameServerService(
-            MonkeyDBContext dbContext,
+            IDbContextFactory<MonkeyDBContext> dbContextFactory,
             DiscordClient discordClient,
             ISchedulingService schedulingService,
             ILogger<SteamGameServerService> logger)
-            : base(GameServerType.Steam, dbContext, discordClient, schedulingService, logger)
+            : base(GameServerType.Steam, dbContextFactory, discordClient, schedulingService, logger)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _discordClient = discordClient;
             _logger = logger;
         }
@@ -81,11 +82,12 @@ namespace MonkeyBot.Services
                 //string connectLink = $"steam://connect/{discordGameServer.ServerIP.Address}:{serverInfo.Port}";
                 //builder.AddField("Connect using this link", connectLink);
 
+                using var dbContext = _dbContextFactory.CreateDbContext();
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version;
-                    _dbContext.GameServers.Update(discordGameServer);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.GameServers.Update(discordGameServer);
+                    await dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -93,8 +95,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _dbContext.GameServers.Update(discordGameServer);
-                        await _dbContext.SaveChangesAsync();
+                        dbContext.GameServers.Update(discordGameServer);
+                        await dbContext.SaveChangesAsync();
                     }
                 }
 
@@ -132,8 +134,8 @@ namespace MonkeyBot.Services
                 else
                 {
                     discordGameServer.MessageID = (await (channel?.SendMessageAsync(builder.Build()))).Id;
-                    _dbContext.GameServers.Update(discordGameServer);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.GameServers.Update(discordGameServer);
+                    await dbContext.SaveChangesAsync();
                 }
 
             }

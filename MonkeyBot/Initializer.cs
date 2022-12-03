@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using MonkeyBot.Modules.Reminders;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace MonkeyBot
 {
@@ -118,7 +119,7 @@ namespace MonkeyBot
                         loggingBuilder.AddNLog(loggingConfiguration);                        
                     })                
                 .AddHttpClient()
-                .AddDbContext<MonkeyDBContext>(ServiceLifetime.Transient)
+                .AddDbContextFactory<MonkeyDBContext>()
                 .AddSingleton(discordClient)
                 .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<ISchedulingService, SchedulingService>()
@@ -146,7 +147,8 @@ namespace MonkeyBot
 
         private static async Task StartServicesAsync(IServiceProvider services)
         {
-            MonkeyDBContext dbContext = services.GetRequiredService<MonkeyDBContext>();
+            IDbContextFactory<MonkeyDBContext> dbContextFactory = services.GetRequiredService<IDbContextFactory<MonkeyDBContext>>();
+            MonkeyDBContext dbContext = dbContextFactory.CreateDbContext();
             await DBInitializer.InitializeAsync(dbContext);
 
             IReminderService reminders = services.GetService<IReminderService>();

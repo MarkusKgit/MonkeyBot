@@ -16,7 +16,7 @@ namespace MonkeyBot.Services
     public class RoleDropdownService : IRoleDropdownService
     {
         private readonly DiscordClient _discordClient;
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly ILogger<RoleDropdownService> _logger;
         private readonly IRoleManagementService _roleManagementService;
         // User Id -> previously selected roles
@@ -24,10 +24,10 @@ namespace MonkeyBot.Services
 
         private const string _message = "Please use this to assign yourself any role";
 
-        public RoleDropdownService(DiscordClient discordClient, MonkeyDBContext dbContext, ILogger<RoleDropdownService> logger, IRoleManagementService roleManagementService)
+        public RoleDropdownService(DiscordClient discordClient, IDbContextFactory<MonkeyDBContext> dbContextFactory, ILogger<RoleDropdownService> logger, IRoleManagementService roleManagementService)
         {
             _discordClient = discordClient;
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _logger = logger;
             _roleManagementService = roleManagementService;
         }
@@ -81,8 +81,9 @@ namespace MonkeyBot.Services
             var roleSelectorComponentMessage = await message.RespondAsync(messageBuilder);
 
             var messageComponentLink = new MessageComponentLink { GuildId = guildId, ChannelId = channelId, ParentMessageId = messageId, MessageId = roleSelectorComponentMessage.Id, ComponentId = roleSelectorComponent.CustomId };
-            _dbContext.MessageComponentLinks.Add(messageComponentLink);
-            await _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.MessageComponentLinks.Add(messageComponentLink);
+            await dbContext.SaveChangesAsync();
         }
 
         public async Task RemoveRoleSelectorComponentsAsync(ulong guildId)
@@ -93,7 +94,8 @@ namespace MonkeyBot.Services
                 throw new ArgumentException("Invalid guild");
             }
 
-            var messageComponentLink = await _dbContext.MessageComponentLinks.FirstOrDefaultAsync(m => m.GuildId == guildId);
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var messageComponentLink = await dbContext.MessageComponentLinks.FirstOrDefaultAsync(m => m.GuildId == guildId);
             if (messageComponentLink == null)
             {
                 _logger.LogDebug($"Error in {nameof(RemoveRoleSelectorComponentsAsync)} - Could not get the message link");
@@ -119,15 +121,22 @@ namespace MonkeyBot.Services
         }
 
         public async Task<bool> ExistsAsync(ulong guildId)
-            => await _dbContext.MessageComponentLinks.AnyAsync(x => x.GuildId == guildId);
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return await dbContext.MessageComponentLinks.AnyAsync(x => x.GuildId == guildId);
+        }
 
         public async Task<MessageComponentLink> GetForGuildAsync(ulong guildId)
-            => await _dbContext.MessageComponentLinks.SingleOrDefaultAsync(x => x.GuildId == guildId);
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return await dbContext.MessageComponentLinks.SingleOrDefaultAsync(x => x.GuildId == guildId);
+        }
 
         private async Task RemoveDatabaseEntryAsync(MessageComponentLink messageComponentLink)
         {
-            _dbContext.MessageComponentLinks.Remove(messageComponentLink);
-            await _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.MessageComponentLinks.Remove(messageComponentLink);
+            await dbContext.SaveChangesAsync();
         }
 
         private async Task<DiscordSelectComponent> PrepareRoleSelectorDropdownComponentAndClearRoleCacheAsync(DiscordGuild guild)
@@ -150,7 +159,8 @@ namespace MonkeyBot.Services
                 var channel = e.Interaction.Channel;
                 var message = e.Message;
 
-                MessageComponentLink match = await _dbContext.MessageComponentLinks
+                using var dbContext = _dbContextFactory.CreateDbContext();
+                MessageComponentLink match = await dbContext.MessageComponentLinks
                     .AsQueryable()
                     .SingleOrDefaultAsync(x => x.GuildId == guild.Id && x.ChannelId == message.Channel.Id && x.ComponentId == e.Id);
                 if (match is not null)
@@ -235,7 +245,8 @@ namespace MonkeyBot.Services
 
         private async Task UpdateRoleSelectorMessageAsync(DiscordGuild guild, MessageComponentLink messageComponentLink = null)
         {
-            messageComponentLink ??= await _dbContext.MessageComponentLinks.SingleOrDefaultAsync(m => m.GuildId == guild.Id);
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            messageComponentLink ??= await dbContext.MessageComponentLinks.SingleOrDefaultAsync(m => m.GuildId == guild.Id);
             var messageId = messageComponentLink.MessageId;
             var channelId = messageComponentLink.ChannelId;
             DiscordChannel channel = guild.GetChannel(channelId);
@@ -259,7 +270,8 @@ namespace MonkeyBot.Services
 
         private async Task InitializeMessageComponentLinksAsync()
         {
-            var messageComponentLinks = await _dbContext.MessageComponentLinks.ToListAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var messageComponentLinks = await dbContext.MessageComponentLinks.ToListAsync();
             foreach (var messageComponentLink in messageComponentLinks)
             {
                 var exists = await LinkExists(messageComponentLink);

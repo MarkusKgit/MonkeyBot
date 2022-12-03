@@ -1,4 +1,5 @@
-﻿using MonkeyBot.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using MonkeyBot.Database;
 using MonkeyBot.Models;
 using System;
 using System.Linq;
@@ -8,20 +9,21 @@ namespace MonkeyBot.Services
 {
     public class BenzenFactService : IBenzenFactService
     {
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
 
-        public BenzenFactService(MonkeyDBContext dbContext)
+        public BenzenFactService(IDbContextFactory<MonkeyDBContext> dbContextFactory)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
         }
 
         public Task<(string Fact, int Number)> GetRandomFactAsync()
         {
-            int totalFacts = _dbContext.BenzenFacts.Count();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            int totalFacts = dbContext.BenzenFacts.Count();
             var r = new Random();
             int randomOffset = r.Next(0, totalFacts);
 
-            string fact = _dbContext
+            string fact = dbContext
                 .BenzenFacts
                 .AsQueryable()
                 .OrderBy(x => x.ID)
@@ -33,14 +35,16 @@ namespace MonkeyBot.Services
 
         public async Task AddFactAsync(string fact)
         {
-            _dbContext.BenzenFacts.Add(new BenzenFact(fact));
-            await _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.BenzenFacts.Add(new BenzenFact(fact));
+            await dbContext.SaveChangesAsync();
         }
 
         public Task<bool> Exists(string fact)
         {
+            using var dbContext = _dbContextFactory.CreateDbContext();
             return Task.FromResult(
-                           _dbContext
+                           dbContext
                            .BenzenFacts
                            .AsEnumerable()
                            .Any(f => string.Equals(f.Fact, fact, StringComparison.Ordinal))

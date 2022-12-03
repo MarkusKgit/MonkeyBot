@@ -21,14 +21,14 @@ namespace MonkeyBot.Services
         private static readonly TimeSpan _updateIntervall = TimeSpan.FromMinutes(30);
         private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
 
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly DiscordClient _discordClient;
         private readonly ISchedulingService _schedulingService;
         private readonly ILogger<FeedService> _logger;
 
-        public FeedService(MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<FeedService> logger)
+        public FeedService(IDbContextFactory<MonkeyDBContext> dbContextFactory, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<FeedService> logger)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _discordClient = discordClient;
             _schedulingService = schedulingService;
             _logger = logger;
@@ -46,31 +46,34 @@ namespace MonkeyBot.Services
                 GuildID = guildID,
                 ChannelID = channelID
             };
-            _dbContext.Feeds.Add(feed);
-            await _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.Feeds.Add(feed);
+            await dbContext.SaveChangesAsync();
             await GetFeedUpdateAsync(feed, true);
         }
 
         public async Task RemoveFeedAsync(string nameOrUrl, ulong guildID)
         {
-            var feeds = await _dbContext.Feeds.ToListAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var feeds = await dbContext.Feeds.ToListAsync();
             Models.Feed feed = feeds.SingleOrDefault(f => f.Name.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() || (f.URL.ToLowerInvariant() == nameOrUrl.ToLowerInvariant() && f.GuildID == guildID));
             if (feed != null)
             {
-                _dbContext.Feeds.Remove(feed);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Feeds.Remove(feed);
+                await dbContext.SaveChangesAsync();
             }
         }
 
         public async Task RemoveAllFeedsAsync(ulong guildID, ulong? channelID)
         {
+            using var dbContext = _dbContextFactory.CreateDbContext();
             List<Models.Feed> allFeeds = await GetAllFeedsInternalAsync(guildID, channelID);
             if (allFeeds == null)
             {
                 return;
             }
-            _dbContext.Feeds.RemoveRange(allFeeds);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Feeds.RemoveRange(allFeeds);
+            await dbContext.SaveChangesAsync();
         }
 
         public async Task<List<GuildFeed>> GetFeedsForGuildAsync(ulong guildId, ulong? channelId = null)
@@ -84,9 +87,10 @@ namespace MonkeyBot.Services
 
         private Task<List<Models.Feed>> GetAllFeedsInternalAsync(ulong guildID, ulong? channelID = null)
         {
+            using var dbContext = _dbContextFactory.CreateDbContext();
             return channelID.HasValue
-                ? _dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync()
-                : _dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
+                ? dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID && x.ChannelID == channelID.Value).ToListAsync()
+                : dbContext.Feeds.AsQueryable().Where(x => x.GuildID == guildID).ToListAsync();
         }
 
         private async Task GetAllFeedUpdatesAsync()
@@ -203,9 +207,10 @@ namespace MonkeyBot.Services
 
                 if (latestUpdateUTC > DateTime.MinValue)
                 {
+                    using var dbContext = _dbContextFactory.CreateDbContext();
                     guildFeed.LastUpdate = latestUpdateUTC;
-                    _dbContext.Feeds.Update(guildFeed);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.Feeds.Update(guildFeed);
+                    await dbContext.SaveChangesAsync();
                 }
             }
         }

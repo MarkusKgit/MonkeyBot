@@ -16,14 +16,14 @@ namespace MonkeyBot.Modules.Reminders
     /// </summary>
     public class ReminderService : IReminderService
     {
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly DiscordClient _discordClient;
         private readonly ISchedulingService _schedulingService;
         private readonly ILogger<ReminderService> _logger;
 
-        public ReminderService(MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<ReminderService> logger)
+        public ReminderService(IDbContextFactory<MonkeyDBContext> dbContextFactory, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<ReminderService> logger)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _discordClient = discordClient;
             _schedulingService = schedulingService;
             _logger = logger;
@@ -52,8 +52,9 @@ namespace MonkeyBot.Modules.Reminders
             // Create the reminder, add it to the list and persist it
             var reminder = new Reminder { Type = ReminderType.Recurring, GuildId = guildId, ChannelId = channelId, CronExpression = cronExpression, Name = id, Message = message };
             AddRecurringJob(reminder);
-            _dbContext.Reminders.Add(reminder);
-            return _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.Reminders.Add(reminder);
+            return dbContext.SaveChangesAsync();
         }
 
         private void AddRecurringJob(Reminder reminder)
@@ -83,8 +84,9 @@ namespace MonkeyBot.Modules.Reminders
             // Create the reminder, add it to the list and persist it
             var reminder = new Reminder { Type = ReminderType.Once, GuildId = guildId, ChannelId = channelId, ExecutionTime = excecutionTime, Name = id, Message = message };
             AddSingleJob(reminder);
-            _dbContext.Reminders.Add(reminder);
-            return _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.Reminders.Add(reminder);
+            return dbContext.SaveChangesAsync();
         }
 
         private void AddSingleJob(Reminder reminder)
@@ -114,8 +116,9 @@ namespace MonkeyBot.Modules.Reminders
             _schedulingService.RemoveJob(GetUniqueId(reminder));
             try
             {
-                _dbContext.Reminders.Remove(reminder);
-                await _dbContext.SaveChangesAsync();
+                using var dbContext = _dbContextFactory.CreateDbContext();
+                dbContext.Reminders.Remove(reminder);
+                await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -144,13 +147,14 @@ namespace MonkeyBot.Modules.Reminders
         /// <summary>Cleanup method to remove single reminders that are in the past</summary>
         private async Task RemovePastJobsAsync()
         {
-            List<Reminder> reminders = await _dbContext.Reminders
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            List<Reminder> reminders = await dbContext.Reminders
                 .AsQueryable()
                 .Where(x => x.Type == ReminderType.Once && x.ExecutionTime < DateTime.Now)
                 .ToListAsync()
                 ;
-            _dbContext.RemoveRange(reminders);
-            await _dbContext.SaveChangesAsync();
+            dbContext.RemoveRange(reminders);
+            await dbContext.SaveChangesAsync();
 
         }
 
@@ -175,13 +179,22 @@ namespace MonkeyBot.Modules.Reminders
             => MonkeyHelpers.SendChannelMessageAsync(_discordClient, guildId, channelId, message);
 
         private Task<List<Reminder>> GetAllRemindersAsync()
-            => _dbContext.Reminders.AsQueryable().ToListAsync();
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return dbContext.Reminders.AsQueryable().ToListAsync();
+        }
 
         public Task<List<Reminder>> GetRemindersForGuildAsync(ulong guildId)
-            => _dbContext.Reminders.AsQueryable().Where(x => x.GuildId == guildId).ToListAsync();
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return dbContext.Reminders.AsQueryable().Where(x => x.GuildId == guildId).ToListAsync();
+        }
 
         private Task<Reminder> GetSpecificReminderAsync(ulong guildId, string reminderName)
-            => _dbContext.Reminders.AsQueryable().SingleOrDefaultAsync(x => x.GuildId == guildId && x.Name == reminderName);
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return dbContext.Reminders.AsQueryable().SingleOrDefaultAsync(x => x.GuildId == guildId && x.Name == reminderName);
+        }
 
         // The reminder's name must be unique on a per guild basis
         private static string GetUniqueId(Reminder reminder) => $"{reminder.Name}-{reminder.GuildId}";

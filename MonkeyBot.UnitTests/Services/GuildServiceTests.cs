@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
 using MonkeyBot.Services;
@@ -13,18 +14,23 @@ namespace MonkeyBot.UnitTests.Services
 {
     public class GuildServiceTests
     {
-        private readonly Mock<MonkeyDBContext> _monkeyDbContext;
-        private readonly Mock<DbSet<GuildConfig>> _mockGuildConfig;
+        private readonly Mock<IDbContextFactory<MonkeyDBContext>> _monkeyDbContextFactory;
+        private Mock<DbSet<GuildConfig>> _mockGuildConfig;
         private readonly IGuildService guildService;
 
         public GuildServiceTests()
         {
-            _monkeyDbContext = new Mock<MonkeyDBContext>();
-
             var guildConfigs = PrepareGuildConfigs(100, 4);
-            _mockGuildConfig = _monkeyDbContext.SetDbSetData(guildConfigs, c => c.GuildConfigs);
-
-            guildService = new GuildService(_monkeyDbContext.Object);
+            _monkeyDbContextFactory = new Mock<IDbContextFactory<MonkeyDBContext>>();
+            _monkeyDbContextFactory.Setup(f => f.CreateDbContext())
+                .Returns(() =>
+                {
+                    var context = new Mock<MonkeyDBContext>();
+                    _mockGuildConfig = context.SetDbSetData(guildConfigs, c => c.GuildConfigs);
+                    return context.Object;
+                });
+            
+            guildService = new GuildService(_monkeyDbContextFactory.Object);
         }
 
         [Fact(DisplayName = "Should create GuildConfig if one does not exist for the given guildId")]
@@ -40,7 +46,6 @@ namespace MonkeyBot.UnitTests.Services
             // Assert
             PropertyMatcher.Match(expectedResult, result);
             _mockGuildConfig.Verify(d => d.Add(Match.Create<GuildConfig>(g => g.GuildID == guildId)), Times.Once);
-            _monkeyDbContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact(DisplayName = "Should return existing GuildConfig if found")]
@@ -56,7 +61,6 @@ namespace MonkeyBot.UnitTests.Services
             // Assert
             PropertyMatcher.Match(expectedResult, result);
             _mockGuildConfig.Verify(d => d.Add(It.IsAny<GuildConfig>()), Times.Never);
-            _monkeyDbContext.Verify(c => c.SaveChangesAsync(default), Times.Never);
         }
 
         [Fact(DisplayName = "Should update GuildConfig")]
@@ -70,8 +74,7 @@ namespace MonkeyBot.UnitTests.Services
             await guildService.UpdateConfigAsync(guildConfig);
 
             // Assert
-            _mockGuildConfig.Verify(d => d.Update(Match.Create<GuildConfig>(g => g.GuildID == guildId)), Times.Once);
-            _monkeyDbContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+            _mockGuildConfig.Verify(d => d.Update(Match.Create<GuildConfig>(g => g.GuildID == guildId)), Times.Once);            
         }
 
         [Fact(DisplayName = "Should remove GuildConfig if found")]
@@ -85,7 +88,6 @@ namespace MonkeyBot.UnitTests.Services
 
             // Assert
             _mockGuildConfig.Verify(d => d.Remove(Match.Create<GuildConfig>(g => g.GuildID == guildId)), Times.Once);
-            _monkeyDbContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact(DisplayName = "Should not remove GuildConfig if not found")]
@@ -99,7 +101,6 @@ namespace MonkeyBot.UnitTests.Services
 
             // Assert
             _mockGuildConfig.Verify(d => d.Remove(Match.Create<GuildConfig>(g => g.GuildID == guildId)), Times.Never);
-            _monkeyDbContext.Verify(c => c.SaveChangesAsync(default), Times.Never);
         }
 
         [Fact(DisplayName = "Should return the right CommandPrefix for an existing GuildConfig")]

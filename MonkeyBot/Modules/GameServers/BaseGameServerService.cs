@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Common;
 using MonkeyBot.Database;
@@ -21,15 +22,15 @@ namespace MonkeyBot.Services
         private static readonly TimeSpan _startDelay = TimeSpan.FromSeconds(10);
 
         private readonly GameServerType _gameServerType;
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly DiscordClient _discordClient;
         private readonly ISchedulingService _schedulingService;
         private readonly ILogger<IGameServerService> _logger;
 
-        protected BaseGameServerService(GameServerType gameServerType, MonkeyDBContext dbContext, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<IGameServerService> logger)
+        protected BaseGameServerService(GameServerType gameServerType, IDbContextFactory<MonkeyDBContext> dbContextFactory, DiscordClient discordClient, ISchedulingService schedulingService, ILogger<IGameServerService> logger)
         {
             _gameServerType = gameServerType;
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _discordClient = discordClient;
             _schedulingService = schedulingService;
             _logger = logger;
@@ -42,10 +43,11 @@ namespace MonkeyBot.Services
         {
             var server = new GameServer { GameServerType = _gameServerType, ServerIP = endpoint, GuildID = guildID, ChannelID = channelID };
             bool success = await PostServerInfoAsync(server);
-            if (success && !_dbContext.GameServers.Contains(server))
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            if (success && !dbContext.GameServers.Contains(server))
             {
-                _dbContext.Add(server);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Add(server);
+                await dbContext.SaveChangesAsync();
             }
             return success;
         }
@@ -54,7 +56,8 @@ namespace MonkeyBot.Services
 
         private async Task PostAllServerInfoAsync()
         {
-            List<GameServer> servers = await _dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == _gameServerType).ToListAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            List<GameServer> servers = await dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == _gameServerType).ToListAsync();
             foreach (GameServer server in servers)
             {
                 try
@@ -69,11 +72,15 @@ namespace MonkeyBot.Services
         }
 
         public async Task<List<GameServer>> ListServers(ulong guildID)
-            => await _dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync();
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return await dbContext.GameServers.AsQueryable().Where(g => g.GuildID == guildID).ToListAsync();
+        }
 
         public async Task RemoveServerAsync(IPEndPoint endPoint, ulong guildID)
         {
-            GameServer serverToRemove = (await _dbContext.GameServers.AsQueryable().ToListAsync()).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            GameServer serverToRemove = (await dbContext.GameServers.AsQueryable().ToListAsync()).FirstOrDefault(x => x.ServerIP.Address.ToString() == endPoint.Address.ToString() && x.ServerIP.Port == endPoint.Port && x.GuildID == guildID);
             if (serverToRemove == null)
             {
                 throw new ArgumentException("The specified server does not exist");
@@ -98,8 +105,8 @@ namespace MonkeyBot.Services
                     _logger.LogError(e, $"Error trying to remove message for game server {endPoint.Address}");
                 }
             }
-            _dbContext.GameServers.Remove(serverToRemove);
-            await _dbContext.SaveChangesAsync();
+            dbContext.GameServers.Remove(serverToRemove);
+            await dbContext.SaveChangesAsync();
         }
 
         protected static async Task<string> GenerateHistoryChartAsync(GameServer discordGameServer, int currentPlayers, int maxPlayers)

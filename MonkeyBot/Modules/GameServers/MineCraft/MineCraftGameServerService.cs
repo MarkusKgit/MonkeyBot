@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonkeyBot.Database;
 using MonkeyBot.Models;
@@ -11,18 +12,18 @@ namespace MonkeyBot.Services
 {
     public class MineCraftGameServerService : BaseGameServerService
     {        
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly DiscordClient _discordClient;        
         private readonly ILogger<MineCraftGameServerService> _logger;
 
         public MineCraftGameServerService(
-            MonkeyDBContext dbContext,            
+            IDbContextFactory<MonkeyDBContext> dbContextFactory,            
             DiscordClient discordClient,
             ISchedulingService schedulingService,
             ILogger<MineCraftGameServerService> logger)
-            : base(GameServerType.Minecraft, dbContext, discordClient, schedulingService, logger)
-        {            
-            _dbContext = dbContext;
+            : base(GameServerType.Minecraft, dbContextFactory, discordClient, schedulingService, logger)
+        {
+            _dbContextFactory = dbContextFactory;
             _discordClient = discordClient;
             _logger = logger;
         }
@@ -60,11 +61,12 @@ namespace MonkeyBot.Services
                     ? builder.AddField($"Online Players ({serverInfo.Players.Online}/{serverInfo.Players.Max})", string.Join(", ", serverInfo.Players.Sample.Select(x => x.Name)))
                     : builder.AddField("Online Players", $"{serverInfo.Players.Online}/{serverInfo.Players.Max}");
 
+                using var dbContext = _dbContextFactory.CreateDbContext();
                 if (discordGameServer.GameVersion.IsEmpty())
                 {
                     discordGameServer.GameVersion = serverInfo.Version.Name;
-                    _dbContext.GameServers.Update(discordGameServer);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.GameServers.Update(discordGameServer);
+                    await dbContext.SaveChangesAsync();
                 }
                 else
                 {
@@ -72,8 +74,8 @@ namespace MonkeyBot.Services
                     {
                         discordGameServer.GameVersion = serverInfo.Version.Name;
                         discordGameServer.LastVersionUpdate = DateTime.Now;
-                        _dbContext.GameServers.Update(discordGameServer);
-                        await _dbContext.SaveChangesAsync();
+                        dbContext.GameServers.Update(discordGameServer);
+                        await dbContext.SaveChangesAsync();
                     }
                 }
                 string lastServerUpdate = "";
@@ -114,8 +116,8 @@ namespace MonkeyBot.Services
                 {
                     DiscordMessage message = await (channel?.SendMessageAsync(builder.Build()));
                     discordGameServer.MessageID = message.Id;
-                    _dbContext.GameServers.Update(discordGameServer);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.GameServers.Update(discordGameServer);
+                    await dbContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)

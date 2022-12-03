@@ -7,38 +7,41 @@ namespace MonkeyBot.Services
 {
     public class GuildService : IGuildService
     {
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
 
-        public GuildService(MonkeyDBContext dbContext)
+        public GuildService(IDbContextFactory<MonkeyDBContext> dbContextFactory)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<GuildConfig> GetOrCreateConfigAsync(ulong guildId)
         {
-            GuildConfig config = await _dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
             if (config == null)
             {
                 config = new GuildConfig { GuildID = guildId };
-                _dbContext.GuildConfigs.Add(config);
-                await _dbContext.SaveChangesAsync();
+                dbContext.GuildConfigs.Add(config);
+                await dbContext.SaveChangesAsync();
             }
             return config;
         }        
 
         public Task UpdateConfigAsync(GuildConfig config)
         {
-            _dbContext.GuildConfigs.Update(config);
-            return _dbContext.SaveChangesAsync();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.GuildConfigs.Update(config);
+            return dbContext.SaveChangesAsync();
         }
 
         public async Task RemoveConfigAsync(ulong guildId)
         {
-            GuildConfig config = await _dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            GuildConfig config = await dbContext.GuildConfigs.SingleOrDefaultAsync(c => c.GuildID == guildId);
             if (config != null)
             {
-                _dbContext.GuildConfigs.Remove(config);
-                await _dbContext.SaveChangesAsync();
+                dbContext.GuildConfigs.Remove(config);
+                await dbContext.SaveChangesAsync();
             }
         }
 

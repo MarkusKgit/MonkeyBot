@@ -34,7 +34,7 @@ namespace MonkeyBot.Services
         private int _loadingRetries;
 
         private readonly DiscordClient _discordClient;
-        private readonly MonkeyDBContext _dbContext;
+        private readonly IDbContextFactory<MonkeyDBContext> _dbContextFactory;
         private readonly IHttpClientFactory _clientFactory;
         private CancellationTokenSource _cancellation;
 
@@ -76,12 +76,12 @@ namespace MonkeyBot.Services
         /// </summary>
         /// <param name="commandContext">Message context of the channel where the trivia should be hosted</param>
         /// <param name="db">DB Service instance</param>
-        public OTDBTriviaInstance(ulong guildId, ulong channelId, DiscordClient discordClient, MonkeyDBContext dbContext, IHttpClientFactory clientFactory)
+        public OTDBTriviaInstance(ulong guildId, ulong channelId, DiscordClient discordClient, IDbContextFactory<MonkeyDBContext> dbContextFactory, IHttpClientFactory clientFactory)
         {
             _guildId = guildId;
             _channelId = channelId;
             _discordClient = discordClient;
-            _dbContext = dbContext;            
+            _dbContextFactory = dbContextFactory;            
             _clientFactory = clientFactory;            
         }
 
@@ -321,7 +321,8 @@ namespace MonkeyBot.Services
             AddPointsCurrent(user, _userScoresCurrent, pointsToAdd);
 
             int currentGameScore = _userScoresCurrent[user.Id];
-            TriviaScore currentDBScore = await _dbContext.TriviaScores
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            TriviaScore currentDBScore = await dbContext.TriviaScores
                 .AsQueryable()
                 .FirstOrDefaultAsync(s => s.GuildID == _guildId && s.UserID == user.Id)
                 ;
@@ -336,14 +337,14 @@ namespace MonkeyBot.Services
             }
             if (currentDBScore == null)
             {
-                await _dbContext.AddAsync(new TriviaScore { GuildID = _guildId, UserID = user.Id, Score = pointsToAdd });
+                await dbContext.AddAsync(new TriviaScore { GuildID = _guildId, UserID = user.Id, Score = pointsToAdd });
             }
             else
             {
                 currentDBScore.Score += pointsToAdd;
-                _dbContext.Update(currentDBScore);
+                dbContext.Update(currentDBScore);
             }
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
 
         }
 
@@ -389,7 +390,8 @@ namespace MonkeyBot.Services
         /// <returns></returns>
         public async Task<string> GetGlobalHighScoresAsync(int amount, ulong guildID)
         {
-            List<TriviaScore> userScoresAllTime = await _dbContext.TriviaScores
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            List<TriviaScore> userScoresAllTime = await dbContext.TriviaScores
                 .AsQueryable()
                 .Where(s => s.GuildID == guildID)
                 .ToListAsync()
