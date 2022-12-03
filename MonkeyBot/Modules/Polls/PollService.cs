@@ -47,6 +47,8 @@ namespace MonkeyBot.Services
             DiscordChannel channel = guild?.GetChannel(poll.ChannelId);
             DiscordMember pollCreator = await guild.GetMemberAsync(poll.CreatorId);
             DiscordMessage pollMessage = await channel.GetMessageAsync(poll.MessageId);
+            if (pollMessage == null)
+                return;
             pollMessage = await pollMessage.ModifyAsync(x => x.AddComponents(PollMessageUpdater.BuildAnswerButtons(poll.PossibleAnswers)));
             var pollMessageUpdater = PollMessageUpdater.Create(pollMessage);
             
