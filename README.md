@@ -18,7 +18,7 @@
     <a href="https://github.com/MarkusKgit/MonkeyBot/blob/main/Commands.md"><strong>Explore the available commands »</strong></a>
     <br />
     <br />
-    <a href="https://discord.gg/hHyntGMh8E">Join Chat</a>
+    <a href="https://discord.gg/Ypdx2y7T2n">Join Chat</a>
     ·
     <a href="https://github.com/MarkusKgit/MonkeyBot/issues">Report Bug</a>
     ·
@@ -60,7 +60,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Built With
 
-* [.NET 6](https://docs.microsoft.com/en-us/dotnet/fundamentals/)
+* [.NET 7](https://docs.microsoft.com/en-us/dotnet/fundamentals/)
 * [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus)
 * [nChronic](https://github.com/PingmanTools/nChronic)
 * [CodeHollow.FeedReader](https://github.com/codehollow/FeedReader/)
@@ -80,7 +80,7 @@ MonkeyBot is a general purpose Discord Bot that was created for the needs of the
 
 ### Prerequisites
 
-* Latest .NET SDK for your platform (6.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
+* Latest .NET SDK for your platform (7.0 or later) - you can download it [here](https://dotnet.microsoft.com/download)
 * A registered Discord application with a bot access token. If you don't have one, you can create one with your existing Discord account [here](https://discordapp.com/developers/applications/). There you have to add a Bot and need to copy both **Bot Token** and **Client ID**. To then add the bot to your Discord server go to `https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID]`, replacing *[ID]* with the **Client ID** of your bot (not the token)
 * Optional: An IDE of your choice (Visual Studio 2022 recommended)
 
@@ -193,7 +193,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 Project Link: [https://github.com/MarkusKgit/MonkeyBot](https://github.com/MarkusKgit/MonkeyBot)
 
-Discord: [https://discord.gg/hHyntGMh8E](https://discord.gg/hHyntGMh8E)
+Discord: [https://discord.gg/Ypdx2y7T2n](https://discord.gg/Ypdx2y7T2n)
 
 
 
@@ -217,5 +217,5 @@ For a full list of commands see [Commands](Commands.md)
 [issues-url]: https://github.com/MarkusKgit/MonkeyBot/issues
 [license-shield]: https://img.shields.io/badge/license-MIT-green.svg?style=flat-square
 [license-url]: LICENSE
-[discord-shield]: https://img.shields.io/discord/333960047761817601.svg?style=flat-square
-[discord-url]: https://discord.gg/hHyntGMh8E
+[discord-shield]: https://img.shields.io/discord/1008988390223515698.svg?style=flat-square
+[discord-url]: https://discord.gg/Ypdx2y7T2n
