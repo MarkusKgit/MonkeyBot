@@ -4,6 +4,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using MonkeyBot.Common;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DSharpPlus.CommandsNext
@@ -68,6 +69,19 @@ namespace DSharpPlus.CommandsNext
             return deletable
                 ? await ctx.RespondDeletableAsync(builder.Build())
                 : await ctx.RespondAsync(builder.Build());
+        }
+
+        public static async Task<DiscordMessage> TryGetMessageAsync(this DiscordChannel channel, ulong messageId)
+        {
+            try
+            {
+                var message = await channel.GetMessageAsync(messageId);
+                return message;
+            }
+            catch (Exception ex) 
+            {
+                return null;
+            }            
         }
 
         public static string Translate(this CheckBaseAttribute check)
