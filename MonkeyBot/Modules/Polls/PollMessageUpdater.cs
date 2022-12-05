@@ -72,7 +72,7 @@ namespace MonkeyBot.Modules
         {
             _embedBuilder =
                 _embedBuilder.WithFooter(
-                    $"Poll ended on {Formatter.Timestamp(endTime, TimestampFormat.ShortDate)} at {Formatter.Timestamp(endTime, TimestampFormat.ShortTime)}");
+                    $"Poll ended");
             _messageBuilder.ClearComponents();
             _messageBuilder = _messageBuilder.WithEmbed(_embedBuilder.Build());
             _message = await _message.ModifyAsync(_messageBuilder);
