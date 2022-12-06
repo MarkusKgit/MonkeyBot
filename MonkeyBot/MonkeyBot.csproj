@@ -26,7 +26,7 @@
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.4" />
     <PackageReference Include="DSharpPlus" Version="4.3.0-nightly-01189" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.3.0-nightly-01189" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.3.0-nightly-01189" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.3.0-nightly-01192" />
     <PackageReference Include="FluentCommandLineParser-netstandard" Version="1.4.3.13" />
     <PackageReference Include="FluentScheduler" Version="5.5.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
