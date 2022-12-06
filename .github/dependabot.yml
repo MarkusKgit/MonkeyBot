@@ -9,7 +9,7 @@ updates:
   ignore:
     - dependency-name: "DSharpPlus"
       update-types: ["version-update:semver-patch"]
-    - dependency-name: "DSharpPlus.Commands"
+    - dependency-name: "DSharpPlus.CommandsNext"
       update-types: ["version-update:semver-patch"]
     - dependency-name: "DSharpPlus.Interactivity"
       update-types: ["version-update:semver-patch"]
