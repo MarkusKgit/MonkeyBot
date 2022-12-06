@@ -62,7 +62,7 @@ namespace MonkeyBot.Modules
         
         public async Task SetPollTitle(string title) => await WithTitle($"**Poll: {title}**");
 
-        public async Task SetEndTime(DateTime endTime) => await WithFooter($"Poll will end on {endTime:dd.MM.yyyy} at {endTime:HH:mm \"UTC\"zz}");
+        public async Task SetEndTime(DateTime endTime) => await WithField("End Time", $"Poll will end on {Formatter.Timestamp(endTime, TimestampFormat.ShortDate)} at {Formatter.Timestamp(endTime, TimestampFormat.ShortTime)}");
 
         public async Task UpdateAnswers(List<PollAnswer> pollAnswers) => await WithDescription(BuildDescription(pollAnswers));
         
@@ -72,7 +72,7 @@ namespace MonkeyBot.Modules
         {
             _embedBuilder =
                 _embedBuilder.WithFooter(
-                    $"Poll ended on {endTime:dd.MM.yyyy} at {endTime:HH:mm \"UTC\"zz}");
+                    $"Poll ended");
             _messageBuilder.ClearComponents();
             _messageBuilder = _messageBuilder.WithEmbed(_embedBuilder.Build());
             _message = await _message.ModifyAsync(_messageBuilder);
@@ -85,9 +85,9 @@ namespace MonkeyBot.Modules
             _message = await _message.ModifyAsync(_messageBuilder);
         }
 
-        private async Task WithFooter(string footer)
+        private async Task WithField(string title, string description)
         {
-            _embedBuilder = _embedBuilder.WithFooter(footer);
+            _embedBuilder = _embedBuilder.AddField(title, description);
             _messageBuilder = _messageBuilder.WithEmbed(_embedBuilder);
             _message = await _message.ModifyAsync(_messageBuilder);
         }

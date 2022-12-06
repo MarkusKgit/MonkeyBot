@@ -1,4 +1,5 @@
 ﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
@@ -46,10 +47,11 @@ namespace MonkeyBot.Services
             DiscordGuild guild = await _discordClient.GetGuildAsync(poll.GuildId);
             DiscordChannel channel = guild?.GetChannel(poll.ChannelId);
             DiscordMember pollCreator = await guild.GetMemberAsync(poll.CreatorId);
-            DiscordMessage pollMessage = await channel.GetMessageAsync(poll.MessageId);
+            
+            DiscordMessage pollMessage = await channel.TryGetMessageAsync(poll.MessageId);
             if (pollMessage == null)
                 return;
-            pollMessage = await pollMessage.ModifyAsync(x => x.AddComponents(PollMessageUpdater.BuildAnswerButtons(poll.PossibleAnswers)));
+            pollMessage = await pollMessage.ModifyAsync(x => x.WithEmbed(pollMessage.Embeds.First()).AddComponents(PollMessageUpdater.BuildAnswerButtons(poll.PossibleAnswers)));
             var pollMessageUpdater = PollMessageUpdater.Create(pollMessage);
             
             TimeSpan pollDuration = poll.EndTimeUTC - DateTime.UtcNow;
