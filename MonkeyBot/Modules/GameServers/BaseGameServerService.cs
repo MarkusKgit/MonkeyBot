@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
@@ -36,8 +37,44 @@ namespace MonkeyBot.Services
             _logger = logger;
         }
 
-        public void Initialize()
-            => _schedulingService.ScheduleJobRecurring("GameServerInfos", _updateIntervall, async () => await PostAllServerInfoAsync(), _startDelay);
+        public async Task InitializeAsync()
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            List<GameServer> servers = await dbContext.GameServers.AsQueryable().Where(x => x.GameServerType == _gameServerType).ToListAsync();
+            foreach (GameServer server in servers)
+            {
+                DiscordGuild guild = null;
+                try
+                {
+                    guild = await _discordClient.GetGuildAsync(server.GuildID);
+                }
+                catch (Exception ex) when (ex is NotFoundException || ex is UnauthorizedException)
+                {
+                    _logger.LogWarning($"Could not get Guild for game server {server.ServerIP}. Deleting entry from DB");
+
+                }
+                DiscordChannel channel = null;
+                if (guild != null)
+                {
+                    try
+                    {
+                        channel = await _discordClient.GetChannelAsync(server.ChannelID);
+                    }
+                    catch (Exception ex) when (ex is NotFoundException || ex is UnauthorizedException)
+                    {
+                        _logger.LogWarning($"Could not get Channel for game server {server.ServerIP} in guild {guild}. Deleting entry from DB");                        
+                    }
+                }
+                
+                if (guild == null || channel == null)
+                {
+                    dbContext.Remove(server);
+                    await dbContext.SaveChangesAsync();
+                }
+                
+            }
+            _schedulingService.ScheduleJobRecurring("GameServerInfos", _updateIntervall, async () => await PostAllServerInfoAsync(), _startDelay);
+        }
 
         public async Task<bool> AddServerAsync(IPEndPoint endpoint, ulong guildID, ulong channelID)
         {

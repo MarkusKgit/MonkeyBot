@@ -155,10 +155,10 @@ namespace MonkeyBot
             await reminders.InitializeAsync();
 
             SteamGameServerService steamGameServerService = services.GetService<SteamGameServerService>();
-            steamGameServerService.Initialize();
+            await steamGameServerService.InitializeAsync();
 
             MineCraftGameServerService minecraftGameServerService = services.GetService<MineCraftGameServerService>();
-            minecraftGameServerService.Initialize();
+            await minecraftGameServerService.InitializeAsync();
 
             IRoleDropdownService roleButtonsService = services.GetService<IRoleDropdownService>();
             await roleButtonsService.InitializeAsync();
@@ -173,8 +173,7 @@ namespace MonkeyBot
             giveAwaysService.Start();
 
             IPollService pollService = services.GetService<IPollService>();
-            //Disable for now and fix later
-            //await pollService.InitializeAsync();
+            await pollService.InitializeAsync();
 
             return;
         }

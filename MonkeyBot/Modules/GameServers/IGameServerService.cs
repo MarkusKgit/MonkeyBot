@@ -34,6 +34,6 @@ namespace MonkeyBot.Services
         /// <summary>
         /// Start the GameServerService to regularly check for game server updates
         /// </summary>
-        void Initialize();
+        Task InitializeAsync();
     }
 }
