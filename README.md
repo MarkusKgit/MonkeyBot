@@ -6,6 +6,9 @@
 [![Discord][discord-shield]][discord-url]
 
 <!-- PROJECT LOGO -->
+</br>
+2023-03-23:
+The code hasn't been updated in quite a while and will probably break in the foreseeable future when the Discord API keeps changing. I don't have the time nor energy to keep working on this as it is rarely ever used. Feel free to fork it or take inspiration from it.
 <br />
 <p align="center">
   <a href="https://github.com/MarkusKgit/MonkeyBot/">
